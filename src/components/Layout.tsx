@@ -1,5 +1,5 @@
 // src/components/Layout.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -17,6 +17,10 @@ import {
   useMediaQuery,
   Divider,
   Avatar,
+  Button,
+  Menu,
+  MenuItem,
+  Chip,
 } from '@mui/material';
 import {
   Home,
@@ -30,10 +34,15 @@ import {
   AccountCircle,
   ElectricBolt,
   Close,
+  Person,
+  Logout,
+  Dashboard,
 } from '@mui/icons-material';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { styled, alpha } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import LoginModal from './LoginModal';
 
 const drawerWidth = 280;
 
@@ -43,7 +52,7 @@ const navItems = [
   { text: 'Shop', icon: <ShoppingCart />, path: '/shop' },
   { text: 'About', icon: <Info />, path: '/about' },
   { text: 'News', icon: <Article />, path: '/news' },
-  { text: 'Admin', icon: <AdminPanelSettings />, path: '/admin' },
+  { text: 'Admin', icon: <AdminPanelSettings />, path: '/admin', adminOnly: true },
 ];
 
 const Search = styled('div')(({ theme }) => ({
@@ -114,9 +123,11 @@ const NavItem = styled(ListItem)<{ active?: string }>(({ theme, active }) => ({
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
+  const { user, logout, isAuthenticated, loginModalOpen, setLoginModalOpen } = useAuth();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -126,6 +137,19 @@ export default function Layout() {
     if (isMobile) {
       setMobileOpen(false);
     }
+  };
+
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleProfileMenuClose();
   };
 
   const drawer = (
@@ -167,19 +191,21 @@ export default function Layout() {
       <Divider sx={{ borderColor: 'rgba(100, 255, 218, 0.1)' }} />
       
       <List sx={{ flex: 1, px: 1, py: 2 }}>
-        {navItems.map((item) => (
-          <NavItem
-            button
-            component={Link}
-            to={item.path}
-            key={item.text}
-            active={location.pathname === item.path ? 'true' : 'false'}
-            onClick={handleNavClick}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </NavItem>
-        ))}
+        {navItems.map((item) => {
+          if (item.adminOnly && user?.role !== 'admin') return null;
+          return (
+            <NavItem
+              component={Link}
+              to={item.path}
+              key={item.text}
+              active={location.pathname === item.path ? 'true' : 'false'}
+              onClick={handleNavClick}
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </NavItem>
+          );
+        })}
       </List>
 
       <Divider sx={{ borderColor: 'rgba(100, 255, 218, 0.1)' }} />
@@ -266,9 +292,67 @@ export default function Layout() {
             />
           </Search>
           
-          <IconButton size="large" color="inherit">
-            <AccountCircle />
-          </IconButton>
+          {isAuthenticated && user ? (
+            <>
+              <Chip
+                label={`Welcome, ${user.name}`}
+                onClick={handleProfileMenuOpen}
+                sx={{
+                  ml: 1,
+                  backgroundColor: 'rgba(100, 255, 218, 0.1)',
+                  color: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'rgba(100, 255, 218, 0.2)',
+                  },
+                }}
+              />
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleProfileMenuClose}
+                PaperProps={{
+                  sx: {
+                    backgroundColor: '#112240',
+                    border: '1px solid rgba(100, 255, 218, 0.2)',
+                    mt: 1,
+                  },
+                }}
+              >
+                <MenuItem
+                  component={Link}
+                  to={user.role === 'admin' ? '/admin' : '/profile'}
+                  onClick={handleProfileMenuClose}
+                >
+                  <ListItemIcon>
+                    {user.role === 'admin' ? <Dashboard fontSize="small" /> : <Person fontSize="small" />}
+                  </ListItemIcon>
+                  {user.role === 'admin' ? 'Dashboard' : 'My Profile'}
+                </MenuItem>
+                <MenuItem onClick={handleLogout}>
+                  <ListItemIcon>
+                    <Logout fontSize="small" />
+                  </ListItemIcon>
+                  Logout
+                </MenuItem>
+              </Menu>
+            </>
+          ) : (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setLoginModalOpen(true)}
+              sx={{
+                ml: 2,
+                backgroundColor: 'rgba(100, 255, 218, 0.1)',
+                color: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'rgba(100, 255, 218, 0.2)',
+                },
+              }}
+            >
+              Sign In
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 
@@ -350,6 +434,12 @@ export default function Layout() {
           </AnimatePresence>
         </Box>
       </Box>
+
+      {/* Login Modal */}
+      <LoginModal
+        open={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+      />
     </Box>
   );
 }
