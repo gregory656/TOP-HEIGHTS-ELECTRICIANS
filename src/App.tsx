@@ -1,35 +1,42 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.tsx
+import { ThemeProvider } from '@mui/material/styles';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import theme from './themes/theme';
+import Layout from './components/Layout';
+import Home from './pages/Home';
+import AdminPanel from './pages/AdminPanel';
+import Shop from './pages/Shop';
+// Import placeholder pages for routes that don't have content yet
+import { Box, Typography } from '@mui/material';
+
+// Placeholder component
+const Placeholder = ({ title }: { title: string }) => (
+  <Box>
+    <Typography variant="h3">{title}</Typography>
+    <Typography>This page is under construction.</Typography>
+  </Box>
+);
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ThemeProvider theme={theme}>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="shop" element={<Shop />} />
+            <Route path="admin" element={<AdminPanel />} />
+            <Route path="services" element={<Placeholder title="Services" />} />
+            <Route path="about" element={<Placeholder title="About Us" />} />
+            <Route path="news" element={<Placeholder title="News" />} />
+            {/* Add a catch-all route for 404 if desired */}
+            <Route path="*" element={<Placeholder title="404 - Not Found" />} />
+          </Route>
+        </Routes>
+      </Router>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
