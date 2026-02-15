@@ -40,11 +40,11 @@ const Footer: React.FC = () => {
   };
 
   const socialLinks = [
-    { icon: <YouTube />, label: 'YouTube', url: 'https://youtube.com/@gregory656' },
-    { icon: <WhatsApp />, label: 'WhatsApp', url: 'https://wa.me/254719637416' },
-    { icon: <Instagram />, label: 'Instagram', url: 'https://instagram.com/gregory656' },
-    { icon: <Facebook />, label: 'Facebook', url: 'https://facebook.com/gregory656' },
-    { icon: <Twitter />, label: 'X (Twitter)', url: 'https://x.com/gregory656' },
+    { icon: <YouTube />, label: 'YouTube', url: 'https://youtube.com/@topheightselectricians' },
+    { icon: <WhatsApp />, label: 'WhatsApp', url: 'https://wa.me/254711343412' },
+    { icon: <Instagram />, label: 'Instagram', url: 'https://www.instagram.com/topheightselectricians?igsh=ZjBvcTU3ZmV3bWFy' },
+    { icon: <Facebook />, label: 'Facebook', url: 'https://facebook.com/TopHeightsElectricalsPLC' },
+    { icon: <Twitter />, label: 'X (Twitter)', url: 'https://x.com/topheightselec' },
   ];
 
   const footerLinks = {
@@ -124,7 +124,7 @@ const Footer: React.FC = () => {
                 </Box>
               </Box>
             </Grid>
-            <Grid size={{ xs: 12, md: 5 }}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <form onSubmit={handleSubscribe}>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <TextField
@@ -151,34 +151,6 @@ const Footer: React.FC = () => {
                   </Button>
                 </Box>
               </form>
-            </Grid>
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Box sx={{ display: 'flex', gap: 1, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-                {socialLinks.map((social) => (
-                  <motion.div
-                    key={social.label}
-                    whileHover={{ scale: 1.1, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <IconButton
-                      component="a"
-                      href={social.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{
-                        color: 'text.secondary',
-                        '&:hover': {
-                          color: 'primary.main',
-                          backgroundColor: 'rgba(100, 255, 218, 0.1)',
-                        },
-                      }}
-                      aria-label={social.label}
-                    >
-                      {social.icon}
-                    </IconButton>
-                  </motion.div>
-                ))}
-              </Box>
             </Grid>
           </Grid>
         </Container>
@@ -210,13 +182,13 @@ const Footer: React.FC = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Phone sx={{ color: 'primary.main', fontSize: 20 }} />
                   <Typography variant="body2" color="text.secondary">
-                    +254 719 637 416
+                    +254 711 343 412
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Email sx={{ color: 'primary.main', fontSize: 20 }} />
                   <Typography variant="body2" color="text.secondary">
-                    info@topheights.co.ke
+                    topheightselectricals@gmail.com
                   </Typography>
                 </Box>
               </Box>
@@ -360,6 +332,33 @@ const Footer: React.FC = () => {
             <Typography variant="body2" color="text.secondary">
               © 2026 Top Heights Electricals. All rights reserved.
             </Typography>
+            {/* Social Media Icons - Moved to bottom */}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {socialLinks.map((social) => (
+                <motion.div
+                  key={social.label}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <IconButton
+                    component="a"
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      color: 'text.secondary',
+                      '&:hover': {
+                        color: 'primary.main',
+                        backgroundColor: 'rgba(100, 255, 218, 0.1)',
+                      },
+                    }}
+                    aria-label={social.label}
+                  >
+                    {social.icon}
+                  </IconButton>
+                </motion.div>
+              ))}
+            </Box>
             <Typography variant="body2" color="text.secondary">
               Made with ⚡ by{' '}
               <Typography
@@ -367,7 +366,7 @@ const Footer: React.FC = () => {
                 variant="body2"
                 sx={{ color: 'primary.main', fontWeight: 600 }}
               >
-                @gregory656
+                @topheightselectricals
               </Typography>
             </Typography>
           </Box>

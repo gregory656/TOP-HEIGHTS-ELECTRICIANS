@@ -34,7 +34,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({ open, onClose, service })
 
   const handleWhatsAppClick = () => {
     const message = `I am interested in a quote for ${service.title}.`;
-    const phoneNumber = '254719637416';
+    const phoneNumber = '254711343412';
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -104,7 +104,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({ open, onClose, service })
           }}
         >
           <iframe
-            src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0&controls=0&showinfo=0&rel=0&modestbranding=1"
+            src="https://youtube.com/shorts/2agQs02DziE?si=S4Ym0pK9fUZVu4NL"
             title={`${service.title} Video`}
             style={{
               width: '100%',

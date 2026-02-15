@@ -31,7 +31,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onExplore }) => {
 
   const handleWhatsAppClick = () => {
     const message = `I am interested in a quote for ${service.title}.`;
-    const phoneNumber = '254719637416';
+    const phoneNumber = '254711343412';
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };

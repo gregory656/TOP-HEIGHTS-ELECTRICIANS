@@ -58,7 +58,7 @@ const ProductDetailDialog: React.FC<ProductDetailDialogProps> = ({ open, onClose
 
   const handleWhatsAppOrder = () => {
     const message = `Order Inquiry: ${product.name} - ${product.size || 'N/A'} - ${formatPrice(product.price)}`;
-    const phoneNumber = '254719637416';
+    const phoneNumber = '254711343412';
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };

@@ -23,6 +23,7 @@ import { Link } from 'react-router-dom';
 import { products } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
+import logoImage from '../assets/topeheights.jpeg';
 
 const Home: React.FC = () => {
   const featuredProducts = products.slice(0, 4);
@@ -131,7 +132,7 @@ const Home: React.FC = () => {
                   </Button>
                   <Button
                     component="a"
-                    href="https://wa.me/254719637416"
+                    href="https://wa.me/254711343412"
                     target="_blank"
                     variant="outlined"
                     size="large"
@@ -223,9 +224,27 @@ const Home: React.FC = () => {
                       justifyContent: 'center',
                       border: '1px solid rgba(100, 255, 218, 0.2)',
                       backdropFilter: 'blur(10px)',
+                      position: 'relative',
                     }}
                   >
-                    <Box sx={{ textAlign: 'center' }}>
+                    {/* Watermark Logo */}
+                    <Box
+                      component="img"
+                      src={logoImage}
+                      alt="Top Heights Logo"
+                      sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: { xs: 150, md: 250 },
+                        height: 'auto',
+                        opacity: 0.15,
+                        filter: 'grayscale(100%) brightness(200%)',
+                        zIndex: 0,
+                      }}
+                    />
+                    <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
                       <ElectricBolt
                         sx={{
                           fontSize: { xs: 100, md: 150 },
@@ -392,7 +411,7 @@ const Home: React.FC = () => {
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <Button
                   component="a"
-                  href="https://wa.me/254719637416"
+                  href="https://wa.me/254711343412"
                   target="_blank"
                   variant="contained"
                   size="large"

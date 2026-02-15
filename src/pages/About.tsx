@@ -38,25 +38,25 @@ const milestones: CompanyMilestone[] = [
     year: '2018',
     title: 'Foundation',
     description: 'Top Heights Electricians was established with a vision to transform electrical services in Kenya.',
-    image: 'https://picsum.photos/400/300?construction',
+    image: 'public/topeheights.jpeg',
   },
   {
     year: '2020',
     title: 'Expansion',
     description: 'Extended services to commercial and industrial sectors, doubling our team of certified electricians.',
-    image: 'https://picsum.photos/400/300?factory',
+    image: 'public/commercialwiring.jpeg',
   },
   {
     year: '2022',
     title: 'Solar Innovation',
     description: 'Launched comprehensive solar energy solutions, becoming a leader in sustainable electrical systems.',
-    image: 'https://picsum.photos/400/300?solar',
+    image: 'public/solarenergy.jpeg',
   },
   {
     year: '2024',
     title: 'Market Leader',
     description: 'Recognized as one of Kenya\'s top electrical service providers with 500+ completed projects.',
-    image: 'https://picsum.photos/400/300?award',
+    image: 'public/marketleader.jpeg',
   },
 ];
 
@@ -128,7 +128,7 @@ const About: React.FC = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundImage: 'url(https://picsum.photos/1200/600?engineering)',
+            backgroundImage: 'url(public/commercialwiring.jpeg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             '&::after': {
@@ -426,8 +426,8 @@ const About: React.FC = () => {
                 >
                   <Box
                     component="img"
-                    src="https://picsum.photos/300/300?person"
-                    alt="Gregory 656 - Director"
+                    src="public/director.jpeg"
+                    alt="JOHN  - Director"
                     sx={{
                       width: '100%',
                       height: '100%',
@@ -477,7 +477,7 @@ const About: React.FC = () => {
                     fontWeight: 600,
                   }}
                 >
-                  Gregory 656
+                  JOHN
                 </Typography>
                 
                 <Typography

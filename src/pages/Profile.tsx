@@ -158,7 +158,7 @@ const Profile: React.FC = () => {
                       <Card sx={{ background: 'rgba(17, 34, 64, 0.3)', border: '1px solid rgba(100, 255, 218, 0.1)' }}>
                         <CardContent>
                           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Contact Support</Typography>
-                          <Button variant="outlined" startIcon={<WhatsApp />} href="https://wa.me/254719637416" target="_blank">WhatsApp Us</Button>
+                          <Button variant="outlined" startIcon={<WhatsApp />} href="https://wa.me/254711343412" target="_blank">WhatsApp Us</Button>
                         </CardContent>
                       </Card>
                     </Grid>

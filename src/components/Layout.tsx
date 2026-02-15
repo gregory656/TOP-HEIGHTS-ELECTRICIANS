@@ -43,6 +43,7 @@ import { styled, alpha } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import LoginModal from './LoginModal';
+import logoImage from '../../public/topeheights.jpeg';
 
 const drawerWidth = 280;
 
@@ -164,14 +165,15 @@ export default function Layout() {
       >
         <LogoContainer>
           <Avatar
+            src={logoImage}
+            alt="Top Heights Logo"
             sx={{
-              bgcolor: 'primary.main',
               width: 40,
               height: 40,
+              borderRadius: 2,
+              objectFit: 'cover',
             }}
-          >
-            <ElectricBolt />
-          </Avatar>
+          />
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
               Top Heights
@@ -256,14 +258,15 @@ export default function Layout() {
           
           <LogoContainer sx={{ display: { xs: 'none', sm: 'flex' } }}>
             <Avatar
+              src={logoImage}
+              alt="Top Heights Logo"
               sx={{
-                bgcolor: 'primary.main',
                 width: 36,
                 height: 36,
+                borderRadius: 2,
+                objectFit: 'cover',
               }}
-            >
-              <ElectricBolt sx={{ fontSize: 20 }} />
-            </Avatar>
+            />
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
                 Top Heights
