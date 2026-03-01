@@ -24,7 +24,6 @@ dist-ssr
 *.sw?
 
 # Image files - too large for git
-*.jpeg
 *.PNG
 *.png
 
