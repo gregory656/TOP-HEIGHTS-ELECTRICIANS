@@ -38,7 +38,7 @@ const milestones: CompanyMilestone[] = [
     year: '2018',
     title: 'Foundation',
     description: 'Top Heights Electricians was established with a vision to transform electrical services in Kenya.',
-    image: 'topheights.jpeg',
+    image: '/topeheights.jpeg',
   },
   {
     year: '2020',
@@ -128,7 +128,7 @@ const About: React.FC = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundImage: 'url(public/commercialwiring.jpeg)',
+            backgroundImage: 'url(/commercialwiring.jpeg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             '&::after': {
@@ -426,7 +426,7 @@ const About: React.FC = () => {
                 >
                   <Box
                     component="img"
-                    src="public/director.jpeg"
+                    src="/director.jpeg"
                     alt="JOHN  - Director"
                     sx={{
                       width: '100%',
