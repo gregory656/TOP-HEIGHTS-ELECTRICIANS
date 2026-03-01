@@ -496,7 +496,7 @@ const About: React.FC = () => {
                   color="text.secondary"
                   sx={{ mb: 4, lineHeight: 1.9 }}
                 >
-                  With over 15 years of experience in the electrical industry, Gregory has 
+                  With over 15 years of experience in the electrical industry, John has 
                   built Top Heights Electricians from the ground up, driven by a passion 
                   for quality workmanship and exceptional customer service. His vision 
                   continues to guide our team toward excellence in every project.
@@ -515,7 +515,7 @@ const About: React.FC = () => {
                     onClick={scrollToFooter}
                     sx={{ px: 3, py: 1.5 }}
                   >
-                    Connect With Gregory
+                    Connect With John
                   </Button>
                 </Box>
 

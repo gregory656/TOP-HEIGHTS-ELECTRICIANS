@@ -225,7 +225,7 @@ export default function Layout() {
             Need help with electrical services?
           </Typography>
           <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 600 }}>
-            📞 +254 719 637 416
+            📞 +254 711 343 412
           </Typography>
         </Box>
       </Box>
