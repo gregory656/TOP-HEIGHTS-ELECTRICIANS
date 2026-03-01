@@ -28,3 +28,6 @@ dist-ssr
 *.jpg
 *.PNG
 *.png
+
+# Exception for logo file (required for build)
+!src/assets/topeheights.jpeg
