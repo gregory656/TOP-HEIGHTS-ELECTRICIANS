@@ -25,7 +25,6 @@ dist-ssr
 
 # Image files - too large for git
 *.jpeg
-*.jpg
 *.PNG
 *.png
 
