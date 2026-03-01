@@ -38,25 +38,25 @@ const milestones: CompanyMilestone[] = [
     year: '2018',
     title: 'Foundation',
     description: 'Top Heights Electricians was established with a vision to transform electrical services in Kenya.',
-    image: 'public/topeheights.jpeg',
+    image: 'topheights.jpeg',
   },
   {
     year: '2020',
     title: 'Expansion',
     description: 'Extended services to commercial and industrial sectors, doubling our team of certified electricians.',
-    image: 'public/commercialwiring.jpeg',
+    image: 'electricalservices.jpeg',
   },
   {
     year: '2022',
     title: 'Solar Innovation',
     description: 'Launched comprehensive solar energy solutions, becoming a leader in sustainable electrical systems.',
-    image: 'public/solarenergy.jpeg',
+    image: 'solarpeople.jpg',
   },
   {
     year: '2024',
     title: 'Market Leader',
     description: 'Recognized as one of Kenya\'s top electrical service providers with 500+ completed projects.',
-    image: 'public/marketleader.jpeg',
+    image: 'solafarm2.jpg',
   },
 ];
 

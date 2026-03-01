@@ -43,7 +43,7 @@ import { styled, alpha } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import LoginModal from './LoginModal';
-import logoImage from '../../public/topeheights.jpeg';
+import logoImage from '../assets/topeheights.jpeg';
 
 const drawerWidth = 280;
 

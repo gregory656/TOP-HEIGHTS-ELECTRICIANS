@@ -77,7 +77,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ open, onClose, product }) => {
     if (!product) return;
     const message = `Hello! I'm interested in ordering:\n\n📦 Product: ${product.name}\n💰 Price: KES ${product.price.toLocaleString()}\n📏 Quantity: ${formData.quantity}\n👤 Name: ${formData.name}\n📞 Phone: ${formData.phone}\n🏠 Address: ${formData.address}`;
     const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/254719637416?text=${encodedMessage}`, '_blank');
+    window.open(`https://wa.me/254711343412?text=${encodedMessage}`, '_blank');
     onClose();
   };
 
