@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Image files - too large for git
+*.jpeg
+*.jpg
+*.PNG
+*.png
