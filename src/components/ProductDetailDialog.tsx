@@ -19,7 +19,7 @@ import {
   CheckCircle,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 interface ProductDetailDialogProps {
   open: boolean;
@@ -39,7 +39,7 @@ interface ProductDetailDialogProps {
 }
 
 const ProductDetailDialog: React.FC<ProductDetailDialogProps> = ({ open, onClose, product, onAddToCart }) => {
-  const { isAuthenticated, loginModalOpen, setLoginModalOpen } = useAuth();
+  const { isAuthenticated, setLoginModalOpen } = useAuth();
 
   if (!product) return null;
 

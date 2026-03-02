@@ -13,6 +13,9 @@ import {
   InputAdornment,
   Alert,
   CircularProgress,
+  Divider,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Close,
@@ -21,7 +24,7 @@ import {
   ElectricBolt,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 interface LoginModalProps {
   open: boolean;
@@ -30,9 +33,11 @@ interface LoginModalProps {
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }) => {
-  const { login } = useAuth();
-  const [username, setUsername] = useState('');
+  const { login, loginWithGoogle, signup } = useAuth();
+  const [tab, setTab] = useState(0);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,23 +47,66 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
     setError('');
     setLoading(true);
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      let success = false;
+      if (tab === 0) {
+        // Login
+        success = await login(email, password);
+        if (!success) {
+          setError('Invalid email or password');
+        }
+      } else {
+        // Signup
+        if (!name.trim()) {
+          setError('Please enter your name');
+          setLoading(false);
+          return;
+        }
+        success = await signup(email, password, name);
+        if (!success) {
+          setError('Failed to create account. Email may already be in use.');
+        }
+      }
 
-    if (login(username, password)) {
-      onLoginSuccess?.();
-      handleClose();
-    } else {
-      setError('Invalid credentials. Please try again.');
+      if (success) {
+        onLoginSuccess?.();
+        handleClose();
+      }
+    } catch {
+      setError('An error occurred. Please try again.');
+    }
+    setLoading(false);
+  };
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+    
+    try {
+      const success = await loginWithGoogle();
+      if (success) {
+        onLoginSuccess?.();
+        handleClose();
+      } else {
+        setError('Failed to sign in with Google');
+      }
+    } catch (err) {
+      if (err && typeof err === 'object' && 'code' in err && err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in was cancelled');
+      } else {
+        setError('Failed to sign in with Google');
+      }
     }
     setLoading(false);
   };
 
   const handleClose = () => {
-    setUsername('');
+    setEmail('');
     setPassword('');
+    setName('');
     setError('');
     setLoading(false);
+    setTab(0);
     onClose();
   };
 
@@ -90,7 +138,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <ElectricBolt sx={{ color: 'primary.main' }} />
               <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 600 }}>
-                Welcome Back
+                Welcome to Top Heights
               </Typography>
             </Box>
             <IconButton
@@ -111,43 +159,94 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
               </Alert>
             )}
 
-            <Box
+            {/* Google Login Button */}
+            <Button
+              fullWidth
+              variant="outlined"
+              size="large"
+              onClick={handleGoogleLogin}
+              disabled={loading}
               sx={{
-                p: 2,
                 mb: 2,
-                borderRadius: 2,
-                backgroundColor: 'rgba(100, 255, 218, 0.05)',
-                border: '1px solid rgba(100, 255, 218, 0.1)',
+                py: 1.5,
+                borderColor: 'rgba(100, 255, 218, 0.3)',
+                color: 'text.primary',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  backgroundColor: 'rgba(100, 255, 218, 0.05)',
+                },
               }}
             >
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Demo Credentials:
+              <Box component="img"
+                src="https://www.google.com/favicon.ico"
+                sx={{ width: 20, height: 20, mr: 1 }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              Continue with Google
+            </Button>
+
+            <Divider sx={{ my: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                OR
               </Typography>
-              <Typography variant="body2" sx={{ color: 'primary.main' }}>
-                Admin: admin / 123
-              </Typography>
-            </Box>
+            </Divider>
+
+            {/* Tab Selection */}
+            <Tabs
+              value={tab}
+              onChange={(_, v) => setTab(v)}
+              variant="fullWidth"
+              sx={{
+                mb: 2,
+                '& .MuiTab-root': {
+                  color: 'text.secondary',
+                },
+                '& .Mui-selected': {
+                  color: 'primary.main',
+                },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: 'primary.main',
+                },
+              }}
+            >
+              <Tab label="Sign In" />
+              <Tab label="Sign Up" />
+            </Tabs>
 
             <form onSubmit={handleSubmit}>
+              {tab === 1 && (
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  margin="normal"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: 'rgba(100, 255, 218, 0.2)' },
+                      '&:hover fieldset': { borderColor: 'rgba(100, 255, 218, 0.4)' },
+                      '&.Mui-focused fieldset': { borderColor: '#64FFDA' },
+                    },
+                  }}
+                />
+              )}
+
               <TextField
                 fullWidth
-                label="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 margin="normal"
                 required
                 autoFocus
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: 'rgba(100, 255, 218, 0.2)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(100, 255, 218, 0.4)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#64FFDA',
-                    },
+                    '& fieldset': { borderColor: 'rgba(100, 255, 218, 0.2)' },
+                    '&:hover fieldset': { borderColor: 'rgba(100, 255, 218, 0.4)' },
+                    '&.Mui-focused fieldset': { borderColor: '#64FFDA' },
                   },
                 }}
               />
@@ -175,15 +274,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
                 }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: 'rgba(100, 255, 218, 0.2)',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(100, 255, 218, 0.4)',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#64FFDA',
-                    },
+                    '& fieldset': { borderColor: 'rgba(100, 255, 218, 0.2)' },
+                    '&:hover fieldset': { borderColor: 'rgba(100, 255, 218, 0.4)' },
+                    '&.Mui-focused fieldset': { borderColor: '#64FFDA' },
                   },
                 }}
               />
@@ -202,7 +295,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
                 {loading ? (
                   <CircularProgress size={24} sx={{ color: '#0A192F' }} />
                 ) : (
-                  'Sign In'
+                  tab === 0 ? 'Sign In' : 'Create Account'
                 )}
               </Button>
             </form>
@@ -216,20 +309,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
             }}
           >
             <Typography variant="body2" color="text.secondary">
-              Don't have an account?{' '}
+              {tab === 0 ? "Don't have an account? " : "Already have an account? "}
               <Typography
                 component="span"
                 variant="body2"
                 sx={{ color: 'primary.main', cursor: 'pointer' }}
-                onClick={() => {
-                  // For demo, create account with entered credentials
-                  if (username && password) {
-                    login(username, password);
-                    handleClose();
-                  }
-                }}
+                onClick={() => setTab(tab === 0 ? 1 : 0)}
               >
-                Sign up
+                {tab === 0 ? 'Sign Up' : 'Sign In'}
               </Typography>
             </Typography>
           </DialogActions>

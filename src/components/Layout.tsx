@@ -1,5 +1,5 @@
 // src/components/Layout.tsx
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -21,6 +21,7 @@ import {
   Menu,
   MenuItem,
   Chip,
+  Badge,
 } from '@mui/material';
 import {
   Home,
@@ -31,19 +32,20 @@ import {
   AdminPanelSettings,
   Menu as MenuIcon,
   Search as SearchIcon,
-  AccountCircle,
-  ElectricBolt,
   Close,
   Person,
   Logout,
   Dashboard,
+  ShoppingCartCheckout,
 } from '@mui/icons-material';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { styled, alpha } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import LoginModal from './LoginModal';
+import CheckoutSidebar from './CheckoutSidebar';
 import logoImage from '../assets/topeheights.jpeg';
+import { subscribeToCart } from '../services/cartService';
 
 const drawerWidth = 280;
 
@@ -125,10 +127,27 @@ const NavItem = styled(ListItem)<{ active?: string }>(({ theme, active }) => ({
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const { user, logout, isAuthenticated, loginModalOpen, setLoginModalOpen } = useAuth();
+
+  // Subscribe to cart changes
+  useEffect(() => {
+    if (!user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCartItemCount(0);
+      return;
+    }
+
+    const unsubscribe = subscribeToCart(user.uid, (items) => {
+      setCartItemCount(items.reduce((total, item) => total + item.quantity, 0));
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -197,6 +216,7 @@ export default function Layout() {
           if (item.adminOnly && user?.role !== 'admin') return null;
           return (
             <NavItem
+              // @ts-expect-error - MUI ListItem component prop compatibility
               component={Link}
               to={item.path}
               key={item.text}
@@ -295,6 +315,16 @@ export default function Layout() {
             />
           </Search>
           
+          {/* Cart Button */}
+          <IconButton
+            onClick={() => setCheckoutOpen(true)}
+            sx={{ ml: 1, color: 'primary.main' }}
+          >
+            <Badge badgeContent={cartItemCount} color="secondary">
+              <ShoppingCartCheckout />
+            </Badge>
+          </IconButton>
+
           {isAuthenticated && user ? (
             <>
               <Chip
@@ -322,6 +352,7 @@ export default function Layout() {
                 }}
               >
                 <MenuItem
+                  // @ts-expect-error - MUI MenuItem component prop compatibility
                   component={Link}
                   to={user.role === 'admin' ? '/admin' : '/profile'}
                   onClick={handleProfileMenuClose}
@@ -442,6 +473,12 @@ export default function Layout() {
       <LoginModal
         open={loginModalOpen}
         onClose={() => setLoginModalOpen(false)}
+      />
+
+      {/* Checkout Sidebar */}
+      <CheckoutSidebar
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
       />
     </Box>
   );
