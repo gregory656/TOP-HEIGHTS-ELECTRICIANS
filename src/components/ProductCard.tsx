@@ -12,17 +12,22 @@ import {
   CardActionArea,
   Snackbar,
   Alert,
+  Stack,
 } from '@mui/material';
 import {
   ShoppingCart,
   Favorite,
   FavoriteBorder,
   AddShoppingCart,
+  WhatsApp,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import type { Product } from '../data/products';
 import { useAuth } from '../hooks/useAuth';
 import { addToCart } from '../services/cartService';
+import { addToLocalCart } from '../services/localCartService';
+import { orderViaWhatsApp } from '../services/whatsappService';
+import LoginRequiredDialog from './LoginRequiredDialog';
 
 interface ProductCardProps {
   product: Product;
@@ -42,6 +47,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [localFavorite, setLocalFavorite] = useState(isFavorite);
   const [addingToCart, setAddingToCart] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const [loginRequiredOpen, setLoginRequiredOpen] = useState(false);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -53,7 +59,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
     e.stopPropagation();
     
     if (!isAuthenticated || !user) {
-      setLoginModalOpen(true);
+      // Show login required dialog instead of auto-redirect
+      setLoginRequiredOpen(true);
       return;
     }
 
@@ -67,13 +74,44 @@ const ProductCard: React.FC<ProductCardProps> = ({
       });
     } catch (error) {
       console.error('Error adding to cart:', error);
-      setSnackbar({ 
-        open: true, 
-        message: 'Failed to add to cart', 
-        severity: 'error' 
-      });
+      // Try localStorage fallback
+      try {
+        addToLocalCart(product, 1);
+        setSnackbar({ 
+          open: true, 
+          message: `${product.name} added to cart!`, 
+          severity: 'success' 
+        });
+      } catch (localError) {
+        console.error('Error adding to local cart:', localError);
+        setSnackbar({ 
+          open: true, 
+          message: 'Failed to add to cart', 
+          severity: 'error' 
+        });
+      }
     }
     setAddingToCart(false);
+  };
+
+  const handleWhatsAppOrder = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    orderViaWhatsApp(product, 1);
+  };
+
+  const handleLoginRequiredLogin = () => {
+    setLoginRequiredOpen(false);
+    setLoginModalOpen(true);
+  };
+
+  const handleLoginRequiredSignup = () => {
+    setLoginRequiredOpen(false);
+    setLoginModalOpen(true);
+  };
+
+  const handleLoginRequiredWhatsApp = () => {
+    setLoginRequiredOpen(false);
+    orderViaWhatsApp(product, 1);
   };
 
   const formatPrice = (price: number) => {
@@ -86,6 +124,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <>
+      <LoginRequiredDialog
+        open={loginRequiredOpen}
+        onClose={() => setLoginRequiredOpen(false)}
+        onLogin={handleLoginRequiredLogin}
+        onSignup={handleLoginRequiredSignup}
+        onWhatsApp={handleLoginRequiredWhatsApp}
+      />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -234,18 +280,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <Box
               sx={{
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-end',
                 justifyContent: 'space-between',
                 mt: 'auto',
+                gap: 1,
               }}
             >
-              <Box>
+              <Box sx={{ flex: '0 0 auto' }}>
                 <Typography
                   variant="h5"
                   sx={{
                     color: 'primary.main',
                     fontWeight: 700,
-                    fontSize: { xs: '1.3rem', sm: '1.5rem' },
+                    fontSize: { xs: '1.2rem', sm: '1.4rem' },
                   }}
                 >
                   {formatPrice(product.price)}
@@ -259,7 +306,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', gap: 1 }}>
+              {/* Button Stack - wraps on narrow screens */}
+              <Stack 
+                direction="row" 
+                flexWrap="wrap" 
+                justifyContent="flex-end"
+                gap={0.5}
+                sx={{ flex: '1 1 auto', minWidth: 0 }}
+              >
                 {/* Add to Cart Button */}
                 <Button
                   variant="contained"
@@ -269,11 +323,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   disabled={addingToCart}
                   sx={{
                     borderRadius: 2,
-                    px: 1.5,
-                    minWidth: 'auto',
-                    backgroundColor: '#4CAF50', // Bright green
+                    px: 1,
+                    minWidth: 'fit-content',
+                    fontSize: '0.75rem',
+                    backgroundColor: '#4CAF50',
                     color: 'white',
                     fontWeight: 600,
+                    whiteSpace: 'nowrap',
                     '&:hover': {
                       backgroundColor: '#45a049',
                     },
@@ -283,34 +339,51 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     },
                   }}
                 >
-                  {addingToCart ? 'Adding...' : 'Add to Cart'}
+                  {addingToCart ? 'Adding...' : 'Add'}
+                </Button>
+
+                {/* Order via WhatsApp Button */}
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<WhatsApp />}
+                  onClick={handleWhatsAppOrder}
+                  sx={{
+                    borderRadius: 2,
+                    px: 1,
+                    minWidth: 'fit-content',
+                    fontSize: '0.75rem',
+                    backgroundColor: '#25D366',
+                    color: 'white',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    '&:hover': {
+                      backgroundColor: '#20BD5A',
+                    },
+                  }}
+                  title="Order via WhatsApp"
+                >
+                  WhatsApp
                 </Button>
 
                 {/* Order Button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileHover={{ scale: 1.05 }}
-                  style={{
-                    opacity: hovered ? 1 : 1,
-                    transform: hovered ? 'translateY(0)' : 'translateY(10px)',
-                    transition: 'all 0.3s ease',
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<ShoppingCart />}
+                  onClick={() => onOrder(product)}
+                  className="order-button"
+                  sx={{
+                    borderRadius: 2,
+                    px: 1,
+                    minWidth: 'fit-content',
+                    fontSize: '0.75rem',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<ShoppingCart />}
-                    onClick={() => onOrder(product)}
-                    className="order-button"
-                    sx={{
-                      borderRadius: 2,
-                      px: 2,
-                    }}
-                  >
-                    Order
-                  </Button>
-                </motion.div>
-              </Box>
+                  Order
+                </Button>
+              </Stack>
             </Box>
           </CardContent>
         </Card>
