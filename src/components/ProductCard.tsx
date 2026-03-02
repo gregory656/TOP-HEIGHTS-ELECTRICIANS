@@ -261,35 +261,30 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
               <Box sx={{ display: 'flex', gap: 1 }}>
                 {/* Add to Cart Button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileHover={{ scale: 1.05 }}
-                  style={{
-                    opacity: hovered ? 1 : 1,
-                    transform: hovered ? 'translateY(0)' : 'translateY(10px)',
-                    transition: 'all 0.3s ease',
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<AddShoppingCart />}
+                  onClick={handleAddToCart}
+                  disabled={addingToCart}
+                  sx={{
+                    borderRadius: 2,
+                    px: 1.5,
+                    minWidth: 'auto',
+                    backgroundColor: '#4CAF50', // Bright green
+                    color: 'white',
+                    fontWeight: 600,
+                    '&:hover': {
+                      backgroundColor: '#45a049',
+                    },
+                    '&:disabled': {
+                      backgroundColor: '#cccccc',
+                      color: '#666666',
+                    },
                   }}
                 >
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<AddShoppingCart />}
-                    onClick={handleAddToCart}
-                    disabled={addingToCart}
-                    className="order-button"
-                    sx={{
-                      borderRadius: 2,
-                      px: 1.5,
-                      minWidth: 'auto',
-                      backgroundColor: 'secondary.main',
-                      '&:hover': {
-                        backgroundColor: 'secondary.dark',
-                      },
-                    }}
-                  >
-                    Cart
-                  </Button>
-                </motion.div>
+                  {addingToCart ? 'Adding...' : 'Add to Cart'}
+                </Button>
 
                 {/* Order Button */}
                 <motion.div

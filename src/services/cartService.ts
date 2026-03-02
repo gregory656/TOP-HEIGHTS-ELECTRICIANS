@@ -4,7 +4,6 @@ import {
   getDoc,
   setDoc,
   updateDoc,
-  arrayUnion,
   onSnapshot,
   deleteDoc,
 } from 'firebase/firestore';
@@ -75,19 +74,20 @@ export const addToCart = async (userId: string, product: Product, quantity: numb
     
     if (cartDoc.exists()) {
       const cartData = cartDoc.data();
-      const existingItemIndex = cartData.items?.findIndex(
-        (item: CartItem) => item.productId === product.id
+      const items: CartItem[] = cartData?.items || [];
+      const existingItemIndex = items.findIndex(
+        (item) => item.productId === product.id
       );
       
       if (existingItemIndex >= 0) {
         // Item exists, increment quantity
-        const updatedItems = [...cartData.items];
+        const updatedItems = [...items];
         updatedItems[existingItemIndex].quantity += quantity;
         await updateDoc(cartDocRef, { items: updatedItems });
       } else {
         // Item doesn't exist, add new item
         await updateDoc(cartDocRef, {
-          items: arrayUnion(cartItem),
+          items: [...items, cartItem],
         });
       }
     } else {
