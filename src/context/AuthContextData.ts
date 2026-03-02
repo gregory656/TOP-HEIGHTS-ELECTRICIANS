@@ -23,6 +23,7 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authLoading: boolean;
   loginModalOpen: boolean;
   setLoginModalOpen: (open: boolean) => void;
 }

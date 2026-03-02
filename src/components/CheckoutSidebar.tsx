@@ -53,8 +53,15 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'details' | 'payment' | 'processing' | 'success'>('cart');
-  const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'INTASEND'>('MPESA');
+  const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'INTASEND'>('INTASEND');
   const [orderId, setOrderId] = useState('');
+  
+  // Form validation errors
+  const [formErrors, setFormErrors] = useState({
+    email: '',
+    phone: '',
+    address: '',
+  });
   
   // Checkout form
   const [formData, setFormData] = useState({
@@ -66,7 +73,6 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   // Subscribe to cart changes
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCartItems([]);
       setLoading(false);
       return;
@@ -113,9 +119,55 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     setCheckoutStep('details');
   };
 
+  // Validate form fields
+  const validateForm = (): boolean => {
+    const errors = {
+      email: '',
+      phone: '',
+      address: '',
+    };
+    let isValid = true;
+
+    // Email validation
+    if (!formData.email) {
+      errors.email = 'Email is required';
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = 'Please enter a valid email';
+      isValid = false;
+    }
+
+    // Phone validation (Kenyan phone format)
+    if (!formData.phone) {
+      errors.phone = 'Phone number is required';
+      isValid = false;
+    } else if (!/^(?:\+254|254|0)?[7]\d{8}$/.test(formData.phone.replace(/\s/g, ''))) {
+      errors.phone = 'Please enter a valid Kenyan phone number';
+      isValid = false;
+    }
+
+    // Address validation
+    if (!formData.address) {
+      errors.address = 'Delivery address is required';
+      isValid = false;
+    } else if (formData.address.length < 10) {
+      errors.address = 'Please enter a complete address';
+      isValid = false;
+    }
+
+    setFormErrors(errors);
+    return isValid;
+  };
+
   const handleSubmitOrder = async () => {
-    if (!user || !formData.phone || !formData.address) {
-      setError('Please fill in all required fields');
+    // Validate form first
+    if (!validateForm()) {
+      setError('Please fix the errors in the form');
+      return;
+    }
+
+    if (!user || cartItems.length === 0) {
+      setError('Your cart is empty or you are not logged in');
       return;
     }
 
@@ -137,9 +189,10 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
       });
 
       setOrderId(newOrderId);
-      setCheckoutStep('processing');
 
       if (paymentMethod === 'MPESA' || paymentMethod === 'INTASEND') {
+        setCheckoutStep('processing');
+        
         // Initiate STK Push
         try {
           const { checkoutId } = await initiateSTKPush(
@@ -174,14 +227,18 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           setCheckoutStep('success');
           await clearCart(user.uid);
         }
+      } else {
+        // For other payment methods, show success immediately
+        setCheckoutStep('success');
+        await clearCart(user.uid);
       }
     } catch (err) {
       console.error('Order creation error:', err);
       setError('Failed to create order. Please try again.');
       setCheckoutStep('details');
+    } finally {
+      setProcessing(false);
     }
-
-    setProcessing(false);
   };
 
   const renderCartContent = () => (
@@ -339,25 +396,60 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           label="Email"
           type="email"
           value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          onChange={(e) => {
+            setFormData({ ...formData, email: e.target.value });
+            if (formErrors.email) setFormErrors(prev => ({ ...prev, email: '' }));
+          }}
+          onBlur={() => {
+            if (!formData.email) {
+              setFormErrors(prev => ({ ...prev, email: 'Email is required' }));
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+              setFormErrors(prev => ({ ...prev, email: 'Please enter a valid email' }));
+            }
+          }}
           fullWidth
           required
+          error={!!formErrors.email}
+          helperText={formErrors.email}
         />
         <TextField
           label="Phone Number"
           value={formData.phone}
-          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          onChange={(e) => {
+            setFormData({ ...formData, phone: e.target.value });
+            if (formErrors.phone) setFormErrors(prev => ({ ...prev, phone: '' }));
+          }}
+          onBlur={() => {
+            if (!formData.phone) {
+              setFormErrors(prev => ({ ...prev, phone: 'Phone number is required' }));
+            } else if (!/^(?:\+254|254|0)?[7]\d{8}$/.test(formData.phone.replace(/\s/g, ''))) {
+              setFormErrors(prev => ({ ...prev, phone: 'Please enter a valid Kenyan phone number' }));
+            }
+          }}
           fullWidth
           required
+          error={!!formErrors.phone}
+          helperText={formErrors.phone || 'Required for M-Pesa STK Push'}
           placeholder="2547XX XXX XXX"
-          helperText="Required for M-Pesa STK Push"
         />
         <TextField
           label="Delivery Address"
           value={formData.address}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          onChange={(e) => {
+            setFormData({ ...formData, address: e.target.value });
+            if (formErrors.address) setFormErrors(prev => ({ ...prev, address: '' }));
+          }}
+          onBlur={() => {
+            if (!formData.address) {
+              setFormErrors(prev => ({ ...prev, address: 'Delivery address is required' }));
+            } else if (formData.address.length < 10) {
+              setFormErrors(prev => ({ ...prev, address: 'Please enter a complete address' }));
+            }
+          }}
           fullWidth
           required
+          error={!!formErrors.address}
+          helperText={formErrors.address}
           multiline
           rows={3}
         />
@@ -518,7 +610,6 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   // Reset checkout step when drawer opens
   useEffect(() => {
     if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCheckoutStep('cart');
       setError('');
     }

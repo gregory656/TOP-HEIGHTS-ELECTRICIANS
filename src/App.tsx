@@ -10,6 +10,7 @@ import Services from './pages/Services';
 import About from './pages/About';
 import Profile from './pages/Profile';
 import { AuthProvider } from './context/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 // Import placeholder pages for routes that don't have content yet
 import { Box, Typography } from '@mui/material';
 
@@ -24,25 +25,27 @@ const Placeholder = ({ title }: { title: string }) => (
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
-              <Route path="services" element={<Services />} />
-              <Route path="shop" element={<Shop />} />
-              <Route path="admin" element={<AdminPanel />} />
-              <Route path="about" element={<About />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="news" element={<Placeholder title="News" />} />
-              {/* Add a catch-all route for 404 if desired */}
-              <Route path="*" element={<Placeholder title="404 - Not Found" />} />
-            </Route>
-          </Routes>
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="services" element={<Services />} />
+                <Route path="shop" element={<Shop />} />
+                <Route path="admin" element={<AdminPanel />} />
+                <Route path="about" element={<About />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="news" element={<Placeholder title="News" />} />
+                {/* Add a catch-all route for 404 if desired */}
+                <Route path="*" element={<Placeholder title="404 - Not Found" />} />
+              </Route>
+            </Routes>
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

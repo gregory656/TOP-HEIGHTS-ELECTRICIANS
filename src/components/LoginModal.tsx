@@ -53,7 +53,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
         // Login
         success = await login(email, password);
         if (!success) {
-          setError('Invalid email or password');
+          setError('Invalid email or password. Please try again.');
         }
       } else {
         // Signup
@@ -62,9 +62,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
           setLoading(false);
           return;
         }
+        if (password.length < 6) {
+          setError('Password must be at least 6 characters');
+          setLoading(false);
+          return;
+        }
         success = await signup(email, password, name);
         if (!success) {
-          setError('Failed to create account. Email may already be in use.');
+          setError('Failed to create account. Email may already be in use or invalid.');
         }
       }
 
@@ -72,10 +77,12 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
         onLoginSuccess?.();
         handleClose();
       }
-    } catch {
+    } catch (err) {
+      console.error('Form submission error:', err);
       setError('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleGoogleLogin = async () => {

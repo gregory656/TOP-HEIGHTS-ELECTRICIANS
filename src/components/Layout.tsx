@@ -22,6 +22,8 @@ import {
   MenuItem,
   Chip,
   Badge,
+  CircularProgress,
+  Backdrop,
 } from '@mui/material';
 import {
   Home,
@@ -132,7 +134,7 @@ export default function Layout() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
-  const { user, logout, isAuthenticated, loginModalOpen, setLoginModalOpen } = useAuth();
+  const { user, logout, isAuthenticated, loginModalOpen, setLoginModalOpen, authLoading } = useAuth();
 
   // Subscribe to cart changes
   useEffect(() => {
@@ -256,6 +258,18 @@ export default function Layout() {
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <CssBaseline />
       
+      {/* Auth Loading Backdrop - prevents flickering during auth state resolution */}
+      <Backdrop
+        sx={{
+          color: '#64FFDA',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: 'rgba(17, 34, 64, 0.9)',
+        }}
+        open={authLoading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+      
       {/* Top AppBar */}
       <AppBar
         position="fixed"
@@ -352,7 +366,6 @@ export default function Layout() {
                 }}
               >
                 <MenuItem
-                  // @ts-expect-error - MUI MenuItem component prop compatibility
                   component={Link}
                   to={user.role === 'admin' ? '/admin' : '/profile'}
                   onClick={handleProfileMenuClose}

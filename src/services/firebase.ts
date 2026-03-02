@@ -2,7 +2,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics } from 'firebase/analytics';
 import { getFirestore } from 'firebase/firestore';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFunctions } from 'firebase/functions';
 
 // Firebase configuration for Top Heights Electricals
@@ -27,6 +27,15 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
 export { analytics };
+
+// Set auth persistence to local (survives browser refresh)
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log('Firebase auth persistence set to browserLocalPersistence');
+  })
+  .catch((error) => {
+    console.error('Error setting auth persistence:', error);
+  });
 
 // Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();

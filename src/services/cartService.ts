@@ -6,6 +6,7 @@ import {
   updateDoc,
   onSnapshot,
   deleteDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Product } from '../data/products';
@@ -61,6 +62,10 @@ export const subscribeToCart = (
  */
 export const addToCart = async (userId: string, product: Product, quantity: number = 1): Promise<void> => {
   try {
+    if (!userId) {
+      throw new Error('User ID is required to add to cart');
+    }
+    
     const cartDocRef = doc(db, 'carts', userId);
     const cartDoc = await getDoc(cartDocRef);
     
@@ -83,11 +88,15 @@ export const addToCart = async (userId: string, product: Product, quantity: numb
         // Item exists, increment quantity
         const updatedItems = [...items];
         updatedItems[existingItemIndex].quantity += quantity;
-        await updateDoc(cartDocRef, { items: updatedItems });
+        await updateDoc(cartDocRef, { 
+          items: updatedItems,
+          updatedAt: serverTimestamp(),
+        });
       } else {
         // Item doesn't exist, add new item
         await updateDoc(cartDocRef, {
           items: [...items, cartItem],
+          updatedAt: serverTimestamp(),
         });
       }
     } else {
@@ -95,9 +104,11 @@ export const addToCart = async (userId: string, product: Product, quantity: numb
       await setDoc(cartDocRef, {
         userId,
         items: [cartItem],
-        updatedAt: new Date(),
-      });
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
     }
+    
+    console.log('Item added to cart successfully:', product.name);
   } catch (error) {
     console.error('Error adding to cart:', error);
     throw error;
