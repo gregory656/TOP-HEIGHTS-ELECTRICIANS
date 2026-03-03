@@ -22,11 +22,11 @@ export const products: Product[] = [
   {
     id: 2,
     name: 'LORENZETTI LOREN SHOWER',
-    price: 5400,
-    category: 'showerheads',
+    price: 7000,
+    category: 'for fresh water',
     image: '/cleanshower.jpeg',
     inStock: true,
-    description: 'Ultra electronic instant shower with temperature control.',
+    description: 'Ultra electronic instant shower with temperature control.Installation within Nairobi @KES 2500.',
   },
   {
     id: 3,
@@ -49,7 +49,7 @@ export const products: Product[] = [
   {
     id: 5,
     name: 'LOREN BELLO SHOWERHEAD',
-    price: 8900,
+    price: 3500,
     category: 'showerheads',
     image: '/lorenbeloshowerhead.jpeg',
     inStock: true,
@@ -76,11 +76,11 @@ export const products: Product[] = [
   {
     id: 8,
     name: 'MODERN SQUARE RAINFALL SHOWERHEAD',
-    price: 5000,
-    category: 'showerheads',
+    price: 13500,
+    category: 'for hard water',
     image: '/shower1.PNG',
     inStock: true,
-    description: 'Modern designed showerhead with adjustable rainfall settings.',
+    description: 'Modern designed showerhead with adjustable rainfall settings.Installation @KES 3500',
   },
   {
     id: 9,
@@ -181,4 +181,6 @@ export const categories = [
   'Showerheads',
   'Heaters',
   'Solar Panels',
+  'for hard water',
+  'for fresh water'
 ];
