@@ -7,7 +7,7 @@ import type { LocalCartItem } from './localCartService';
 
 // Business WhatsApp number (replace with actual business number)
 // Format: country code + number without + sign (e.g., 254712345678)
-export const BUSINESS_WHATSAPP_NUMBER = '254704945497';
+export const BUSINESS_WHATSAPP_NUMBER = '254711343412';
 
 export interface WhatsAppOrderItem {
   name: string;
