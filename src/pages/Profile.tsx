@@ -209,7 +209,7 @@ const Profile: React.FC = () => {
                         <TableBody>
                           {orders.map((order) => (
                             <TableRow key={order.id} hover>
-                              <TableCell fontWeight={600}>{order.id?.substring(0, 8)}...</TableCell>
+                              <TableCell sx={{ fontWeight: 600 }}>{order.id?.substring(0, 8)}...</TableCell>
                               <TableCell>
                                 {order.items.map((item, idx) => (
                                   <Typography key={idx} variant="body2">

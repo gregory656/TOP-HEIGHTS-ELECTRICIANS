@@ -36,7 +36,7 @@ import {
   clearCart 
 } from '../services/cartService';
 import { 
-  createOrder, 
+  createPendingOrderFromCart, 
   initiateSTKPush, 
   pollPaymentStatus 
 } from '../services/orderService';
@@ -88,7 +88,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     return () => unsubscribe();
   }, [isAuthenticated, user]);
 
-  const handleQuantityChange = async (productId: number, newQuantity: number) => {
+  const handleQuantityChange = async (productId: string, newQuantity: number) => {
     if (!user) return;
     if (newQuantity < 1) {
       await removeFromCart(user.uid, productId);
@@ -97,7 +97,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     }
   };
 
-  const handleRemoveItem = async (productId: number) => {
+  const handleRemoveItem = async (productId: string) => {
     if (!user) return;
     await removeFromCart(user.uid, productId);
   };
@@ -176,16 +176,13 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
 
     try {
       // Create order in Firestore
-      const newOrderId = await createOrder({
+      const { orderId: newOrderId, totalAmount } = await createPendingOrderFromCart({
         userId: user.uid,
+        fullName: user.name || 'Customer',
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
-        items: cartItems,
-        totalAmount: cartTotal,
-        paymentMethod: paymentMethod,
-        paymentStatus: 'pending',
-        orderStatus: 'pending',
+        paymentMethod,
       });
 
       setOrderId(newOrderId);
@@ -198,7 +195,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           const { checkoutId } = await initiateSTKPush(
             newOrderId,
             formData.phone,
-            cartTotal,
+            totalAmount,
             formData.email
           );
 
@@ -221,11 +218,9 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           }
         } catch (stkError) {
           console.error('STK Push error:', stkError);
-          // If STK fails, order is still created with pending payment
-          // User can pay later via other means
-          setError('STK Push failed to initiate. Your order has been created. We will contact you for payment.');
-          setCheckoutStep('success');
-          await clearCart(user.uid);
+          // If STK fails to initiate, keep cart intact and keep the order pending.
+          setError('STK Push failed to initiate. Please try again. Your order is still pending.');
+          setCheckoutStep('details');
         }
       } else {
         // For other payment methods, show success immediately

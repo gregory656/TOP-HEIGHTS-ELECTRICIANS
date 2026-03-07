@@ -13,16 +13,28 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { CartItem } from './cartService';
+import { getCart, type CartItem } from './cartService';
 import { INTASEND_CONFIG, STK_PUSH_CONFIG } from '../config/intasendConfig';
 
 export interface Order {
   id?: string;
+  orderId?: string;
   userId: string;
-  email: string;
-  phone: string;
-  address: string;
-  items: CartItem[];
+  customerInfo: {
+    fullName: string;
+    phone: string;
+    email: string;
+    deliveryAddress: string;
+  };
+  items: Array<{
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    total: number;
+  }>;
+  subtotal: number;
+  shippingFee: number;
   totalAmount: number;
   paymentMethod: 'MPESA' | 'INTASEND';
   paymentStatus: 'pending' | 'processing' | 'paid' | 'failed';
@@ -33,6 +45,98 @@ export interface Order {
   checkoutId?: string;
   mpesaReceiptNumber?: string;
 }
+
+const getShippingFee = async (): Promise<number> => {
+  try {
+    const settingsSnap = await getDoc(doc(db, 'settings', 'global'));
+    if (!settingsSnap.exists()) return 0;
+    const data = settingsSnap.data() as { shippingFee?: number };
+    return typeof data.shippingFee === 'number' ? data.shippingFee : 0;
+  } catch {
+    return 0;
+  }
+};
+
+/**
+ * Create a new pending order from the user's Firestore cart (DB is source of truth).
+ * This recalculates totals from Firestore state at time of checkout.
+ */
+export const createPendingOrderFromCart = async (params: {
+  userId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  paymentMethod: Order['paymentMethod'];
+}): Promise<{ orderId: string; totalAmount: number }> => {
+  const { userId, fullName, email, phone, address, paymentMethod } = params;
+  if (!userId) throw new Error('User must be logged in');
+
+  const cartItems = await getCart(userId);
+  if (cartItems.length === 0) throw new Error('Cart is empty');
+
+  // Optional price re-validation: if products collection exists, prefer it
+  const validated = await Promise.all(
+    cartItems.map(async (item) => {
+      try {
+        const productSnap = await getDoc(doc(db, 'products', item.productId));
+        if (productSnap.exists()) {
+          const p = productSnap.data() as { price?: number; name?: string; images?: string[]; image?: string };
+          const price = typeof p.price === 'number' ? p.price : item.price;
+          const name = typeof p.name === 'string' ? p.name : item.name;
+          const image =
+            (Array.isArray(p.images) && typeof p.images[0] === 'string' && p.images[0]) ||
+            (typeof p.image === 'string' && p.image) ||
+            item.image;
+          return { ...item, price, name, image };
+        }
+      } catch {
+        // ignore and use cart snapshot
+      }
+      return item;
+    })
+  );
+
+  const items = validated.map((i) => ({
+    productId: i.productId,
+    name: i.name,
+    price: i.price,
+    quantity: i.quantity,
+    total: i.price * i.quantity,
+  }));
+
+  const subtotal = items.reduce((sum, i) => sum + i.total, 0);
+  const shippingFee = await getShippingFee();
+  const totalAmount = subtotal + shippingFee;
+
+  const ordersRef = collection(db, 'orders');
+  const docRef = await addDoc(ordersRef, {
+    userId,
+    orderId: '', // filled after creation
+    customerInfo: {
+      fullName,
+      phone,
+      email,
+      deliveryAddress: address,
+    },
+    items,
+    subtotal,
+    shippingFee,
+    totalAmount,
+    paymentMethod,
+    paymentStatus: 'pending',
+    orderStatus: 'pending',
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
+  });
+
+  await updateDoc(doc(db, 'orders', docRef.id), {
+    orderId: docRef.id,
+    updatedAt: Timestamp.now(),
+  });
+
+  return { orderId: docRef.id, totalAmount };
+};
 
 /**
  * Create a new order in Firestore

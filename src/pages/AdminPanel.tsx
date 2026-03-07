@@ -242,7 +242,7 @@ const AdminPanel: React.FC = () => {
                       <TableBody>
                         {orders.map((o) => (
                           <TableRow key={o.id} hover>
-                            <TableCell fontWeight={600}>{o.id}</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>{o.id}</TableCell>
                             <TableCell>{o.customer}</TableCell>
                             <TableCell>{o.product}</TableCell>
                             <TableCell>{formatPrice(o.total)}</TableCell>

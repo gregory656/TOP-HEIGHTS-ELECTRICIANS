@@ -47,7 +47,7 @@ import { useAuth } from '../hooks/useAuth';
 import LoginModal from './LoginModal';
 import CheckoutSidebar from './CheckoutSidebar';
 import logoImage from '../assets/topeheights.jpeg';
-import { subscribeToCart } from '../services/cartService';
+import { migrateLegacyCartIfPresent, subscribeToCart } from '../services/cartService';
 
 const drawerWidth = 280;
 
@@ -143,6 +143,9 @@ export default function Layout() {
       setCartItemCount(0);
       return;
     }
+
+    // Migrate legacy cart structure (carts/{uid}) into users/{uid}/cart/*
+    migrateLegacyCartIfPresent(user.uid).catch((e) => console.error('Cart migration failed:', e));
 
     const unsubscribe = subscribeToCart(user.uid, (items) => {
       setCartItemCount(items.reduce((total, item) => total + item.quantity, 0));
@@ -428,11 +431,13 @@ export default function Layout() {
               }}
               slotProps={{
                 paper: {
-                  component: motion.div,
-                  initial: { x: -drawerWidth, opacity: 0 },
-                  animate: { x: 0, opacity: 1 },
-                  exit: { x: -drawerWidth, opacity: 0 },
-                  transition: { type: 'spring', stiffness: 300, damping: 30 },
+                  ...( {
+                    component: motion.div,
+                    initial: { x: -drawerWidth, opacity: 0 },
+                    animate: { x: 0, opacity: 1 },
+                    exit: { x: -drawerWidth, opacity: 0 },
+                    transition: { type: 'spring', stiffness: 300, damping: 30 },
+                  } as unknown as Record<string, unknown> ),
                 },
               }}
             >

@@ -323,7 +323,7 @@ const About: React.FC = () => {
                 style={{
                   display: 'flex',
                   justifyContent: index % 2 === 0 ? 'flex-start' : 'flex-end',
-                  mb: 4,
+                  marginBottom: 32,
                   paddingLeft: index % 2 === 0 ? 0 : '50%',
                   paddingRight: index % 2 === 0 ? '50%' : 0,
                   position: 'relative',

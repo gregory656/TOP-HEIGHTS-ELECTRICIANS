@@ -20,6 +20,7 @@ import {
   IconButton,
   Slider,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import { Search, FilterList, Close, Sort } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { products, categories } from '../data/products';
@@ -102,8 +103,8 @@ const Shop: React.FC = () => {
     setSelectedProduct(null);
   };
 
-  const handleSortChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setSortBy(event.target.value as string);
+  const handleSortChange = (event: SelectChangeEvent) => {
+    setSortBy(event.target.value);
   };
 
   return (

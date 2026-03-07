@@ -25,7 +25,6 @@ import { motion } from 'framer-motion';
 import type { Product } from '../data/products';
 import { useAuth } from '../hooks/useAuth';
 import { addToCart } from '../services/cartService';
-import { addToLocalCart } from '../services/localCartService';
 import { orderViaWhatsApp } from '../services/whatsappService';
 import LoginRequiredDialog from './LoginRequiredDialog';
 
@@ -74,22 +73,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
       });
     } catch (error) {
       console.error('Error adding to cart:', error);
-      // Try localStorage fallback
-      try {
-        addToLocalCart(product, 1);
-        setSnackbar({ 
-          open: true, 
-          message: `${product.name} added to cart!`, 
-          severity: 'success' 
-        });
-      } catch (localError) {
-        console.error('Error adding to local cart:', localError);
-        setSnackbar({ 
-          open: true, 
-          message: 'Failed to add to cart', 
-          severity: 'error' 
-        });
-      }
+      setSnackbar({
+        open: true,
+        message: 'Failed to add to cart. Please try again.',
+        severity: 'error',
+      });
     }
     setAddingToCart(false);
   };
