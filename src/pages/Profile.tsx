@@ -31,7 +31,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { subscribeToUserOrders, type Order } from '../services/orderService';
-import { subscribeToCart, type CartItem, calculateCartTotal } from '../services/cartService';
+import { useCart } from '../context/CartContext';
 import Footer from '../components/Footer';
 
 const tabVariants = {
@@ -42,9 +42,9 @@ const tabVariants = {
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
+  const { cartItems, cartTotal } = useCart();
   const [activeTab, setActiveTab] = useState(0);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Subscribe to orders
@@ -59,16 +59,7 @@ const Profile: React.FC = () => {
     return () => unsubscribe();
   }, [user]);
 
-  // Subscribe to cart
-  useEffect(() => {
-    if (!user) return;
-
-    const unsubscribe = subscribeToCart(user.uid, (items) => {
-      setCartItems(items);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
+  // Cart is from CartContext (no Firestore subscription)
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0 }).format(price);
@@ -123,8 +114,6 @@ const Profile: React.FC = () => {
     );
   }
 
-  const cartTotal = calculateCartTotal(cartItems);
-
   return (
     <Box>
       <Box
@@ -157,9 +146,15 @@ const Profile: React.FC = () => {
           {[
             { icon: <ShoppingCart />, label: 'Total Orders', value: orders.length, color: '#64FFDA' },
             { icon: <LocalShipping />, label: 'Pending Orders', value: orders.filter(o => o.orderStatus === 'pending').length, color: '#FFB74D' },
-            { icon: <Edit />, label: 'Total Spent', value: formatPrice(orders.reduce((acc, o) => acc + o.totalAmount, 0)), color: '#81C784' },
+            { icon: <Edit />, label: 'Total Spent', value: formatPrice(orders.reduce((acc, o) => acc + (o.totalAmount ?? 0), 0)), color: '#81C784' },
+            {
+              icon: <ShoppingCart />,
+              label: 'Items Ordered',
+              value: orders.reduce((acc, o) => acc + (o.items?.reduce((s, i) => s + (i.quantity || 0), 0) ?? 0), 0),
+              color: '#64B5F6',
+            },
           ].map((stat, i) => (
-            <Grid size={{ xs: 6, md: 4 }} key={i}>
+            <Grid size={{ xs: 6, md: 3 }} key={i}>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
                 <Card sx={{ background: 'rgba(17, 34, 64, 0.5)', border: '1px solid rgba(100, 255, 218, 0.1)' }}>
                   <CardContent sx={{ textAlign: 'center', py: 3 }}>

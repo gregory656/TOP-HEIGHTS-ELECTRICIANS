@@ -24,6 +24,7 @@ import {
   Badge,
   CircularProgress,
   Backdrop,
+  Tooltip,
 } from '@mui/material';
 import {
   Home,
@@ -47,7 +48,7 @@ import { useAuth } from '../hooks/useAuth';
 import LoginModal from './LoginModal';
 import CheckoutSidebar from './CheckoutSidebar';
 import logoImage from '../assets/topeheights.jpeg';
-import { migrateLegacyCartIfPresent, subscribeToCart } from '../services/cartService';
+import { useCart } from '../context/CartContext';
 
 const drawerWidth = 280;
 
@@ -130,29 +131,14 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [cartItemCount, setCartItemCount] = useState(0);
+  const { cartCount } = useCart();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const { user, logout, isAuthenticated, loginModalOpen, setLoginModalOpen, authLoading } = useAuth();
 
-  // Subscribe to cart changes
-  useEffect(() => {
-    if (!user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCartItemCount(0);
-      return;
-    }
-
-    // Migrate legacy cart structure (carts/{uid}) into users/{uid}/cart/*
-    migrateLegacyCartIfPresent(user.uid).catch((e) => console.error('Cart migration failed:', e));
-
-    const unsubscribe = subscribeToCart(user.uid, (items) => {
-      setCartItemCount(items.reduce((total, item) => total + item.quantity, 0));
-    });
-
-    return () => unsubscribe();
-  }, [user]);
+  // Cart from context (localStorage) - no Firestore subscription
+  const cartItemCount = cartCount;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -332,15 +318,18 @@ export default function Layout() {
             />
           </Search>
           
-          {/* Cart Button */}
-          <IconButton
-            onClick={() => setCheckoutOpen(true)}
-            sx={{ ml: 1, color: 'primary.main' }}
-          >
-            <Badge badgeContent={cartItemCount} color="secondary">
-              <ShoppingCartCheckout />
-            </Badge>
-          </IconButton>
+          {/* Cart Button - opens cart sidebar (drawer) */}
+          <Tooltip title={cartItemCount > 0 ? `Cart (${cartItemCount} items)` : 'Cart'}>
+            <IconButton
+              onClick={() => setCheckoutOpen(true)}
+              sx={{ ml: 1, color: 'primary.main' }}
+              aria-label={cartItemCount > 0 ? `Cart has ${cartItemCount} items` : 'Open cart'}
+            >
+              <Badge badgeContent={cartItemCount} color="secondary">
+                <ShoppingCartCheckout />
+              </Badge>
+            </IconButton>
+          </Tooltip>
 
           {isAuthenticated && user ? (
             <>

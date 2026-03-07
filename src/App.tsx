@@ -10,6 +10,7 @@ import Services from './pages/Services';
 import About from './pages/About';
 import Profile from './pages/Profile';
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import ErrorBoundary from './components/ErrorBoundary';
 // Import placeholder pages for routes that don't have content yet
 import { Box, Typography } from '@mui/material';
@@ -28,7 +29,8 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider theme={theme}>
         <AuthProvider>
-          <Router>
+          <CartProvider>
+            <Router>
             <Routes>
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
@@ -42,7 +44,8 @@ function App() {
                 <Route path="*" element={<Placeholder title="404 - Not Found" />} />
               </Route>
             </Routes>
-          </Router>
+            </Router>
+          </CartProvider>
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>

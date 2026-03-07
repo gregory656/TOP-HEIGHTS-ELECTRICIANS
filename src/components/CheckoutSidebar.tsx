@@ -27,18 +27,11 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
-import { 
-  type CartItem, 
-  subscribeToCart, 
-  updateCartItemQuantity, 
-  removeFromCart, 
-  calculateCartTotal,
-  clearCart 
-} from '../services/cartService';
-import { 
-  createPendingOrderFromCart, 
-  initiateSTKPush, 
-  pollPaymentStatus 
+import { useCart } from '../context/CartContext';
+import {
+  createOrderWithItems,
+  initiateSTKPush,
+  pollPaymentStatus,
 } from '../services/orderService';
 
 interface CheckoutSidebarProps {
@@ -48,8 +41,8 @@ interface CheckoutSidebarProps {
 
 const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   const { user, isAuthenticated, setLoginModalOpen } = useAuth();
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
+  const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'details' | 'payment' | 'processing' | 'success'>('cart');
@@ -70,39 +63,19 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     address: '',
   });
 
-  // Subscribe to cart changes
+  // Form prefill from user
   useEffect(() => {
-    if (!isAuthenticated || !user) {
-      setCartItems([]);
-      setLoading(false);
-      return;
-    }
+    if (user?.email) setFormData((prev) => ({ ...prev, email: user.email || '' }));
+  }, [user?.email]);
 
-    setFormData(prev => ({ ...prev, email: user.email || '' }));
-
-    const unsubscribe = subscribeToCart(user.uid, (items) => {
-      setCartItems(items);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isAuthenticated, user]);
-
-  const handleQuantityChange = async (productId: string, newQuantity: number) => {
-    if (!user) return;
-    if (newQuantity < 1) {
-      await removeFromCart(user.uid, productId);
-    } else {
-      await updateCartItemQuantity(user.uid, productId, newQuantity);
-    }
+  const handleQuantityChange = (productId: string, newQuantity: number) => {
+    if (newQuantity < 1) removeFromCart(productId);
+    else updateQuantity(productId, newQuantity);
   };
 
-  const handleRemoveItem = async (productId: string) => {
-    if (!user) return;
-    await removeFromCart(user.uid, productId);
+  const handleRemoveItem = (productId: string) => {
+    removeFromCart(productId);
   };
-
-  const cartTotal = calculateCartTotal(cartItems);
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
@@ -175,14 +148,20 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     setError('');
 
     try {
-      // Create order in Firestore
-      const { orderId: newOrderId, totalAmount } = await createPendingOrderFromCart({
+      const { orderId: newOrderId, totalAmount } = await createOrderWithItems({
         userId: user.uid,
         fullName: user.name || 'Customer',
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
         paymentMethod,
+        items: cartItems.map((i) => ({
+          productId: i.productId,
+          name: i.name,
+          price: i.price,
+          image: i.image,
+          quantity: i.quantity,
+        })),
       });
 
       setOrderId(newOrderId);
@@ -210,8 +189,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
 
           if (paymentSuccess) {
             setCheckoutStep('success');
-            // Clear cart after successful payment
-            await clearCart(user.uid);
+            clearCart();
           } else {
             setError('Payment was not completed. Please try again or contact support.');
             setCheckoutStep('details');
@@ -223,9 +201,8 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           setCheckoutStep('details');
         }
       } else {
-        // For other payment methods, show success immediately
         setCheckoutStep('success');
-        await clearCart(user.uid);
+        clearCart();
       }
     } catch (err) {
       console.error('Order creation error:', err);

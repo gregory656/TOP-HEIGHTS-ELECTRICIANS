@@ -24,7 +24,7 @@ import {
 import { motion } from 'framer-motion';
 import type { Product } from '../data/products';
 import { useAuth } from '../hooks/useAuth';
-import { addToCart } from '../services/cartService';
+import { useCart } from '../context/CartContext';
 import { orderViaWhatsApp } from '../services/whatsappService';
 import LoginRequiredDialog from './LoginRequiredDialog';
 
@@ -42,6 +42,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   isFavorite = false,
 }) => {
   const { user, isAuthenticated, setLoginModalOpen } = useAuth();
+  const { addToCart } = useCart();
   const [hovered, setHovered] = useState(false);
   const [localFavorite, setLocalFavorite] = useState(isFavorite);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -54,30 +55,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
     onFavorite?.(product.id);
   };
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (!isAuthenticated || !user) {
-      // Show login required dialog instead of auto-redirect
       setLoginRequiredOpen(true);
       return;
     }
 
     setAddingToCart(true);
     try {
-      await addToCart(user.uid, product, 1);
-      setSnackbar({ 
-        open: true, 
-        message: `${product.name} added to cart!`, 
-        severity: 'success' 
-      });
-    } catch (error) {
-      console.error('Error adding to cart:', error);
+      addToCart(product, 1);
       setSnackbar({
         open: true,
-        message: 'Failed to add to cart. Please try again.',
-        severity: 'error',
+        message: `${product.name} added to cart!`,
+        severity: 'success',
       });
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to add to cart.', severity: 'error' });
     }
     setAddingToCart(false);
   };

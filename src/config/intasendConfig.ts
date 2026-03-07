@@ -1,41 +1,23 @@
 // src/config/intasendConfig.ts
 /**
- * IntaSend Payment Configuration
- * 
- * SECURITY NOTE: These keys are frontend-exposed. In production,
- * STK push requests should be handled by a secure backend server
- * to protect your secret keys.
- * 
- * Get your keys from: https://intasend.com/
+ * IntaSend Payment Configuration (Live keys integrated)
+ * Optional: use .env with VITE_INTASEND_SECRET_KEY / VITE_INTASEND_PUBLIC_KEY and add .env to .gitignore
  */
 
-// Replace with your actual IntaSend keys
+const getEnv = (key: string, fallback: string) =>
+  (typeof import.meta.env !== 'undefined' && (import.meta.env as Record<string, string>)[key]) || fallback;
+
 export const INTASEND_CONFIG = {
-  // Public key - safe to use on frontend
-  PUBLIC_KEY: 'YOUR_PUBLIC_KEY_HERE',
-  
-  // Secret key - WARNING: Only use for testing, move to backend in production!
-  SECRET_KEY: 'YOUR_SECRET_KEY_HERE',
-  
-  // Merchant shortcode (provided by IntaSend)
-  MERCHANT_SHORTCODE: 'YOUR_MERCHANT_SHORTCODE',
-  
-  // API base URL
-  API_BASE_URL: 'https://sandbox.intasend.com', // Use 'https://payment.intasend.com' for production
-  
-  // Checkout URL
-  CHECKOUT_URL: 'https://sandbox.intasend.com', // Use 'https://payment.intasend.com' for production
+  PUBLIC_KEY: getEnv('VITE_INTASEND_PUBLIC_KEY', 'ISPubKey_live_4afe8583-34a1-4220-a709-35733ebdf74b'),
+  SECRET_KEY: getEnv('VITE_INTASEND_SECRET_KEY', 'ISSecretKey_live_bc9715ff-deda-47a6-a54e-c1455e12ef81'),
+  MERCHANT_SHORTCODE: getEnv('VITE_INTASEND_MERCHANT_SHORTCODE', ''),
+  API_BASE_URL: 'https://payment.intasend.com',
+  CHECKOUT_URL: 'https://payment.intasend.com',
 };
 
-// STK Push request configuration
 export const STK_PUSH_CONFIG = {
-  // Currency code (KES for Kenya Shillings)
   CURRENCY: 'KES',
-  
-  // Callback URL for payment status
-  CALLBACK_URL: window.location.origin + '/payment-callback',
-  
-  // Default payment method
+  CALLBACK_URL: typeof window !== 'undefined' ? window.location.origin + '/payment-callback' : '',
   METHOD: 'MPESA',
 };
 

@@ -138,6 +138,52 @@ export const createPendingOrderFromCart = async (params: {
   return { orderId: docRef.id, totalAmount };
 };
 
+/** Create order from provided items (e.g. from localStorage cart). Use for checkout. */
+export const createOrderWithItems = async (params: {
+  userId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  paymentMethod: Order['paymentMethod'];
+  items: Array<{ productId: string; name: string; price: number; image?: string; quantity: number }>;
+}): Promise<{ orderId: string; totalAmount: number }> => {
+  const { userId, fullName, email, phone, address, paymentMethod, items } = params;
+  if (!userId || items.length === 0) throw new Error('User and items required');
+
+  const orderItems = items.map((i) => ({
+    productId: i.productId,
+    name: i.name,
+    price: i.price,
+    quantity: i.quantity,
+    total: i.price * i.quantity,
+  }));
+  const subtotal = orderItems.reduce((s, i) => s + i.total, 0);
+  const shippingFee = await getShippingFee();
+  const totalAmount = subtotal + shippingFee;
+
+  const ordersRef = collection(db, 'orders');
+  const docRef = await addDoc(ordersRef, {
+    userId,
+    orderId: '',
+    customerInfo: { fullName, phone, email, deliveryAddress: address },
+    items: orderItems,
+    subtotal,
+    shippingFee,
+    totalAmount,
+    paymentMethod,
+    paymentStatus: 'pending',
+    orderStatus: 'pending',
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
+  });
+  await updateDoc(doc(db, 'orders', docRef.id), {
+    orderId: docRef.id,
+    updatedAt: Timestamp.now(),
+  });
+  return { orderId: docRef.id, totalAmount };
+};
+
 /**
  * Create a new order in Firestore
  */
@@ -252,8 +298,11 @@ export const initiateSTKPush = async (
   email: string
 ): Promise<{ checkoutId: string; invoiceId: string }> => {
   try {
-    // Format phone number (remove +254 if present, add 254)
-    const formattedPhone = phoneNumber.replace(/^\\+?254/, '254');
+    // Format phone: 07xxx / +2547xxx / 2547xxx -> 2547xxxxxxxx
+    let formattedPhone = phoneNumber.replace(/\s/g, '');
+    if (/^\+/.test(formattedPhone)) formattedPhone = formattedPhone.slice(1);
+    if (/^0/.test(formattedPhone)) formattedPhone = '254' + formattedPhone.slice(1);
+    if (!/^254/.test(formattedPhone)) formattedPhone = '254' + formattedPhone;
     
     const requestBody = {
       method: STK_PUSH_CONFIG.METHOD,
