@@ -411,6 +411,7 @@ export const initiateSTKPush = async (
     let response: Response;
 
     if (shouldUseFunctionsPayment()) {
+      console.log('[IntaSend] Using Firebase Functions for STK Push');
       response = await fetchWithTimeout(`${getPaymentApiBaseUrl()}/mpesa/stkpush`, {
         method: 'POST',
         headers: {
@@ -426,6 +427,13 @@ export const initiateSTKPush = async (
         }),
       }, 20000);
     } else {
+      // Direct API call - NOTE: This may fail due to CORS restrictions
+      console.log('[IntaSend] Attempting direct API call (may be blocked by CORS)');
+      console.log('[IntaSend] API Base URL:', INTASEND_CONFIG.API_BASE_URL);
+      console.log('[IntaSend] Phone formatted:', formattedPhone);
+      console.log('[IntaSend] Amount:', amount);
+      console.log('[IntaSend] Merchant Shortcode:', INTASEND_CONFIG.MERCHANT_SHORTCODE || 'NOT SET (may be required)');
+
       const requestBody: Record<string, unknown> = {
         method: STK_PUSH_CONFIG.METHOD,
         currency: STK_PUSH_CONFIG.CURRENCY,
@@ -440,14 +448,27 @@ export const initiateSTKPush = async (
         requestBody.merchant_shortcode = INTASEND_CONFIG.MERCHANT_SHORTCODE;
       }
 
-      response = await fetchWithTimeout(`${INTASEND_CONFIG.API_BASE_URL}/api/v1/checkout/stk-push/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${INTASEND_CONFIG.SECRET_KEY}`,
-        },
-        body: JSON.stringify(requestBody),
-      }, 20000);
+      console.log('[IntaSend] Request body:', JSON.stringify(requestBody, null, 2));
+
+      try {
+        response = await fetchWithTimeout(`${INTASEND_CONFIG.API_BASE_URL}/api/v1/checkout/stk-push/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${INTASEND_CONFIG.SECRET_KEY}`,
+          },
+          body: JSON.stringify(requestBody),
+        }, 20000);
+        console.log('[IntaSend] Response status:', response.status);
+        console.log('[IntaSend] Response statusText:', response.statusText);
+      } catch (fetchError) {
+        console.error('[IntaSend] Fetch error:', fetchError);
+        // Check if it's a CORS error
+        if (fetchError instanceof TypeError && fetchError.message.includes('Failed to fetch')) {
+          throw new Error('Payment request blocked by CORS. Please use IntaSend checkout method instead, or configure Firebase Functions for payment processing.');
+        }
+        throw fetchError;
+      }
     }
 
     if (!response.ok) {

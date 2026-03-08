@@ -104,6 +104,8 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'details' | 'payment' | 'processing' | 'success'>('cart');
+  // Default to INTASEND as it uses inline SDK (works without backend)
+  // MPESA uses direct API calls which may be blocked by CORS
   const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'INTASEND'>('INTASEND');
   const [orderId, setOrderId] = useState('');
   const [paymentAmount, setPaymentAmount] = useState(0);
@@ -335,7 +337,19 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
       console.error('Order creation error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Could not start payment.';
       pushDebugLog(`Error: ${errorMessage}`);
-      setError(errorMessage);
+      
+      // Provide helpful guidance based on error type
+      if (errorMessage.includes('CORS') || errorMessage.includes('blocked')) {
+        setError(
+          'Direct payment API is blocked. Please use "IntaSend" payment method instead for card/M-Pesa payments.'
+        );
+      } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+        setError(
+          'Network error. Please check your connection and try again, or use the "IntaSend" payment method.'
+        );
+      } else {
+        setError(errorMessage);
+      }
       setCheckoutStep('details');
     } finally {
       setProcessing(false);

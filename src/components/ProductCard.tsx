@@ -9,7 +9,6 @@ import {
   Button,
   Chip,
   IconButton,
-  CardActionArea,
   Snackbar,
   Alert,
   Stack,
@@ -156,62 +155,61 @@ const ProductCard: React.FC<ProductCardProps> = ({
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
-          <CardActionArea>
-            <Box sx={{ position: 'relative', overflow: 'hidden' }}>
-              <CardMedia
-                component="img"
-                className="product-image"
-                height="200"
-                image={product.image}
-                alt={product.name}
-                sx={{
-                  objectFit: 'cover',
-                  transition: 'transform 0.5s ease',
-                }}
-              />
-              
-              {/* Favorite Button */}
-              <IconButton
-                className="favorite-button"
-                onClick={handleFavoriteClick}
+          {/* Replaced CardActionArea with Box to fix nested button warning */}
+          <Box sx={{ position: 'relative', overflow: 'hidden' }}>
+            <CardMedia
+              component="img"
+              className="product-image"
+              height="200"
+              image={product.image}
+              alt={product.name}
+              sx={{
+                objectFit: 'cover',
+                transition: 'transform 0.5s ease',
+              }}
+            />
+            
+            {/* Favorite Button */}
+            <IconButton
+              className="favorite-button"
+              onClick={handleFavoriteClick}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                backgroundColor: 'rgba(17, 32, 64, 0.8)',
+                backdropFilter: 'blur(8px)',
+                color: localFavorite ? 'error.main' : 'text.secondary',
+                opacity: 0,
+                transform: 'translateX(20px)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(17, 32, 64, 0.9)',
+                  color: localFavorite ? 'error.main' : 'primary.main',
+                },
+              }}
+            >
+              {localFavorite ? <Favorite /> : <FavoriteBorder />}
+            </IconButton>
+
+            {/* Stock Badge */}
+            {product.inStock !== false && (
+              <Chip
+                label="In Stock"
+                size="small"
                 sx={{
                   position: 'absolute',
                   top: 8,
-                  right: 8,
-                  backgroundColor: 'rgba(17, 32, 64, 0.8)',
-                  backdropFilter: 'blur(8px)',
-                  color: localFavorite ? 'error.main' : 'text.secondary',
-                  opacity: 0,
-                  transform: 'translateX(20px)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: 'rgba(17, 32, 64, 0.9)',
-                    color: localFavorite ? 'error.main' : 'primary.main',
-                  },
+                  left: 8,
+                  backgroundColor: 'rgba(100, 255, 218, 0.15)',
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  fontSize: '0.7rem',
+                  border: '1px solid rgba(100, 255, 218, 0.3)',
                 }}
-              >
-                {localFavorite ? <Favorite /> : <FavoriteBorder />}
-              </IconButton>
-
-              {/* Stock Badge */}
-              {product.inStock !== false && (
-                <Chip
-                  label="In Stock"
-                  size="small"
-                  sx={{
-                    position: 'absolute',
-                    top: 8,
-                    left: 8,
-                    backgroundColor: 'rgba(100, 255, 218, 0.15)',
-                    color: 'primary.main',
-                    fontWeight: 600,
-                    fontSize: '0.7rem',
-                    border: '1px solid rgba(100, 255, 218, 0.3)',
-                  }}
-                />
-              )}
-            </Box>
-          </CardActionArea>
+              />
+            )}
+          </Box>
 
           <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
             <Chip
