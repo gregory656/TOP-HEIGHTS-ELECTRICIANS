@@ -48,6 +48,11 @@ export interface Order {
 
 type PaymentState = {
   status: string;
+  state?: string;
+  message?: string;
+  reason?: string;
+  error?: string;
+  invoice?: { state?: string; message?: string; reason?: string };
   provider?: {
     invoice?: { state?: string; message?: string; reason?: string };
     state?: string;
@@ -58,6 +63,13 @@ type PaymentState = {
   };
 };
 
+export type PaymentProgress = {
+  status: string;
+  message?: string;
+  attempt: number;
+  maxAttempts: number;
+};
+
 const shouldUseFunctionsPayment = () => {
   const flag = (import.meta.env.VITE_USE_FUNCTIONS_PAYMENT as string | undefined) || 'false';
   return flag.toLowerCase() === 'true';
@@ -65,15 +77,48 @@ const shouldUseFunctionsPayment = () => {
 
 const getPaymentApiBaseUrl = () => INTASEND_CONFIG.FUNCTIONS_API_BASE_URL.replace(/\/+$/, '');
 
+const extractApiErrorMessage = (errorData: unknown, fallback: string): string => {
+  if (!errorData || typeof errorData !== 'object') return fallback;
+  const data = errorData as Record<string, unknown>;
+  const direct = [data.message, data.detail, data.reason, data.error];
+  for (const candidate of direct) {
+    if (typeof candidate === 'string' && candidate.trim()) return candidate;
+  }
+  const errors = data.errors;
+  if (Array.isArray(errors) && errors.length > 0 && typeof errors[0] === 'string') {
+    return errors[0];
+  }
+  return fallback;
+};
+
+const extractPaymentMessage = (state: PaymentState): string => {
+  const values = [
+    state.reason,
+    state.message,
+    state.error,
+    state.invoice?.reason,
+    state.invoice?.message,
+    state.provider?.reason,
+    state.provider?.message,
+    state.provider?.error,
+    state.provider?.invoice?.reason,
+    state.provider?.invoice?.message,
+  ];
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value;
+  }
+  return '';
+};
+
 const normalizePaymentState = (state: PaymentState): string => {
-  const raw = state.provider?.invoice?.state || state.provider?.state || state.provider?.status || state.status || '';
-  const reason =
-    state.provider?.invoice?.reason ||
-    state.provider?.invoice?.message ||
-    state.provider?.reason ||
-    state.provider?.message ||
-    state.provider?.error ||
-    '';
+  const raw = state.invoice?.state
+    || state.state
+    || state.provider?.invoice?.state
+    || state.provider?.state
+    || state.provider?.status
+    || state.status
+    || '';
+  const reason = extractPaymentMessage(state);
   if (String(reason).toLowerCase().includes('insufficient')) {
     return 'insufficient_funds';
   }
@@ -382,7 +427,7 @@ export const initiateSTKPush = async (
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to initiate STK push');
+      throw new Error(extractApiErrorMessage(errorData, 'Failed to initiate STK push'));
     }
 
     const data = await response.json() as {
@@ -441,7 +486,7 @@ export const checkPaymentStatus = async (
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to check payment status');
+      throw new Error(extractApiErrorMessage(errorData, 'Failed to check payment status'));
     }
 
     const data = await response.json() as PaymentState;
@@ -480,7 +525,7 @@ export const checkPaymentStatus = async (
 export const pollPaymentStatus = async (
   checkoutId: string,
   orderId: string,
-  onStatusChange: (status: string) => void,
+  onStatusChange: (progress: PaymentProgress) => void,
   maxAttempts: number = 30,
   intervalMs: number = 3000
 ): Promise<boolean> => {
@@ -493,8 +538,9 @@ export const pollPaymentStatus = async (
       try {
         const statusData = await checkPaymentStatus(checkoutId, orderId);
         const state = normalizePaymentState(statusData);
+        const message = extractPaymentMessage(statusData);
         
-        onStatusChange(state);
+        onStatusChange({ status: state, message, attempt: attempts, maxAttempts });
         
         // Check if payment is complete
         if (state === 'completed' || state === 'paid' || state === 'settled' || state === 'success' || state === 'succeeded') {
@@ -524,6 +570,8 @@ export const pollPaymentStatus = async (
         }
       } catch (error) {
         console.error('Poll error:', error);
+        const message = error instanceof Error ? error.message : 'Error polling payment status';
+        onStatusChange({ status: 'poll_error', message, attempt: attempts, maxAttempts });
         if (attempts >= maxAttempts) {
           clearInterval(pollInterval);
           resolve(false);

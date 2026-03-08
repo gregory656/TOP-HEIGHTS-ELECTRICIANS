@@ -107,6 +107,12 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'INTASEND'>('INTASEND');
   const [orderId, setOrderId] = useState('');
   const [paymentAmount, setPaymentAmount] = useState(0);
+  const [paymentDebugLog, setPaymentDebugLog] = useState<string[]>([]);
+
+  const pushDebugLog = (entry: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setPaymentDebugLog((prev) => [...prev, `[${timestamp}] ${entry}`].slice(-10));
+  };
   
   // Form validation errors
   const [formErrors, setFormErrors] = useState({
@@ -256,6 +262,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
 
     setProcessing(true);
     setError('');
+    setPaymentDebugLog([]);
 
     try {
       const { orderId: newOrderId, totalAmount } = await createOrderWithItems({
@@ -276,30 +283,37 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
 
       setOrderId(newOrderId);
       setPaymentAmount(totalAmount);
+      pushDebugLog(`Order created: ${newOrderId}`);
+      pushDebugLog(`Amount: ${formatPrice(totalAmount)}`);
 
       if (paymentMethod === 'MPESA') {
         setCheckoutStep('processing');
+        pushDebugLog(`Starting M-Pesa STK push to ${formData.phone}`);
         const { checkoutId } = await initiateSTKPush(
           newOrderId,
           formData.phone,
           totalAmount,
           formData.email
         );
+        pushDebugLog(`STK initiated. Checkout ID: ${checkoutId}`);
 
         const paid = await pollPaymentStatus(
           checkoutId,
           newOrderId,
-          () => {
-            // Firestore gets synced by backend status endpoint/callback
+          ({ status, message, attempt, maxAttempts }) => {
+            const msg = message ? ` (${message})` : '';
+            pushDebugLog(`Status ${attempt}/${maxAttempts}: ${status}${msg}`);
           },
-          30,
-          4000
+          20,
+          3000
         );
 
         if (paid) {
+          pushDebugLog('Payment confirmed as successful.');
           clearCart();
           setCheckoutStep('success');
         } else {
+          pushDebugLog('Payment failed or timed out.');
           setError(
             'Payment failed or timed out. If your M-Pesa has insufficient funds, top up and try again.'
           );
@@ -320,6 +334,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     } catch (err: unknown) {
       console.error('Order creation error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Could not start payment.';
+      pushDebugLog(`Error: ${errorMessage}`);
       setError(errorMessage);
       setCheckoutStep('details');
     } finally {
@@ -693,6 +708,34 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
       <Typography variant="body2" color="text.secondary">
         If you have insufficient funds, M-Pesa will decline and we will return you here.
       </Typography>
+      {paymentMethod === 'MPESA' && paymentDebugLog.length > 0 && (
+        <Box
+          sx={{
+            mt: 3,
+            p: 2,
+            textAlign: 'left',
+            borderRadius: 2,
+            border: '1px solid rgba(100, 255, 218, 0.2)',
+            backgroundColor: 'rgba(100, 255, 218, 0.05)',
+            maxHeight: 220,
+            overflow: 'auto',
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Payment Debug Log
+          </Typography>
+          {paymentDebugLog.map((entry, index) => (
+            <Typography
+              key={`${index}-${entry}`}
+              variant="caption"
+              component="div"
+              sx={{ color: 'text.secondary', mb: 0.5, wordBreak: 'break-word' }}
+            >
+              {entry}
+            </Typography>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 
@@ -746,6 +789,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     if (open) {
       setCheckoutStep('cart');
       setError('');
+      setPaymentDebugLog([]);
     }
   }, [open]);
 
