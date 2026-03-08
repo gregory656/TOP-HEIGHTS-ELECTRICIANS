@@ -10,7 +10,7 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, googleProvider, db } from '../services/firebase';
+import { auth, googleProvider, db, authPersistenceReady } from '../services/firebase';
 
 import { AuthContext, type User } from './AuthContextData';
 
@@ -85,35 +85,63 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [getDisplayName, upsertUserDocument]);
 
   useEffect(() => {
-    // Listen to Firebase auth state changes
-    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-      try {
-        if (fbUser) {
-          setFirebaseUser(fbUser);
-          const userData = await fetchOrCreateUser(fbUser);
-          setUser(userData);
-        } else {
-          setFirebaseUser(null);
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Error resolving auth user:', error);
-        if (fbUser) {
-          setUser({
-            uid: fbUser.uid,
-            role: fbUser.email === ADMIN_EMAIL ? 'admin' : 'customer',
-            name: getDisplayName(fbUser),
-            email: fbUser.email || '',
-            photoURL: fbUser.photoURL || undefined,
-          });
-        }
-      } finally {
-        setAuthLoading(false);
-        setIsLoading(false);
-      }
-    });
+    let active = true;
+    let unsubscribe: (() => void) | null = null;
 
-    return () => unsubscribe();
+    const init = async () => {
+      try {
+        await authPersistenceReady;
+      } catch {
+        // Continue even if persistence setup fails; auth can still function.
+      }
+
+      if (!active) return;
+
+      // Listen to Firebase auth state changes
+      unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+        try {
+          if (fbUser) {
+            const baseUser: User = {
+              uid: fbUser.uid,
+              role: fbUser.email === ADMIN_EMAIL ? 'admin' : 'customer',
+              name: getDisplayName(fbUser),
+              email: fbUser.email || '',
+              photoURL: fbUser.photoURL || undefined,
+            };
+
+            setFirebaseUser(fbUser);
+            setUser(baseUser);
+
+            const userData = await fetchOrCreateUser(fbUser);
+            setUser(userData);
+          } else {
+            setFirebaseUser(null);
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('Error resolving auth user:', error);
+          if (fbUser) {
+            setUser({
+              uid: fbUser.uid,
+              role: fbUser.email === ADMIN_EMAIL ? 'admin' : 'customer',
+              name: getDisplayName(fbUser),
+              email: fbUser.email || '',
+              photoURL: fbUser.photoURL || undefined,
+            });
+          }
+        } finally {
+          setAuthLoading(false);
+          setIsLoading(false);
+        }
+      });
+    };
+
+    void init();
+
+    return () => {
+      active = false;
+      if (unsubscribe) unsubscribe();
+    };
   }, [fetchOrCreateUser, getDisplayName]);
 
   const login = async (email: string, password: string): Promise<boolean> => {

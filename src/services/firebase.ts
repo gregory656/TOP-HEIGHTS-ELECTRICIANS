@@ -29,7 +29,7 @@ export const functions = getFunctions(app);
 export { analytics };
 
 // Set auth persistence to local (survives browser refresh)
-setPersistence(auth, browserLocalPersistence)
+export const authPersistenceReady = setPersistence(auth, browserLocalPersistence)
   .then(() => {
     console.log('Firebase auth persistence set to browserLocalPersistence');
   })
