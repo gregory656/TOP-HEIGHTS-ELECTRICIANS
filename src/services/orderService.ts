@@ -5,6 +5,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   updateDoc,
   query,
   where,
@@ -213,10 +214,10 @@ export const createPendingOrderFromCart = async (params: {
   const shippingFee = await getShippingFee();
   const totalAmount = subtotal + shippingFee;
 
-  const ordersRef = collection(db, 'orders');
-  const docRef = await addDoc(ordersRef, {
+  const docRef = doc(collection(db, 'orders'));
+  await setDoc(docRef, {
     userId,
-    orderId: '', // filled after creation
+    orderId: docRef.id,
     customerInfo: {
       fullName,
       phone,
@@ -231,11 +232,6 @@ export const createPendingOrderFromCart = async (params: {
     paymentStatus: 'pending',
     orderStatus: 'pending',
     createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
-  });
-
-  await updateDoc(doc(db, 'orders', docRef.id), {
-    orderId: docRef.id,
     updatedAt: Timestamp.now(),
   });
 
@@ -266,10 +262,10 @@ export const createOrderWithItems = async (params: {
   const shippingFee = await getShippingFee();
   const totalAmount = subtotal + shippingFee;
 
-  const ordersRef = collection(db, 'orders');
-  const docRef = await addDoc(ordersRef, {
+  const docRef = doc(collection(db, 'orders'));
+  await setDoc(docRef, {
     userId,
-    orderId: '',
+    orderId: docRef.id,
     customerInfo: { fullName, phone, email, deliveryAddress: address },
     items: orderItems,
     subtotal,
@@ -279,10 +275,6 @@ export const createOrderWithItems = async (params: {
     paymentStatus: 'pending',
     orderStatus: 'pending',
     createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
-  });
-  await updateDoc(doc(db, 'orders', docRef.id), {
-    orderId: docRef.id,
     updatedAt: Timestamp.now(),
   });
   return { orderId: docRef.id, totalAmount };

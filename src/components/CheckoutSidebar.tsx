@@ -143,9 +143,16 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   }) => {
     const { checkoutOrderId, amount, email, phone } = params;
 
+    pushDebugLog('Starting IntaSend checkout...');
+    
     if (!INTASEND_CONFIG.PUBLIC_KEY) {
       throw new Error('IntaSend public key is not configured');
     }
+
+    pushDebugLog(`Public Key: ${INTASEND_CONFIG.PUBLIC_KEY.substring(0, 10)}...`);
+    pushDebugLog(`Amount: KES ${amount}`);
+    pushDebugLog(`Email: ${email}`);
+    pushDebugLog(`Phone: ${phone}`);
 
     const btn = document.querySelector<HTMLButtonElement>('.intaSendPayButton');
     if (!btn) {
@@ -158,32 +165,49 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     btn.setAttribute('data-phone_number', phone);
     btn.setAttribute('data-api_ref', checkoutOrderId);
 
-    const IntaSend = await ensureIntaSendSdk();
-    new IntaSend({
-      publicAPIKey: INTASEND_CONFIG.PUBLIC_KEY,
-      live: true,
-    })
-      .on('COMPLETE', async () => {
-        try {
-          await updateOrderStatus(checkoutOrderId, {
-            paymentStatus: 'paid',
-            orderStatus: 'processed',
-          });
-        } catch (e) {
-          console.error('Failed to update order status after payment', e);
-        }
-        clearCart();
-        setCheckoutStep('success');
-      })
-      .on('FAILED', () => {
-        setError('Payment failed or was cancelled. You can try again.');
-        setCheckoutStep('details');
-      })
-      .on('IN-PROGRESS', () => {
-        setCheckoutStep('processing');
-      });
+    try {
+      pushDebugLog('Loading IntaSend SDK...');
+      const IntaSend = await ensureIntaSendSdk();
+      pushDebugLog('SDK loaded, initializing checkout...');
 
-    btn.click();
+      new IntaSend({
+        publicAPIKey: INTASEND_CONFIG.PUBLIC_KEY,
+        live: true,
+      })
+        .on('COMPLETE', async () => {
+          pushDebugLog('Payment completed!');
+          try {
+            await updateOrderStatus(checkoutOrderId, {
+              paymentStatus: 'paid',
+              orderStatus: 'processed',
+            });
+            pushDebugLog('Order status updated to paid');
+          } catch (e) {
+            console.error('Failed to update order status after payment', e);
+            pushDebugLog(`Status update error: ${e}`);
+          }
+          clearCart();
+          setCheckoutStep('success');
+        })
+        .on('FAILED', () => {
+          pushDebugLog('Payment failed');
+          setError('Payment failed or was cancelled. You can try again.');
+          setCheckoutStep('details');
+        })
+        .on('IN-PROGRESS', () => {
+          pushDebugLog('Payment in progress...');
+          setCheckoutStep('processing');
+        });
+
+      pushDebugLog('Triggering payment button...');
+      btn.click();
+      pushDebugLog('Payment initiated!');
+    } catch (sdkError) {
+      const errorMsg = sdkError instanceof Error ? sdkError.message : 'SDK Error';
+      pushDebugLog(`SDK Error: ${errorMsg}`);
+      console.error('IntaSend SDK Error:', sdkError);
+      throw new Error(`Payment SDK Error: ${errorMsg}`);
+    }
   };
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
@@ -694,7 +718,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         </Button>
       </Box>
 
-      {paymentMethod === 'MPESA' && paymentDebugLog.length > 0 && (
+      {paymentDebugLog.length > 0 && (
         <Box
           sx={{
             mt: 2,
@@ -707,7 +731,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           }}
         >
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            Last Payment Debug
+            Payment Debug Log ({paymentMethod})
           </Typography>
           {paymentDebugLog.map((entry, index) => (
             <Typography

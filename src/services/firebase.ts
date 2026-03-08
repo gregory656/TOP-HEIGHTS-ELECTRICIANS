@@ -1,9 +1,9 @@
 // src/services/firebase.ts
 import { initializeApp, getApp, FirebaseApp } from 'firebase/app';
 import { getAnalytics, Analytics } from 'firebase/analytics';
-import { getFirestore, Firestore, initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence, Auth } from 'firebase/auth';
-import { getFunctions, Functions } from 'firebase/functions';
+import { getFirestore, Firestore, initializeFirestore } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { getFunctions } from 'firebase/functions';
 
 // Firebase configuration for Top Heights Electricals
 const firebaseConfig = {
