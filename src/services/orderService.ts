@@ -70,6 +70,21 @@ export type PaymentProgress = {
   maxAttempts: number;
 };
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const fetchWithTimeout = async (url: string, init: RequestInit, timeoutMs: number): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 const shouldUseFunctionsPayment = () => {
   const flag = (import.meta.env.VITE_USE_FUNCTIONS_PAYMENT as string | undefined) || 'false';
   return flag.toLowerCase() === 'true';
@@ -108,6 +123,16 @@ const extractPaymentMessage = (state: PaymentState): string => {
     if (typeof value === 'string' && value.trim()) return value;
   }
   return '';
+};
+
+const toPaymentErrorMessage = (error: unknown, fallback: string): string => {
+  if (error instanceof DOMException && error.name === 'AbortError') {
+    return 'Payment request timed out. Please check your network and try again.';
+  }
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+  return fallback;
 };
 
 const normalizePaymentState = (state: PaymentState): string => {
@@ -386,7 +411,7 @@ export const initiateSTKPush = async (
     let response: Response;
 
     if (shouldUseFunctionsPayment()) {
-      response = await fetch(`${getPaymentApiBaseUrl()}/mpesa/stkpush`, {
+      response = await fetchWithTimeout(`${getPaymentApiBaseUrl()}/mpesa/stkpush`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -399,7 +424,7 @@ export const initiateSTKPush = async (
           currency: STK_PUSH_CONFIG.CURRENCY,
           callbackUrl: STK_PUSH_CONFIG.CALLBACK_URL,
         }),
-      });
+      }, 20000);
     } else {
       const requestBody: Record<string, unknown> = {
         method: STK_PUSH_CONFIG.METHOD,
@@ -415,14 +440,14 @@ export const initiateSTKPush = async (
         requestBody.merchant_shortcode = INTASEND_CONFIG.MERCHANT_SHORTCODE;
       }
 
-      response = await fetch(`${INTASEND_CONFIG.API_BASE_URL}/api/v1/checkout/stk-push/`, {
+      response = await fetchWithTimeout(`${INTASEND_CONFIG.API_BASE_URL}/api/v1/checkout/stk-push/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${INTASEND_CONFIG.SECRET_KEY}`,
         },
         body: JSON.stringify(requestBody),
-      });
+      }, 20000);
     }
 
     if (!response.ok) {
@@ -455,7 +480,7 @@ export const initiateSTKPush = async (
     };
   } catch (error) {
     console.error('Error initiating STK push:', error);
-    throw error;
+    throw new Error(toPaymentErrorMessage(error, 'Failed to initiate STK push'));
   }
 };
 
@@ -472,16 +497,16 @@ export const checkPaymentStatus = async (
     let response: Response;
     if (shouldUseFunctionsPayment()) {
       const query = orderId ? `?orderId=${encodeURIComponent(orderId)}` : '';
-      response = await fetch(`${getPaymentApiBaseUrl()}/mpesa/status/${encodeURIComponent(checkoutId)}${query}`, {
+      response = await fetchWithTimeout(`${getPaymentApiBaseUrl()}/mpesa/status/${encodeURIComponent(checkoutId)}${query}`, {
         method: 'GET',
-      });
+      }, 15000);
     } else {
-      response = await fetch(`${INTASEND_CONFIG.API_BASE_URL}/api/v1/checkout/${checkoutId}/status/`, {
+      response = await fetchWithTimeout(`${INTASEND_CONFIG.API_BASE_URL}/api/v1/checkout/${checkoutId}/status/`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${INTASEND_CONFIG.SECRET_KEY}`,
         },
-      });
+      }, 15000);
     }
 
     if (!response.ok) {
@@ -515,7 +540,7 @@ export const checkPaymentStatus = async (
     return data;
   } catch (error) {
     console.error('Error checking payment status:', error);
-    throw error;
+    throw new Error(toPaymentErrorMessage(error, 'Failed to check payment status'));
   }
 };
 
@@ -529,56 +554,40 @@ export const pollPaymentStatus = async (
   maxAttempts: number = 30,
   intervalMs: number = 3000
 ): Promise<boolean> => {
-  let attempts = 0;
-  
-  return new Promise((resolve) => {
-    const pollInterval = setInterval(async () => {
-      attempts++;
-      
-      try {
-        const statusData = await checkPaymentStatus(checkoutId, orderId);
-        const state = normalizePaymentState(statusData);
-        const message = extractPaymentMessage(statusData);
-        
-        onStatusChange({ status: state, message, attempt: attempts, maxAttempts });
-        
-        // Check if payment is complete
-        if (state === 'completed' || state === 'paid' || state === 'settled' || state === 'success' || state === 'succeeded') {
-          clearInterval(pollInterval);
-          resolve(true);
-          return;
-        }
-        
-        // Check if payment failed
-        if (
-          state === 'failed'
-          || state === 'cancelled'
-          || state === 'canceled'
-          || state === 'declined'
-          || state === 'insufficient_funds'
-          || state === 'insufficient_balance'
-        ) {
-          clearInterval(pollInterval);
-          resolve(false);
-          return;
-        }
-        
-        // Max attempts reached
-        if (attempts >= maxAttempts) {
-          clearInterval(pollInterval);
-          resolve(false);
-        }
-      } catch (error) {
-        console.error('Poll error:', error);
-        const message = error instanceof Error ? error.message : 'Error polling payment status';
-        onStatusChange({ status: 'poll_error', message, attempt: attempts, maxAttempts });
-        if (attempts >= maxAttempts) {
-          clearInterval(pollInterval);
-          resolve(false);
-        }
+  for (let attempts = 1; attempts <= maxAttempts; attempts++) {
+    try {
+      const statusData = await checkPaymentStatus(checkoutId, orderId);
+      const state = normalizePaymentState(statusData);
+      const message = extractPaymentMessage(statusData);
+
+      onStatusChange({ status: state, message, attempt: attempts, maxAttempts });
+
+      if (state === 'completed' || state === 'paid' || state === 'settled' || state === 'success' || state === 'succeeded') {
+        return true;
       }
-    }, intervalMs);
-  });
+
+      if (
+        state === 'failed'
+        || state === 'cancelled'
+        || state === 'canceled'
+        || state === 'declined'
+        || state === 'insufficient_funds'
+        || state === 'insufficient_balance'
+      ) {
+        return false;
+      }
+    } catch (error) {
+      console.error('Poll error:', error);
+      const message = error instanceof Error ? error.message : 'Error polling payment status';
+      onStatusChange({ status: 'poll_error', message, attempt: attempts, maxAttempts });
+    }
+
+    if (attempts < maxAttempts) {
+      await sleep(intervalMs);
+    }
+  }
+
+  return false;
 };
 
 /**

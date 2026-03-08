@@ -680,6 +680,34 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         </Button>
       </Box>
 
+      {paymentMethod === 'MPESA' && paymentDebugLog.length > 0 && (
+        <Box
+          sx={{
+            mt: 2,
+            p: 2,
+            borderRadius: 2,
+            border: '1px solid rgba(100, 255, 218, 0.2)',
+            backgroundColor: 'rgba(100, 255, 218, 0.05)',
+            maxHeight: 160,
+            overflow: 'auto',
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Last Payment Debug
+          </Typography>
+          {paymentDebugLog.map((entry, index) => (
+            <Typography
+              key={`${index}-${entry}`}
+              variant="caption"
+              component="div"
+              sx={{ color: 'text.secondary', mb: 0.5, wordBreak: 'break-word' }}
+            >
+              {entry}
+            </Typography>
+          ))}
+        </Box>
+      )}
+
       {/* Hidden IntaSend payment button (used by inline JS SDK) */}
       <button
         type="button"
