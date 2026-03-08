@@ -64,16 +64,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
 
     setAddingToCart(true);
-    try {
-      addToCart(product, 1);
-      setSnackbar({
-        open: true,
-        message: `${product.name} added to cart!`,
-        severity: 'success',
-      });
-    } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to add to cart.', severity: 'error' });
-    }
+    addToCart(product, 1);
+    setSnackbar({
+      open: true,
+      message: `${product.name} added to cart!`,
+      severity: 'success',
+    });
     setAddingToCart(false);
   };
 

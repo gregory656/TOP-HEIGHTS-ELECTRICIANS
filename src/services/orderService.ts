@@ -13,7 +13,7 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { getCart, type CartItem } from './cartService';
+import { getCart } from './cartService';
 import { INTASEND_CONFIG, STK_PUSH_CONFIG } from '../config/intasendConfig';
 
 export interface Order {
@@ -45,6 +45,24 @@ export interface Order {
   checkoutId?: string;
   mpesaReceiptNumber?: string;
 }
+
+type PaymentState = {
+  status: string;
+  provider?: {
+    invoice?: { state?: string };
+    state?: string;
+    status?: string;
+  };
+};
+
+const getPaymentApiBaseUrl = () => {
+  return INTASEND_CONFIG.FUNCTIONS_API_BASE_URL.replace(/\/+$/, '');
+};
+
+const normalizePaymentState = (state: PaymentState): string => {
+  const raw = state.provider?.invoice?.state || state.provider?.state || state.provider?.status || state.status || '';
+  return String(raw).toLowerCase();
+};
 
 const getShippingFee = async (): Promise<number> => {
   try {
@@ -294,63 +312,38 @@ export const subscribeToUserOrders = (
 export const initiateSTKPush = async (
   orderId: string,
   phoneNumber: string,
-  amount: number,
+  _amount: number,
   email: string
 ): Promise<{ checkoutId: string; invoiceId: string }> => {
   try {
-    // Format phone: 07xxx / +2547xxx / 2547xxx -> 2547xxxxxxxx
-    let formattedPhone = phoneNumber.replace(/\s/g, '');
-    if (/^\+/.test(formattedPhone)) formattedPhone = formattedPhone.slice(1);
-    if (/^0/.test(formattedPhone)) formattedPhone = '254' + formattedPhone.slice(1);
-    if (!/^254/.test(formattedPhone)) formattedPhone = '254' + formattedPhone;
-    
-    const requestBody = {
-      method: STK_PUSH_CONFIG.METHOD,
-      currency: STK_PUSH_CONFIG.CURRENCY,
-      amount: amount,
-      phone_number: formattedPhone,
-      email: email,
-      merchant_shortcode: INTASEND_CONFIG.MERCHANT_SHORTCODE,
-      callback_url: STK_PUSH_CONFIG.CALLBACK_URL,
-      api_ref: orderId,
-    };
-
-    console.log('Initiating STK Push with config:', {
-      ...requestBody,
-      secret_key: '***HIDDEN***',
+    const response = await fetch(`${getPaymentApiBaseUrl()}/mpesa/stkpush`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        orderId,
+        phone: phoneNumber,
+        email,
+        method: STK_PUSH_CONFIG.METHOD,
+        currency: STK_PUSH_CONFIG.CURRENCY,
+        callbackUrl: STK_PUSH_CONFIG.CALLBACK_URL,
+      }),
     });
-
-    const response = await fetch(
-      `${INTASEND_CONFIG.API_BASE_URL}/api/v1/checkout/stk-push/`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${INTASEND_CONFIG.SECRET_KEY}`,
-        },
-        body: JSON.stringify(requestBody),
-      }
-    );
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('IntaSend API error:', errorData);
-      throw new Error(errorData.message || 'Failed to initiate STK push');
+      throw new Error(errorData.message || 'Failed to initiate STK push from backend');
     }
 
-    const data = await response.json();
-    console.log('STK Push response:', data);
-
-    // Update order with checkout and invoice IDs
-    await updateOrderStatus(orderId, {
-      checkoutId: data.checkout_id,
-      invoiceId: data.invoice_id,
-      paymentStatus: 'processing',
-    });
+    const data = await response.json() as { checkoutId?: string; invoiceId?: string };
+    if (!data.checkoutId) {
+      throw new Error('STK push started but checkoutId was not returned');
+    }
 
     return {
-      checkoutId: data.checkout_id,
-      invoiceId: data.invoice_id,
+      checkoutId: data.checkoutId,
+      invoiceId: data.invoiceId || '',
     };
   } catch (error) {
     console.error('Error initiating STK push:', error);
@@ -364,25 +357,21 @@ export const initiateSTKPush = async (
  * SECURITY NOTE: In production, this should be done on a secure backend
  */
 export const checkPaymentStatus = async (
-  checkoutId: string
-): Promise<{ status: string; invoice?: { state: string } }> => {
+  checkoutId: string,
+  orderId?: string
+): Promise<PaymentState> => {
   try {
-    const response = await fetch(
-      `${INTASEND_CONFIG.API_BASE_URL}/api/v1/checkout/${checkoutId}/status/`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${INTASEND_CONFIG.SECRET_KEY}`,
-        },
-      }
-    );
+    const query = orderId ? `?orderId=${encodeURIComponent(orderId)}` : '';
+    const response = await fetch(`${getPaymentApiBaseUrl()}/mpesa/status/${encodeURIComponent(checkoutId)}${query}`, {
+      method: 'GET',
+    });
 
     if (!response.ok) {
-      throw new Error('Failed to check payment status');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to check payment status');
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json() as PaymentState;
   } catch (error) {
     console.error('Error checking payment status:', error);
     throw error;
@@ -406,33 +395,21 @@ export const pollPaymentStatus = async (
       attempts++;
       
       try {
-        const statusData = await checkPaymentStatus(checkoutId);
-        const state = statusData.invoice?.state || statusData.status;
+        const statusData = await checkPaymentStatus(checkoutId, orderId);
+        const state = normalizePaymentState(statusData);
         
         onStatusChange(state);
         
         // Check if payment is complete
-        if (state === 'COMPLETED' || state === 'paid' || state === 'settled') {
+        if (state === 'completed' || state === 'paid' || state === 'settled' || state === 'success' || state === 'succeeded') {
           clearInterval(pollInterval);
-          
-          // Update order as paid
-          await updateOrderStatus(orderId, {
-            paymentStatus: 'paid',
-            orderStatus: 'processed',
-          });
-          
           resolve(true);
           return;
         }
         
         // Check if payment failed
-        if (state === 'FAILED' || state === 'failed' || state === 'cancelled') {
+        if (state === 'failed' || state === 'cancelled' || state === 'canceled' || state === 'declined') {
           clearInterval(pollInterval);
-          
-          await updateOrderStatus(orderId, {
-            paymentStatus: 'failed',
-          });
-          
           resolve(false);
           return;
         }

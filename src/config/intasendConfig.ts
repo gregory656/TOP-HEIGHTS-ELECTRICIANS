@@ -13,6 +13,10 @@ export const INTASEND_CONFIG = {
   MERCHANT_SHORTCODE: getEnv('VITE_INTASEND_MERCHANT_SHORTCODE', ''),
   API_BASE_URL: 'https://payment.intasend.com',
   CHECKOUT_URL: 'https://payment.intasend.com',
+  FUNCTIONS_API_BASE_URL: getEnv(
+    'VITE_FUNCTIONS_API_BASE_URL',
+    'https://us-central1-top-heights-electricals.cloudfunctions.net/api'
+  ),
 };
 
 export const STK_PUSH_CONFIG = {

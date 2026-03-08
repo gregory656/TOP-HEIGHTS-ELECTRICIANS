@@ -32,22 +32,81 @@ import {
   createOrderWithItems,
   initiateSTKPush,
   pollPaymentStatus,
+  updateOrderStatus,
 } from '../services/orderService';
+import { INTASEND_CONFIG } from '../config/intasendConfig';
 
 interface CheckoutSidebarProps {
   open: boolean;
   onClose: () => void;
 }
 
+type IntaSendEvent = 'COMPLETE' | 'FAILED' | 'IN-PROGRESS';
+type IntaSendHandler = () => void | Promise<void>;
+
+type IntaSendInstance = {
+  on: (event: IntaSendEvent, handler: IntaSendHandler) => IntaSendInstance;
+};
+
+type IntaSendConstructor = new (options: {
+  publicAPIKey: string;
+  live: boolean;
+}) => IntaSendInstance;
+
+type CheckoutWindow = Window & {
+  IntaSend?: IntaSendConstructor;
+};
+
+const INTASEND_SCRIPT_URL = 'https://unpkg.com/intasend-inlinejs-sdk@4.0.7/build/intasend-inline.js';
+
+const ensureIntaSendSdk = async (): Promise<IntaSendConstructor> => {
+  if (typeof window === 'undefined') {
+    throw new Error('Payment SDK can only run in the browser');
+  }
+
+  const w = window as CheckoutWindow;
+  if (w.IntaSend) return w.IntaSend;
+
+  await new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[data-intasend-sdk="true"], script[src*="intasend-inline.js"]'
+    );
+    if (existing) {
+      if (w.IntaSend) {
+        resolve();
+        return;
+      }
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error('Failed to load IntaSend SDK')), { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = INTASEND_SCRIPT_URL;
+    script.async = true;
+    script.dataset.intasendSdk = 'true';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load IntaSend SDK'));
+    document.body.appendChild(script);
+  });
+
+  if (!w.IntaSend) {
+    throw new Error('IntaSend SDK loaded but window.IntaSend is not available');
+  }
+
+  return w.IntaSend;
+};
+
 const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   const { user, isAuthenticated, setLoginModalOpen } = useAuth();
   const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'details' | 'payment' | 'processing' | 'success'>('cart');
   const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'INTASEND'>('INTASEND');
   const [orderId, setOrderId] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState(0);
   
   // Form validation errors
   const [formErrors, setFormErrors] = useState({
@@ -67,6 +126,57 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   useEffect(() => {
     if (user?.email) setFormData((prev) => ({ ...prev, email: user.email || '' }));
   }, [user?.email]);
+
+  const startIntaSendCheckout = async (params: {
+    checkoutOrderId: string;
+    amount: number;
+    email: string;
+    phone: string;
+  }) => {
+    const { checkoutOrderId, amount, email, phone } = params;
+
+    if (!INTASEND_CONFIG.PUBLIC_KEY) {
+      throw new Error('IntaSend public key is not configured');
+    }
+
+    const btn = document.querySelector<HTMLButtonElement>('.intaSendPayButton');
+    if (!btn) {
+      throw new Error('Payment button is missing in checkout form');
+    }
+
+    btn.setAttribute('data-amount', String(amount));
+    btn.setAttribute('data-currency', 'KES');
+    btn.setAttribute('data-email', email);
+    btn.setAttribute('data-phone_number', phone);
+    btn.setAttribute('data-api_ref', checkoutOrderId);
+
+    const IntaSend = await ensureIntaSendSdk();
+    new IntaSend({
+      publicAPIKey: INTASEND_CONFIG.PUBLIC_KEY,
+      live: true,
+    })
+      .on('COMPLETE', async () => {
+        try {
+          await updateOrderStatus(checkoutOrderId, {
+            paymentStatus: 'paid',
+            orderStatus: 'processed',
+          });
+        } catch (e) {
+          console.error('Failed to update order status after payment', e);
+        }
+        clearCart();
+        setCheckoutStep('success');
+      })
+      .on('FAILED', () => {
+        setError('Payment failed or was cancelled. You can try again.');
+        setCheckoutStep('details');
+      })
+      .on('IN-PROGRESS', () => {
+        setCheckoutStep('processing');
+      });
+
+    btn.click();
+  };
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     if (newQuantity < 1) removeFromCart(productId);
@@ -165,48 +275,49 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
       });
 
       setOrderId(newOrderId);
+      setPaymentAmount(totalAmount);
 
-      if (paymentMethod === 'MPESA' || paymentMethod === 'INTASEND') {
+      if (paymentMethod === 'MPESA') {
         setCheckoutStep('processing');
-        
-        // Initiate STK Push
-        try {
-          const { checkoutId } = await initiateSTKPush(
-            newOrderId,
-            formData.phone,
-            totalAmount,
-            formData.email
-          );
+        const { checkoutId } = await initiateSTKPush(
+          newOrderId,
+          formData.phone,
+          totalAmount,
+          formData.email
+        );
 
-          // Poll for payment status
-          const paymentSuccess = await pollPaymentStatus(
-            checkoutId,
-            newOrderId,
-            (status) => {
-              console.log('Payment status:', status);
-            }
-          );
+        const paid = await pollPaymentStatus(
+          checkoutId,
+          newOrderId,
+          () => {
+            // Firestore gets synced by backend status endpoint/callback
+          },
+          30,
+          4000
+        );
 
-          if (paymentSuccess) {
-            setCheckoutStep('success');
-            clearCart();
-          } else {
-            setError('Payment was not completed. Please try again or contact support.');
-            setCheckoutStep('details');
-          }
-        } catch (stkError) {
-          console.error('STK Push error:', stkError);
-          // If STK fails to initiate, keep cart intact and keep the order pending.
-          setError('STK Push failed to initiate. Please try again. Your order is still pending.');
+        if (paid) {
+          clearCart();
+          setCheckoutStep('success');
+        } else {
+          setError('Payment was not completed in time. Please check your phone and try again.');
           setCheckoutStep('details');
         }
+      } else if (paymentMethod === 'INTASEND') {
+        setCheckoutStep('processing');
+        await startIntaSendCheckout({
+          checkoutOrderId: newOrderId,
+          amount: totalAmount,
+          email: formData.email,
+          phone: formData.phone,
+        });
       } else {
         setCheckoutStep('success');
         clearCart();
       }
     } catch (err) {
       console.error('Order creation error:', err);
-      setError('Failed to create order. Please try again.');
+      setError('Could not start payment. Please check your details and try again.');
       setCheckoutStep('details');
     } finally {
       setProcessing(false);
@@ -479,6 +590,40 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AccountBalance sx={{ color: 'primary.main' }} />
                 <Typography>IntaSend</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 1 }}>
+                  <Box
+                    component="img"
+                    src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg"
+                    sx={{ height: 14, width: 'auto' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <Box
+                    component="img"
+                    src="https://upload.wikimedia.org/wikipedia/commons/b/b7/MasterCard_Logo.svg"
+                    sx={{ height: 14, width: 'auto' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <Box
+                    component="img"
+                    src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
+                    sx={{ height: 14, width: 'auto' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <Box
+                    component="img"
+                    src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-Pesa_%28USSD%29.png"
+                    sx={{ height: 14, width: 'auto' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </Box>
               </Box>
             }
           />
@@ -516,6 +661,20 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           {processing ? <CircularProgress size={24} /> : 'Place Order'}
         </Button>
       </Box>
+
+      {/* Hidden IntaSend payment button (used by inline JS SDK) */}
+      <button
+        type="button"
+        className="intaSendPayButton"
+        data-amount={paymentAmount || cartTotal}
+        data-currency="KES"
+        data-email={formData.email}
+        data-phone_number={formData.phone}
+        data-api_ref={orderId}
+        style={{ display: 'none' }}
+      >
+        Pay Now
+      </button>
     </Box>
   );
 

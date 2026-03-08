@@ -9,7 +9,7 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, googleProvider, db } from '../services/firebase';
 
 import { AuthContext, type User } from './AuthContextData';
@@ -27,78 +27,94 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Function to fetch or create user document
-  const fetchOrCreateUser = useCallback(async (fbUser: FirebaseUser): Promise<User> => {
+  const getDisplayName = useCallback((fbUser: FirebaseUser, fallbackName?: string) => {
+    if (fallbackName?.trim()) return fallbackName.trim();
+    if (fbUser.displayName?.trim()) return fbUser.displayName.trim();
+    if (fbUser.email) return fbUser.email.split('@')[0];
+    return 'User';
+  }, []);
+
+  const upsertUserDocument = useCallback(async (fbUser: FirebaseUser, fallbackName?: string) => {
+    const isAdmin = fbUser.email === ADMIN_EMAIL;
     const userDocRef = doc(db, 'users', fbUser.uid);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      return {
-        uid: fbUser.uid,
-        role: userData.role || 'customer',
-        name: userData.name || fbUser.displayName || 'User',
-        email: fbUser.email || '',
-        photoURL: fbUser.photoURL || undefined,
-      };
-    } else {
-      // Create new user document if doesn't exist
-      const isAdmin = fbUser.email === ADMIN_EMAIL;
-      const newUser: User = {
+    const name = getDisplayName(fbUser, fallbackName);
+
+    await setDoc(
+      userDocRef,
+      {
         uid: fbUser.uid,
         role: isAdmin ? 'admin' : 'customer',
-        name: fbUser.displayName || 'User',
+        name,
         email: fbUser.email || '',
-        photoURL: fbUser.photoURL || undefined,
-      };
-      
-      // Save to Firestore
-      await setDoc(doc(db, 'users', fbUser.uid), {
-        uid: fbUser.uid,
-        role: newUser.role,
-        name: newUser.name,
-        email: newUser.email,
-        photoURL: newUser.photoURL,
-        createdAt: new Date(),
-      });
-      
-      return newUser;
+        photoURL: fbUser.photoURL || null,
+        updatedAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+  }, [getDisplayName]);
+
+  // Function to fetch user and ensure user document exists
+  const fetchOrCreateUser = useCallback(async (fbUser: FirebaseUser): Promise<User> => {
+    const userDocRef = doc(db, 'users', fbUser.uid);
+    const isAdmin = fbUser.email === ADMIN_EMAIL;
+    let userData: { role?: string; name?: string; email?: string; photoURL?: string } | null = null;
+
+    try {
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        userData = userDoc.data() as { role?: string; name?: string; email?: string; photoURL?: string };
+      }
+    } catch (error) {
+      console.warn('Could not read user document, will attempt upsert:', error);
     }
-  }, []);
+
+    try {
+      await upsertUserDocument(fbUser, userData?.name);
+    } catch (error) {
+      console.error('Failed to upsert user document:', error);
+    }
+
+    return {
+      uid: fbUser.uid,
+      role: userData?.role === 'admin' || isAdmin ? 'admin' : 'customer',
+      name: userData?.name || getDisplayName(fbUser),
+      email: fbUser.email || userData?.email || '',
+      photoURL: fbUser.photoURL || userData?.photoURL || undefined,
+    };
+  }, [getDisplayName, upsertUserDocument]);
 
   useEffect(() => {
     // Listen to Firebase auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-      setAuthLoading(true);
-      
-      if (fbUser) {
-        setFirebaseUser(fbUser);
-        
-        try {
+      try {
+        if (fbUser) {
+          setFirebaseUser(fbUser);
           const userData = await fetchOrCreateUser(fbUser);
           setUser(userData);
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          // Still set user with basic info from Firebase
+        } else {
+          setFirebaseUser(null);
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Error resolving auth user:', error);
+        if (fbUser) {
           setUser({
             uid: fbUser.uid,
-            role: 'customer',
-            name: fbUser.displayName || 'User',
+            role: fbUser.email === ADMIN_EMAIL ? 'admin' : 'customer',
+            name: getDisplayName(fbUser),
             email: fbUser.email || '',
             photoURL: fbUser.photoURL || undefined,
           });
         }
-      } else {
-        setFirebaseUser(null);
-        setUser(null);
+      } finally {
+        setAuthLoading(false);
+        setIsLoading(false);
       }
-      
-      setAuthLoading(false);
-      setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [fetchOrCreateUser]);
+  }, [fetchOrCreateUser, getDisplayName]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -123,18 +139,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       setIsLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
-      
-      // Check if this is the admin
-      if (result.user.email === ADMIN_EMAIL) {
-        await setDoc(doc(db, 'users', result.user.uid), {
-          uid: result.user.uid,
-          role: 'admin',
-          name: result.user.displayName || 'Admin',
-          email: result.user.email || '',
-          photoURL: result.user.photoURL || '',
-          updatedAt: new Date(),
-        }, { merge: true });
-      }
+      await upsertUserDocument(result.user);
       
       setLoginModalOpen(false);
       return true;
@@ -158,18 +163,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       const result = await createUserWithEmailAndPassword(auth, email, password);
       console.log('User created in Firebase Auth:', result.user.uid);
-      
-      // Determine role based on email
-      const isAdmin = email === ADMIN_EMAIL;
-      
-      // Save user to Firestore
-      await setDoc(doc(db, 'users', result.user.uid), {
-        uid: result.user.uid,
-        role: isAdmin ? 'admin' : 'customer',
-        name: name,
-        email: email,
-        createdAt: new Date(),
-      });
+      await upsertUserDocument(result.user, name);
       
       console.log('User saved to Firestore');
       setLoginModalOpen(false);
