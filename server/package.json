@@ -1,0 +1,19 @@
+{
+  "name": "topheights-chat-server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "generate:knowledge": "node scripts/extract-knowledge.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
+    "express": "^4.21.2",
+    "fuse.js": "^7.1.0",
+    "openai": "^6.27.0"
+  }
+}

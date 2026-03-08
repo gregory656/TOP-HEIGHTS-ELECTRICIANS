@@ -1,5 +1,5 @@
 // src/components/Layout.tsx
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -51,6 +51,7 @@ import logoImage from '../assets/topeheights.jpeg';
 import { useCart } from '../context/CartContext';
 
 const drawerWidth = 280;
+const TopHeightsChatbot = lazy(() => import('./chatbot/TopHeightsChatbot'));
 
 const navItems = [
   { text: 'Home', icon: <Home />, path: '/' },
@@ -487,6 +488,10 @@ export default function Layout() {
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
       />
+
+      <Suspense fallback={null}>
+        <TopHeightsChatbot />
+      </Suspense>
     </Box>
   );
 }

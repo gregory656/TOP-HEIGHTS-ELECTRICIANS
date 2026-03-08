@@ -1,0 +1,74 @@
+name: Deploy VPS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build frontend
+        env:
+          VITE_CHAT_API_URL: ${{ secrets.VITE_CHAT_API_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install server deps and generate knowledge
+        run: |
+          npm --prefix server ci
+          npm --prefix server run generate:knowledge
+
+      - name: Upload release bundle
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          source: "dist/**,server/**,ecosystem.config.cjs,package.json,package-lock.json,src/**,tsconfig*.json,vite.config.ts,index.html,public/**"
+          target: ${{ secrets.VPS_APP_DIR }}
+          rm: true
+
+      - name: Restart API and publish frontend
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          APP_DIR: ${{ secrets.VPS_APP_DIR }}
+          FRONTEND_DIR: ${{ secrets.VPS_FRONTEND_DIR }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+          FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          envs: APP_DIR,FRONTEND_DIR,OPENAI_API_KEY,OPENAI_MODEL,FRONTEND_ORIGIN
+          script: |
+            set -e
+            cd "$APP_DIR"
+            npm ci --omit=dev
+            npm --prefix server ci --omit=dev
+            cat > server/.env <<EOF
+            PORT=3001
+            OPENAI_API_KEY=$OPENAI_API_KEY
+            OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+            FRONTEND_ORIGIN=$FRONTEND_ORIGIN
+            EOF
+            npm --prefix server run generate:knowledge
+            sudo rm -rf "$FRONTEND_DIR"/*
+            sudo cp -r dist/* "$FRONTEND_DIR"/
+            pm2 startOrReload ecosystem.config.cjs --update-env
+            pm2 save

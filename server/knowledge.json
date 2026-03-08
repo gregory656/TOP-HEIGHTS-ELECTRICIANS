@@ -1,0 +1,458 @@
+[
+  {
+    "id": "service-industrial-power",
+    "type": "service",
+    "title": "Industrial Power Systems",
+    "content": "Comprehensive electrical solutions for factories, manufacturing plants, and large-scale industrial facilities. Our Industrial Power Systems service provides complete electrical infrastructure design, installation, and maintenance for factories, manufacturing plants, and large-scale industrial facilities. We specialize in high-voltage systems, motor control centers, power distribution units, and robust electrical panels designed to handle heavy loads and ensure uninterrupted operations. Our team of certified electricians works closely with your engineering staff to deliver safe, efficient, and scalable power solutions that meet all industry standards and regulations. Key benefits: High-capacity power distribution up to 1000V; 24/7 emergency repair services; Energy-efficient system design; Full compliance with industrial safety standards; Predictive maintenance programs.",
+    "keywords": [
+      "service",
+      "industrial-power",
+      "High-capacity power distribution up to 1000V",
+      "24/7 emergency repair services",
+      "Energy-efficient system design",
+      "Full compliance with industrial safety standards",
+      "Predictive maintenance programs"
+    ]
+  },
+  {
+    "id": "service-solar-energy",
+    "type": "service",
+    "title": "Solar Energy Solutions",
+    "content": "Harness the power of the sun with our cutting-edge solar panel installation and integration services. Transform your energy consumption with our comprehensive Solar Energy Solutions. We design and install state-of-the-art photovoltaic systems for residential, commercial, and industrial clients. Our services include site assessment, system design, permitting assistance, professional installation, and ongoing maintenance. Whether you're looking to reduce your carbon footprint, lower electricity costs, or achieve energy independence, our expert team will tailor a solar solution that meets your specific needs and budget. Key benefits: Reduce electricity costs by up to 80%; 30-year panel warranty coverage; Smart grid integration capability; Government rebate assistance; Real-time monitoring systems.",
+    "keywords": [
+      "service",
+      "solar-energy",
+      "Reduce electricity costs by up to 80%",
+      "30-year panel warranty coverage",
+      "Smart grid integration capability",
+      "Government rebate assistance",
+      "Real-time monitoring systems"
+    ]
+  },
+  {
+    "id": "service-battery-storage",
+    "type": "service",
+    "title": "Battery Storage Solutions",
+    "content": "Maximize your energy independence with our advanced battery storage systems. Our Battery Storage Solutions provide a reliable way to store excess energy generated from solar panels or the grid. We offer a range of battery technologies, including lithium-ion and lead-acid systems, tailored to meet your specific energy needs. Our services include system design, installation, and integration with existing solar or electrical systems. With our battery storage solutions, you can reduce reliance on the grid, ensure backup power during outages, and take advantage of time-of-use electricity rates. Key benefits: Seamless integration with solar systems; 24/7 monitoring and support; Customizable storage capacities; Enhanced energy security and reliability; Potential savings on energy bills.",
+    "keywords": [
+      "service",
+      "battery-storage",
+      "Seamless integration with solar systems",
+      "24/7 monitoring and support",
+      "Customizable storage capacities",
+      "Enhanced energy security and reliability",
+      "Potential savings on energy bills"
+    ]
+  },
+  {
+    "id": "service-commercial-wiring",
+    "type": "service",
+    "title": "Commercial Wiring",
+    "content": "Professional electrical wiring services for offices, retail spaces, restaurants, and commercial buildings. Our Commercial Wiring service delivers complete electrical solutions for offices, retail spaces, restaurants, and commercial buildings of all sizes. From new construction wiring to tenant improvements and system upgrades, we handle every aspect of commercial electrical work. Our services include lighting design and installation, data and network cabling, security system integration, HVAC electrical connections, and emergency lighting systems. We pride ourselves on clean installations, minimal business disruption, and timely project completion. Key benefits: Minimal business disruption during installation; Code-compliant installations guaranteed; Scalable infrastructure for future growth; Integrated lighting control systems; Comprehensive project management.",
+    "keywords": [
+      "service",
+      "commercial-wiring",
+      "Minimal business disruption during installation",
+      "Code-compliant installations guaranteed",
+      "Scalable infrastructure for future growth",
+      "Integrated lighting control systems",
+      "Comprehensive project management"
+    ]
+  },
+  {
+    "id": "service-electrical-troubleshooting",
+    "type": "service",
+    "title": "Electrical Troubleshooting",
+    "content": "Expert diagnosis and repair services for electrical issues in commercial settings. Our Electrical Troubleshooting service specializes in diagnosing and resolving electrical problems in commercial buildings. Whether you are experiencing flickering lights, tripped breakers, or other electrical malfunctions, our team of experienced electricians is here to help. We utilize advanced diagnostic tools and techniques to quickly identify the root cause of electrical issues and implement effective solutions. Our goal is to minimize downtime and ensure the safety and reliability of your electrical systems. Key benefits: Rapid response to electrical emergencies; Thorough diagnostics and testing; Expert repairs by licensed electricians; Preventative maintenance recommendations; Compliance with all safety standards.",
+    "keywords": [
+      "service",
+      "electrical-troubleshooting",
+      "Rapid response to electrical emergencies",
+      "Thorough diagnostics and testing",
+      "Expert repairs by licensed electricians",
+      "Preventative maintenance recommendations",
+      "Compliance with all safety standards"
+    ]
+  },
+  {
+    "id": "service-home-automation",
+    "type": "service",
+    "title": "Home Automation",
+    "content": "Transform your home into a smart living space with our intelligent automation solutions. Experience the future of living with our Home Automation solutions. We specialize in creating intelligent homes that seamlessly integrate lighting, climate control, security systems, entertainment, and appliances into a unified, easy-to-control ecosystem. Our services include smart lighting installation, automated thermostat setup, security camera and alarm integration, voice-controlled systems, and whole-home networking. Control everything from your smartphone or tablet, and enjoy enhanced comfort, security, and energy efficiency. Key benefits: Increased energy efficiency through automation; Enhanced security with smart monitoring; Convenient control from anywhere; Customizable settings for individual preferences; Professional installation and ongoing support.",
+    "keywords": [
+      "service",
+      "home-automation",
+      "Increased energy efficiency through automation",
+      "Enhanced security with smart monitoring",
+      "Convenient control from anywhere",
+      "Customizable settings for individual preferences",
+      "Professional installation and ongoing support"
+    ]
+  },
+  {
+    "id": "service-3phase-solar-power",
+    "type": "service",
+    "title": "3-Phase Solar Power",
+    "content": "Efficient and reliable solar power solutions for commercial and industrial applications. Our 3-Phase Solar Power service is designed for businesses looking to harness the sun's energy for their power needs. We provide comprehensive solar panel installation, maintenance, and monitoring services tailored to the unique requirements of commercial and industrial clients. Our team of experts will work with you to design a solar power system that maximizes energy production and savings while ensuring compliance with all regulations and standards. Key benefits: Voice and app-based control systems; Enhanced home security integration; Energy savings through smart scheduling; Scalable from single room to whole home; Professional installation and support.",
+    "keywords": [
+      "service",
+      "3phase-solar-power",
+      "Voice and app-based control systems",
+      "Enhanced home security integration",
+      "Energy savings through smart scheduling",
+      "Scalable from single room to whole home",
+      "Professional installation and support"
+    ]
+  },
+  {
+    "id": "service-6KW Solar Power",
+    "type": "service",
+    "title": "6KW Solar Power",
+    "content": "High-efficiency solar power systems for residential and commercial use. Our 6KW Solar Power service offers a robust solution for those looking to invest in solar energy. This system is ideal for medium to large-sized homes and businesses, providing ample power to meet your energy needs while reducing your carbon footprint. We handle everything from initial consultation and site assessment to installation and maintenance, ensuring a seamless transition to solar energy. Key benefits: Significant reduction in energy bills; Environmentally friendly energy source; Increased property value; Low maintenance requirements; Expert installation and support.",
+    "keywords": [
+      "service",
+      "6KW Solar Power",
+      "Significant reduction in energy bills",
+      "Environmentally friendly energy source",
+      "Increased property value",
+      "Low maintenance requirements",
+      "Expert installation and support"
+    ]
+  },
+  {
+    "id": "service-emergency-repairs",
+    "type": "service",
+    "title": "Emergency Electrical Repairs",
+    "content": "Rapid response electrical repair services available around the clock for urgent electrical issues. Electrical emergencies can happen at any time, which is why our Emergency Electrical Repair service is available 24/7, 365 days a year. Our rapid response team is equipped to handle any electrical emergency, from power outages and faulty wiring to electrical fires and equipment failures. We prioritize safety and swift resolution, arriving fully stocked with the tools and parts needed to restore your electrical systems quickly. Don't risk property damage or personal injury—call us immediately for expert emergency electrical services. Key benefits: 30-minute average response time; 24/7 availability including holidays; Fully licensed and insured electricians; Upfront pricing before work begins; Temporary power solutions when needed.",
+    "keywords": [
+      "service",
+      "emergency-repairs",
+      "30-minute average response time",
+      "24/7 availability including holidays",
+      "Fully licensed and insured electricians",
+      "Upfront pricing before work begins",
+      "Temporary power solutions when needed"
+    ]
+  },
+  {
+    "id": "product-1",
+    "type": "product",
+    "title": "AC CABLES",
+    "content": "AC CABLES is in category Power Protection and costs KES 1500. It is currently marked as in stock. Heavy-duty AC cables for industrial applications. Protects your equipment from voltage fluctuations.",
+    "keywords": [
+      "AC CABLES",
+      "Power Protection",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-2",
+    "type": "product",
+    "title": "LORENZETTI LOREN SHOWER",
+    "content": "LORENZETTI LOREN SHOWER is in category for fresh water and costs KES 7000. It is currently marked as in stock. Ultra electronic instant shower with temperature control.Installation within Nairobi @KES 2500.",
+    "keywords": [
+      "LORENZETTI LOREN SHOWER",
+      "for fresh water",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-3",
+    "type": "product",
+    "title": "CONSUMER UNIT",
+    "content": "CONSUMER UNIT is in category consumer unit and costs KES 5000. It is currently marked as in stock. Contains protective devices like circuit breakers and fuses to prevent overloads and short circuits.",
+    "keywords": [
+      "CONSUMER UNIT",
+      "consumer unit",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-4",
+    "type": "product",
+    "title": "LIRLEE INSTANT WATER HEATER",
+    "content": "LIRLEE INSTANT WATER HEATER is in category heater and costs KES 12800. It is currently marked as in stock. High-efficiency instant water heater with adjustable temperature settings.",
+    "keywords": [
+      "LIRLEE INSTANT WATER HEATER",
+      "heater",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-5",
+    "type": "product",
+    "title": "LOREN BELLO SHOWERHEAD",
+    "content": "LOREN BELLO SHOWERHEAD is in category showerheads and costs KES 3500. It is currently marked as in stock. Prominent showerhead with advanced water-saving technology.",
+    "keywords": [
+      "LOREN BELLO SHOWERHEAD",
+      "showerheads",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-6",
+    "type": "product",
+    "title": "ULTRA LORENZETTI SHOWER 5500W 220V",
+    "content": "ULTRA LORENZETTI SHOWER 5500W 220V is in category showerheads and costs KES 5000. It is currently marked as in stock. High-performance shower with adjustable temperature settings.",
+    "keywords": [
+      "ULTRA LORENZETTI SHOWER 5500W 220V",
+      "showerheads",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-7",
+    "type": "product",
+    "title": "POWER BANKS",
+    "content": "POWER BANKS is in category powerbanks and costs KES 380. It is currently marked as in stock. High-capacity power banks for charging devices on the go.",
+    "keywords": [
+      "POWER BANKS",
+      "powerbanks",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-8",
+    "type": "product",
+    "title": "MODERN SQUARE RAINFALL SHOWERHEAD",
+    "content": "MODERN SQUARE RAINFALL SHOWERHEAD is in category for hard water and costs KES 13500. It is currently marked as in stock. Modern designed showerhead with adjustable rainfall settings.Installation @KES 3500",
+    "keywords": [
+      "MODERN SQUARE RAINFALL SHOWERHEAD",
+      "for hard water",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-9",
+    "type": "product",
+    "title": "SOLAR AND BATTERY CABLES",
+    "content": "SOLAR AND BATTERY CABLES is in category Cables and costs KES 500. It is currently marked as in stock. Copper conductor PVC insulated cable for indoor electrical installations.",
+    "keywords": [
+      "SOLAR AND BATTERY CABLES",
+      "Cables",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-10",
+    "type": "product",
+    "title": "SOLAR PANELS",
+    "content": "SOLAR PANELS is in category solarpanels and costs KES 3200. It is currently marked as in stock. High-efficiency solar panels for residential and commercial use.",
+    "keywords": [
+      "SOLAR PANELS",
+      "solarpanels",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-11",
+    "type": "product",
+    "title": "Air Conditioner Circuit Breaker 32A",
+    "content": "Air Conditioner Circuit Breaker 32A is in category Circuit Protection and costs KES 1850. It is currently marked as in stock. Specialized circuit breaker for air conditioning units.",
+    "keywords": [
+      "Air Conditioner Circuit Breaker 32A",
+      "Circuit Protection",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-12",
+    "type": "product",
+    "title": "MULTIMETER",
+    "content": "MULTIMETER is in category Testing Equipment and costs KES 1850. It is currently marked as in stock. Specialized multimeter for measuring electrical parameters.",
+    "keywords": [
+      "MULTIMETER",
+      "Testing Equipment",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-13",
+    "type": "product",
+    "title": "ELECTRICAL OUTLET",
+    "content": "ELECTRICAL OUTLET is in category Electrical Accessories and costs KES 1850. It is currently marked as in stock. allows equipment to connect to the electrical supply.",
+    "keywords": [
+      "ELECTRICAL OUTLET",
+      "Electrical Accessories",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-14",
+    "type": "product",
+    "title": "ELECTRICAL WIRES",
+    "content": "ELECTRICAL WIRES is in category Electrical Accessories and costs KES 1850. It is currently marked as in stock. Specialized electrical wires for various applications.",
+    "keywords": [
+      "ELECTRICAL WIRES",
+      "Electrical Accessories",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-15",
+    "type": "product",
+    "title": "ELECTRICAL PANEL",
+    "content": "ELECTRICAL PANEL is in category Circuit Protection and costs KES 1850. It is currently marked as in stock. Specialized circuit breaker for air conditioning units.",
+    "keywords": [
+      "ELECTRICAL PANEL",
+      "Circuit Protection",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-16",
+    "type": "product",
+    "title": "LATEST SOLAR PANELS",
+    "content": "LATEST SOLAR PANELS is in category Renewable Energy and costs KES 1850. It is currently marked as in stock. High-efficiency solar panels for residential and commercial use.",
+    "keywords": [
+      "LATEST SOLAR PANELS",
+      "Renewable Energy",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "product-17",
+    "type": "product",
+    "title": "LED LIGHT 150W",
+    "content": "LED LIGHT 150W is in category Lighting and costs KES 500. It is currently marked as in stock. High lumen LED light bulb with photocell sensor for automatic on/off.",
+    "keywords": [
+      "LED LIGHT 150W",
+      "Lighting",
+      "product",
+      "price"
+    ]
+  },
+  {
+    "id": "milestone-2018",
+    "type": "about",
+    "title": "2018 Foundation",
+    "content": "Top Heights Electricians was established with a vision to transform electrical services in Kenya.",
+    "keywords": [
+      "about",
+      "2018",
+      "Foundation"
+    ]
+  },
+  {
+    "id": "milestone-2020",
+    "type": "about",
+    "title": "2020 Expansion",
+    "content": "Extended services to commercial and industrial sectors, doubling our team of certified electricians.",
+    "keywords": [
+      "about",
+      "2020",
+      "Expansion"
+    ]
+  },
+  {
+    "id": "milestone-2022",
+    "type": "about",
+    "title": "2022 Solar Innovation",
+    "content": "Launched comprehensive solar energy solutions, becoming a leader in sustainable electrical systems.",
+    "keywords": [
+      "about",
+      "2022",
+      "Solar Innovation"
+    ]
+  },
+  {
+    "id": "milestone-2024",
+    "type": "about",
+    "title": "2024 Market Leader",
+    "content": "Recognized as one of Kenya's top electrical service providers with 500+ completed projects.",
+    "keywords": [
+      "about",
+      "2024",
+      "Market Leader"
+    ]
+  },
+  {
+    "id": "pillar-1",
+    "type": "about",
+    "title": "Our Mission",
+    "content": "Top Heights Electricians was established with a vision to transform electrical services in Kenya.",
+    "keywords": [
+      "mission",
+      "vision",
+      "values",
+      "about"
+    ]
+  },
+  {
+    "id": "pillar-2",
+    "type": "about",
+    "title": "Our Vision",
+    "content": "Extended services to commercial and industrial sectors, doubling our team of certified electricians.",
+    "keywords": [
+      "mission",
+      "vision",
+      "values",
+      "about"
+    ]
+  },
+  {
+    "id": "pillar-3",
+    "type": "about",
+    "title": "Our Values",
+    "content": "Launched comprehensive solar energy solutions, becoming a leader in sustainable electrical systems.",
+    "keywords": [
+      "mission",
+      "vision",
+      "values",
+      "about"
+    ]
+  },
+  {
+    "id": "contact-phone",
+    "type": "contact",
+    "title": "TopHeights Contact Number",
+    "content": "You can reach Top Heights by phone at +254 711 343 412. The website also links to WhatsApp contact for service quotes.",
+    "keywords": [
+      "contact",
+      "phone",
+      "whatsapp",
+      "+254 711 343 412"
+    ]
+  },
+  {
+    "id": "account-access",
+    "type": "account",
+    "title": "Account Access",
+    "content": "The website includes sign-in and profile sections. Use the Sign In button in the top navigation to access your account and profile features.",
+    "keywords": [
+      "account",
+      "login",
+      "sign in",
+      "profile"
+    ]
+  },
+  {
+    "id": "payments",
+    "type": "payment",
+    "title": "Payments and Checkout",
+    "content": "The website has cart and checkout flows where users can review cart items and proceed with orders. Pricing is shown in Kenyan Shillings (KES) on product cards.",
+    "keywords": [
+      "payments",
+      "checkout",
+      "cart",
+      "orders",
+      "KES"
+    ]
+  }
+]

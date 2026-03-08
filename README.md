@@ -1,5 +1,50 @@
 # React + TypeScript + Vite
 
+## TopHeights AI Assistant Widget
+
+This project now includes a floating knowledge-based chatbot:
+
+- Frontend widget: `src/components/chatbot/TopHeightsChatbot.tsx`
+- Backend API: `server/server.js`
+- Knowledge search: `server/search.js`
+- Knowledge extraction script: `server/scripts/extract-knowledge.js`
+
+### Run frontend
+
+```bash
+npm run dev
+```
+
+### Run chatbot backend
+
+```bash
+cd server
+npm install
+npm run generate:knowledge
+npm run dev
+```
+
+You can also run from root:
+
+```bash
+npm run dev:chat
+npm run knowledge:build
+```
+
+## Production Deploy (Own VPS, No Render)
+
+Use the same stack in production:
+
+- React + Vite frontend (static build)
+- Node + Express API (`server/`)
+- Nginx reverse proxy
+- PM2 process manager
+- GitHub Actions for CI/CD
+
+See deployment guide:
+
+- `deploy/DEPLOYMENT.md`
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

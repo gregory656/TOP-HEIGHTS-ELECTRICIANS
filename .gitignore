@@ -27,3 +27,11 @@ dist-ssr
 
 # Exception for logo file (required for build)
 !src/assets/topeheights.jpeg
+
+# Environment files
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
