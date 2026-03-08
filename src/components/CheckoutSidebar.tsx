@@ -300,7 +300,9 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           clearCart();
           setCheckoutStep('success');
         } else {
-          setError('Payment was not completed in time. Please check your phone and try again.');
+          setError(
+            'Payment failed or timed out. If your M-Pesa has insufficient funds, top up and try again.'
+          );
           setCheckoutStep('details');
         }
       } else if (paymentMethod === 'INTASEND') {
@@ -315,9 +317,10 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         setCheckoutStep('success');
         clearCart();
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Order creation error:', err);
-      setError('Could not start payment. Please check your details and try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Could not start payment.';
+      setError(errorMessage);
       setCheckoutStep('details');
     } finally {
       setProcessing(false);
@@ -685,10 +688,10 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         Processing Payment...
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Please check your phone for the M-Pesa STK push prompt
+        Please check your phone for the M-Pesa STK push prompt.
       </Typography>
       <Typography variant="body2" color="text.secondary">
-        Enter your PIN to complete payment
+        If you have insufficient funds, M-Pesa will decline and we will return you here.
       </Typography>
     </Box>
   );

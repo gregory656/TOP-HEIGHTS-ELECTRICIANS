@@ -49,18 +49,34 @@ export interface Order {
 type PaymentState = {
   status: string;
   provider?: {
-    invoice?: { state?: string };
+    invoice?: { state?: string; message?: string; reason?: string };
     state?: string;
     status?: string;
+    message?: string;
+    reason?: string;
+    error?: string;
   };
 };
 
-const getPaymentApiBaseUrl = () => {
-  return INTASEND_CONFIG.FUNCTIONS_API_BASE_URL.replace(/\/+$/, '');
+const shouldUseFunctionsPayment = () => {
+  const flag = (import.meta.env.VITE_USE_FUNCTIONS_PAYMENT as string | undefined) || 'false';
+  return flag.toLowerCase() === 'true';
 };
+
+const getPaymentApiBaseUrl = () => INTASEND_CONFIG.FUNCTIONS_API_BASE_URL.replace(/\/+$/, '');
 
 const normalizePaymentState = (state: PaymentState): string => {
   const raw = state.provider?.invoice?.state || state.provider?.state || state.provider?.status || state.status || '';
+  const reason =
+    state.provider?.invoice?.reason ||
+    state.provider?.invoice?.message ||
+    state.provider?.reason ||
+    state.provider?.message ||
+    state.provider?.error ||
+    '';
+  if (String(reason).toLowerCase().includes('insufficient')) {
+    return 'insufficient_funds';
+  }
   return String(raw).toLowerCase();
 };
 
@@ -312,38 +328,85 @@ export const subscribeToUserOrders = (
 export const initiateSTKPush = async (
   orderId: string,
   phoneNumber: string,
-  _amount: number,
+  amount: number,
   email: string
 ): Promise<{ checkoutId: string; invoiceId: string }> => {
   try {
-    const response = await fetch(`${getPaymentApiBaseUrl()}/mpesa/stkpush`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        orderId,
-        phone: phoneNumber,
-        email,
+    // Format phone: 07xxx / +2547xxx / 2547xxx -> 2547xxxxxxxx
+    let formattedPhone = phoneNumber.replace(/\s/g, '');
+    if (/^\+/.test(formattedPhone)) formattedPhone = formattedPhone.slice(1);
+    if (/^0/.test(formattedPhone)) formattedPhone = `254${formattedPhone.slice(1)}`;
+    if (!/^254/.test(formattedPhone)) formattedPhone = `254${formattedPhone}`;
+
+    let response: Response;
+
+    if (shouldUseFunctionsPayment()) {
+      response = await fetch(`${getPaymentApiBaseUrl()}/mpesa/stkpush`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId,
+          phone: phoneNumber,
+          email,
+          method: STK_PUSH_CONFIG.METHOD,
+          currency: STK_PUSH_CONFIG.CURRENCY,
+          callbackUrl: STK_PUSH_CONFIG.CALLBACK_URL,
+        }),
+      });
+    } else {
+      const requestBody: Record<string, unknown> = {
         method: STK_PUSH_CONFIG.METHOD,
         currency: STK_PUSH_CONFIG.CURRENCY,
-        callbackUrl: STK_PUSH_CONFIG.CALLBACK_URL,
-      }),
-    });
+        amount,
+        phone_number: formattedPhone,
+        email,
+        callback_url: STK_PUSH_CONFIG.CALLBACK_URL,
+        api_ref: orderId,
+      };
+
+      if (INTASEND_CONFIG.MERCHANT_SHORTCODE) {
+        requestBody.merchant_shortcode = INTASEND_CONFIG.MERCHANT_SHORTCODE;
+      }
+
+      response = await fetch(`${INTASEND_CONFIG.API_BASE_URL}/api/v1/checkout/stk-push/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${INTASEND_CONFIG.SECRET_KEY}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+    }
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to initiate STK push from backend');
+      throw new Error(errorData.message || 'Failed to initiate STK push');
     }
 
-    const data = await response.json() as { checkoutId?: string; invoiceId?: string };
-    if (!data.checkoutId) {
+    const data = await response.json() as {
+      checkoutId?: string;
+      invoiceId?: string;
+      checkout_id?: string;
+      invoice_id?: string;
+    };
+    const checkoutId = data.checkoutId || data.checkout_id;
+    const invoiceId = data.invoiceId || data.invoice_id || '';
+
+    if (!checkoutId) {
       throw new Error('STK push started but checkoutId was not returned');
     }
 
+    await updateOrderStatus(orderId, {
+      checkoutId,
+      invoiceId: invoiceId || undefined,
+      paymentStatus: 'processing',
+    });
+
     return {
-      checkoutId: data.checkoutId,
-      invoiceId: data.invoiceId || '',
+      checkoutId,
+      invoiceId,
     };
   } catch (error) {
     console.error('Error initiating STK push:', error);
@@ -361,17 +424,50 @@ export const checkPaymentStatus = async (
   orderId?: string
 ): Promise<PaymentState> => {
   try {
-    const query = orderId ? `?orderId=${encodeURIComponent(orderId)}` : '';
-    const response = await fetch(`${getPaymentApiBaseUrl()}/mpesa/status/${encodeURIComponent(checkoutId)}${query}`, {
-      method: 'GET',
-    });
+    let response: Response;
+    if (shouldUseFunctionsPayment()) {
+      const query = orderId ? `?orderId=${encodeURIComponent(orderId)}` : '';
+      response = await fetch(`${getPaymentApiBaseUrl()}/mpesa/status/${encodeURIComponent(checkoutId)}${query}`, {
+        method: 'GET',
+      });
+    } else {
+      response = await fetch(`${INTASEND_CONFIG.API_BASE_URL}/api/v1/checkout/${checkoutId}/status/`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${INTASEND_CONFIG.SECRET_KEY}`,
+        },
+      });
+    }
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to check payment status');
     }
 
-    return await response.json() as PaymentState;
+    const data = await response.json() as PaymentState;
+
+    if (!shouldUseFunctionsPayment() && orderId) {
+      const state = normalizePaymentState(data);
+      if (state === 'completed' || state === 'paid' || state === 'settled' || state === 'success' || state === 'succeeded') {
+        await updateOrderStatus(orderId, {
+          paymentStatus: 'paid',
+          orderStatus: 'processed',
+        });
+      } else if (
+        state === 'failed'
+        || state === 'cancelled'
+        || state === 'canceled'
+        || state === 'declined'
+        || state === 'insufficient_funds'
+        || state === 'insufficient_balance'
+      ) {
+        await updateOrderStatus(orderId, {
+          paymentStatus: 'failed',
+        });
+      }
+    }
+
+    return data;
   } catch (error) {
     console.error('Error checking payment status:', error);
     throw error;
@@ -408,7 +504,14 @@ export const pollPaymentStatus = async (
         }
         
         // Check if payment failed
-        if (state === 'failed' || state === 'cancelled' || state === 'canceled' || state === 'declined') {
+        if (
+          state === 'failed'
+          || state === 'cancelled'
+          || state === 'canceled'
+          || state === 'declined'
+          || state === 'insufficient_funds'
+          || state === 'insufficient_balance'
+        ) {
           clearInterval(pollInterval);
           resolve(false);
           return;

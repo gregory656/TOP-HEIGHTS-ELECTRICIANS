@@ -131,6 +131,20 @@ const normalizePaymentState = (payload) => {
         if (typeof candidate === 'string' && candidate.trim())
             return candidate.trim().toLowerCase();
     }
+    const reasonCandidates = [
+        payload.message,
+        payload.reason,
+        payload.error,
+        payload.invoice?.message,
+        payload.invoice?.reason,
+        payload.data?.message,
+        payload.data?.reason,
+    ];
+    for (const reason of reasonCandidates) {
+        if (typeof reason === 'string' && reason.toLowerCase().includes('insufficient')) {
+            return 'insufficient_funds';
+        }
+    }
     return 'unknown';
 };
 const isPaidState = (state) => {
@@ -139,7 +153,13 @@ const isPaidState = (state) => {
 };
 const isFailedState = (state) => {
     const s = state.toLowerCase();
-    return s === 'failed' || s === 'cancelled' || s === 'canceled' || s === 'declined' || s === 'error';
+    return s === 'failed'
+        || s === 'cancelled'
+        || s === 'canceled'
+        || s === 'declined'
+        || s === 'error'
+        || s === 'insufficient_funds'
+        || s === 'insufficient_balance';
 };
 const applyOrderPaymentUpdate = async (orderId, payload) => {
     if (!orderId)

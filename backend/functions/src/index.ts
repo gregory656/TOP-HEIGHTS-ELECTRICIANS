@@ -97,6 +97,22 @@ const normalizePaymentState = (payload: Record<string, unknown>): string => {
   for (const candidate of candidates) {
     if (typeof candidate === 'string' && candidate.trim()) return candidate.trim().toLowerCase();
   }
+
+  const reasonCandidates = [
+    payload.message,
+    payload.reason,
+    payload.error,
+    (payload.invoice as { message?: string; reason?: string; error?: string } | undefined)?.message,
+    (payload.invoice as { message?: string; reason?: string; error?: string } | undefined)?.reason,
+    (payload.data as { message?: string; reason?: string; error?: string } | undefined)?.message,
+    (payload.data as { message?: string; reason?: string; error?: string } | undefined)?.reason,
+  ];
+  for (const reason of reasonCandidates) {
+    if (typeof reason === 'string' && reason.toLowerCase().includes('insufficient')) {
+      return 'insufficient_funds';
+    }
+  }
+
   return 'unknown';
 };
 
@@ -107,7 +123,13 @@ const isPaidState = (state: string): boolean => {
 
 const isFailedState = (state: string): boolean => {
   const s = state.toLowerCase();
-  return s === 'failed' || s === 'cancelled' || s === 'canceled' || s === 'declined' || s === 'error';
+  return s === 'failed'
+    || s === 'cancelled'
+    || s === 'canceled'
+    || s === 'declined'
+    || s === 'error'
+    || s === 'insufficient_funds'
+    || s === 'insufficient_balance';
 };
 
 const applyOrderPaymentUpdate = async (orderId: string, payload: Record<string, unknown>) => {

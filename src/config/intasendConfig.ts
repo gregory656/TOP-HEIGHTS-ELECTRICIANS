@@ -2,6 +2,7 @@
 /**
  * IntaSend Payment Configuration (Live keys integrated)
  * Optional: use .env with VITE_INTASEND_SECRET_KEY / VITE_INTASEND_PUBLIC_KEY and add .env to .gitignore
+ * NOTE: In client-only mode, secret keys are still visible in browser dev tools.
  */
 
 const getEnv = (key: string, fallback: string) =>
