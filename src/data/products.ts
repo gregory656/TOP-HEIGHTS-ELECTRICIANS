@@ -13,7 +13,7 @@ export const products: Product[] = [
   {
     id: 1,
     name: 'AC CABLES',
-    price: 1500,
+    price: 50,
     category: 'Power Protection',
     image: '/accables.jpeg',
     inStock: true,
