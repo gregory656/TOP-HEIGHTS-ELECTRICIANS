@@ -162,7 +162,7 @@ const Shop: React.FC = () => {
 
           {/* Category Chips */}
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', flex: 1 }}>
-            {categories.slice(0, 6).map((category) => (
+            {categories.map((category) => (
               <Chip
                 key={category}
                 label={category}
