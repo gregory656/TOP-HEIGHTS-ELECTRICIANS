@@ -18,7 +18,7 @@ import { AuthContext, type User } from './AuthContextData';
 export { AuthContext };
 
 // Admin email - change this to your admin email
-const ADMIN_EMAIL = 'gregorysteve656@gmail.com';
+const ADMIN_EMAIL = 'kamaugatehi@gmail.com';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);

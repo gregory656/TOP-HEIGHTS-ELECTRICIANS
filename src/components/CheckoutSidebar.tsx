@@ -30,72 +30,15 @@ import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../context/CartContext';
 import {
   createOrderWithItems,
-  initiateSTKPush,
-  pollPaymentStatus,
   updateOrderStatus,
 } from '../services/orderService';
 import { INTASEND_CONFIG } from '../config/intasendConfig';
+import { triggerIntaSendPayment } from '../services/intasendService';
 
 interface CheckoutSidebarProps {
   open: boolean;
   onClose: () => void;
 }
-
-type IntaSendEvent = 'COMPLETE' | 'FAILED' | 'IN-PROGRESS';
-type IntaSendHandler = () => void | Promise<void>;
-
-type IntaSendInstance = {
-  on: (event: IntaSendEvent, handler: IntaSendHandler) => IntaSendInstance;
-};
-
-type IntaSendConstructor = new (options: {
-  publicAPIKey: string;
-  live: boolean;
-}) => IntaSendInstance;
-
-type CheckoutWindow = Window & {
-  IntaSend?: IntaSendConstructor;
-};
-
-const INTASEND_SCRIPT_URL = 'https://unpkg.com/intasend-inlinejs-sdk@4.0.7/build/intasend-inline.js';
-
-const ensureIntaSendSdk = async (): Promise<IntaSendConstructor> => {
-  if (typeof window === 'undefined') {
-    throw new Error('Payment SDK can only run in the browser');
-  }
-
-  const w = window as CheckoutWindow;
-  if (w.IntaSend) return w.IntaSend;
-
-  await new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-intasend-sdk="true"], script[src*="intasend-inline.js"]'
-    );
-    if (existing) {
-      if (w.IntaSend) {
-        resolve();
-        return;
-      }
-      existing.addEventListener('load', () => resolve(), { once: true });
-      existing.addEventListener('error', () => reject(new Error('Failed to load IntaSend SDK')), { once: true });
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = INTASEND_SCRIPT_URL;
-    script.async = true;
-    script.dataset.intasendSdk = 'true';
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load IntaSend SDK'));
-    document.body.appendChild(script);
-  });
-
-  if (!w.IntaSend) {
-    throw new Error('IntaSend SDK loaded but window.IntaSend is not available');
-  }
-
-  return w.IntaSend;
-};
 
 const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   const { user, isAuthenticated, setLoginModalOpen } = useAuth();
@@ -108,7 +51,6 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   // MPESA uses direct API calls which may be blocked by CORS
   const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'INTASEND'>('INTASEND');
   const [orderId, setOrderId] = useState('');
-  const [paymentAmount, setPaymentAmount] = useState(0);
   const [paymentDebugLog, setPaymentDebugLog] = useState<string[]>([]);
 
   const pushDebugLog = (entry: string) => {
@@ -144,7 +86,6 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     const { checkoutOrderId, amount, email, phone } = params;
 
     pushDebugLog('Starting IntaSend checkout...');
-    
     if (!INTASEND_CONFIG.PUBLIC_KEY) {
       throw new Error('IntaSend public key is not configured');
     }
@@ -154,53 +95,42 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     pushDebugLog(`Email: ${email}`);
     pushDebugLog(`Phone: ${phone}`);
 
-    const btn = document.querySelector<HTMLButtonElement>('.intaSendPayButton');
-    if (!btn) {
-      throw new Error('Payment button is missing in checkout form');
-    }
-
-    btn.setAttribute('data-amount', String(amount));
-    btn.setAttribute('data-currency', 'KES');
-    btn.setAttribute('data-email', email);
-    btn.setAttribute('data-phone_number', phone);
-    btn.setAttribute('data-api_ref', checkoutOrderId);
-
     try {
-      pushDebugLog('Loading IntaSend SDK...');
-      const IntaSend = await ensureIntaSendSdk();
-      pushDebugLog('SDK loaded, initializing checkout...');
-
-      new IntaSend({
-        publicAPIKey: INTASEND_CONFIG.PUBLIC_KEY,
-        live: true,
-      })
-        .on('COMPLETE', async () => {
-          pushDebugLog('Payment completed!');
-          try {
-            await updateOrderStatus(checkoutOrderId, {
-              paymentStatus: 'paid',
-              orderStatus: 'processed',
-            });
-            pushDebugLog('Order status updated to paid');
-          } catch (e) {
-            console.error('Failed to update order status after payment', e);
-            pushDebugLog(`Status update error: ${e}`);
-          }
-          clearCart();
-          setCheckoutStep('success');
-        })
-        .on('FAILED', () => {
-          pushDebugLog('Payment failed');
-          setError('Payment failed or was cancelled. You can try again.');
-          setCheckoutStep('details');
-        })
-        .on('IN-PROGRESS', () => {
-          pushDebugLog('Payment in progress...');
-          setCheckoutStep('processing');
-        });
-
-      pushDebugLog('Triggering payment button...');
-      btn.click();
+      pushDebugLog('Triggering IntaSend checkout...');
+      await triggerIntaSendPayment({
+        checkoutOrderId,
+        amount,
+        email,
+        phone,
+        callbacks: {
+          onStatusChange: (status) => {
+            if (status === 'IN-PROGRESS') {
+              pushDebugLog('Payment in progress...');
+              setCheckoutStep('processing');
+            }
+          },
+          onComplete: async () => {
+            pushDebugLog('Payment completed!');
+            try {
+              await updateOrderStatus(checkoutOrderId, {
+                paymentStatus: 'paid',
+                orderStatus: 'processed',
+              });
+              pushDebugLog('Order status updated to paid');
+            } catch (e) {
+              console.error('Failed to update order status after payment', e);
+              pushDebugLog(`Status update error: ${e}`);
+            }
+            clearCart();
+            setCheckoutStep('success');
+          },
+          onFailed: () => {
+            pushDebugLog('Payment failed');
+            setError('Payment failed or was cancelled. You can try again.');
+            setCheckoutStep('details');
+          },
+        },
+      });
       pushDebugLog('Payment initiated!');
     } catch (sdkError) {
       const errorMsg = sdkError instanceof Error ? sdkError.message : 'SDK Error';
@@ -308,7 +238,6 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
       });
 
       setOrderId(newOrderId);
-      setPaymentAmount(totalAmount);
       pushDebugLog(`Order created: ${newOrderId}`);
       pushDebugLog(`Amount: ${formatPrice(totalAmount)}`);
 
@@ -746,19 +675,6 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         </Box>
       )}
 
-      {/* Hidden IntaSend payment button (used by inline JS SDK) */}
-      <button
-        type="button"
-        className="intaSendPayButton"
-        data-amount={paymentAmount || cartTotal}
-        data-currency="KES"
-        data-email={formData.email}
-        data-phone_number={formData.phone}
-        data-api_ref={orderId}
-        style={{ display: 'none' }}
-      >
-        Pay Now
-      </button>
     </Box>
   );
 
