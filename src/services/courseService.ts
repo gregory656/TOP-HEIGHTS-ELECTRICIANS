@@ -193,6 +193,152 @@ export const subscribeToEnrollments = (
   });
 };
 
+// News interface
+export interface NewsItem {
+  id?: string;
+  title: string;
+  content: string;
+  date: string;
+  active: boolean;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+}
+
+const NEWS_COLLECTION = 'news';
+
+// Get all news from Firestore
+export const getNewsFromFirestore = async (): Promise<NewsItem[]> => {
+  try {
+    const newsRef = collection(db, NEWS_COLLECTION);
+    const q = query(newsRef, orderBy('date', 'desc'));
+    const querySnapshot = await getDocs(q);
+    
+    const news: NewsItem[] = [];
+    querySnapshot.forEach((doc) => {
+      news.push({
+        id: doc.id,
+        ...doc.data() as NewsItem,
+      });
+    });
+    
+    return news;
+  } catch (error) {
+    console.error('Error getting news from Firestore:', error);
+    return [];
+  }
+};
+
+// Save news to Firestore
+export const saveNewsToFirestore = async (news: NewsItem): Promise<boolean> => {
+  try {
+    const newsId = news.id || `news-${Date.now()}`;
+    const newsRef = doc(db, NEWS_COLLECTION, newsId);
+    await setDoc(newsRef, {
+      ...news,
+      id: newsId,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error('Error saving news to Firestore:', error);
+    return false;
+  }
+};
+
+// Delete news from Firestore
+export const deleteNewsFromFirestore = async (newsId: string): Promise<boolean> => {
+  try {
+    const newsRef = doc(db, NEWS_COLLECTION, newsId);
+    await deleteDoc(newsRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting news from Firestore:', error);
+    return false;
+  }
+};
+
+// Subscribe to news
+export const subscribeToNews = (
+  callback: (news: NewsItem[]) => void
+): (() => void) => {
+  const newsRef = collection(db, NEWS_COLLECTION);
+  const q = query(newsRef, orderBy('date', 'desc'));
+  
+  return onSnapshot(q, (snapshot) => {
+    const news: NewsItem[] = [];
+    snapshot.forEach((doc) => {
+      news.push({
+        id: doc.id,
+        ...doc.data() as NewsItem,
+      });
+    });
+    callback(news);
+  });
+};
+
+// Orders interface
+export interface OrderItem {
+  id?: string;
+  orderId: string;
+  customerName: string;
+  customerEmail: string;
+  phone: string;
+  items: Array<{
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+  totalAmount: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  orderStatus: string;
+  createdAt: string;
+}
+
+const ORDERS_COLLECTION = 'orders';
+
+// Get all orders from Firestore
+export const getOrdersFromFirestore = async (): Promise<OrderItem[]> => {
+  try {
+    const ordersRef = collection(db, ORDERS_COLLECTION);
+    const q = query(ordersRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    
+    const orders: OrderItem[] = [];
+    querySnapshot.forEach((doc) => {
+      orders.push({
+        id: doc.id,
+        ...doc.data() as OrderItem,
+      });
+    });
+    
+    return orders;
+  } catch (error) {
+    console.error('Error getting orders from Firestore:', error);
+    return [];
+  }
+};
+
+// Subscribe to orders
+export const subscribeToOrders = (
+  callback: (orders: OrderItem[]) => void
+): (() => void) => {
+  const ordersRef = collection(db, ORDERS_COLLECTION);
+  const q = query(ordersRef, orderBy('createdAt', 'desc'));
+  
+  return onSnapshot(q, (snapshot) => {
+    const orders: OrderItem[] = [];
+    snapshot.forEach((doc) => {
+      orders.push({
+        id: doc.id,
+        ...doc.data() as OrderItem,
+      });
+    });
+    callback(orders);
+  });
+};
+
 export default {
   getCoursesFromFirestore,
   saveCourseToFirestore,
@@ -202,4 +348,10 @@ export default {
   saveEnrollmentToFirestore,
   updateEnrollmentProgress,
   subscribeToEnrollments,
+  getNewsFromFirestore,
+  saveNewsToFirestore,
+  deleteNewsFromFirestore,
+  subscribeToNews,
+  getOrdersFromFirestore,
+  subscribeToOrders,
 };

@@ -1,216 +1,76 @@
 // src/pages/AdminPanel.tsx
 import { useState, useEffect } from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
-  Button,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  IconButton,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Avatar,
-  Switch,
-  Grid,
-  Card,
-  CardContent,
-  Alert,
-} from '@mui/material';
-import {
-  Add,
-  Edit,
-  Delete,
-  Inventory,
-  Article,
-  LocalShipping,
-  TrendingUp,
-  School,
-} from '@mui/icons-material';
+import { Box, Container, Typography, Tabs, Tab, Paper, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, IconButton, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar, Switch, Grid, Card, CardContent, Alert } from '@mui/material';
+import { Add, Edit, Delete, Article, LocalShipping, TrendingUp, School } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { Course } from '../utils/courseStorage';
-import { 
-  getCoursesFromFirestore, 
-  saveCourseToFirestore, 
-  deleteCourseFromFirestore,
-  subscribeToCourses 
-} from '../services/courseService';
+import { getCoursesFromFirestore, saveCourseToFirestore, deleteCourseFromFirestore, subscribeToCourses, getNewsFromFirestore, saveNewsToFirestore, deleteNewsFromFirestore, subscribeToNews, getOrdersFromFirestore, subscribeToOrders, NewsItem, OrderItem } from '../services/courseService';
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  size: string;
-  color: string;
-  description: string;
-  inStock: boolean;
-  category: string;
-  image: string;
-}
-
-interface NewsItem {
-  id: number;
-  title: string;
-  content: string;
-  date: string;
-  active: boolean;
-}
-
-interface Order {
-  id: string;
-  customer: string;
-  product: string;
-  status: 'Pending' | 'Approved' | 'Completed';
-  date: string;
-  total: number;
-}
-
-const initialProducts: Product[] = [
-  { id: 1, name: 'Industrial Circuit Breaker', price: 4500, size: '200A', color: 'Grey', description: 'High-capacity circuit breaker', inStock: true, category: 'Breakers', image: 'https://picsum.photos/400/300?breaker' },
-  { id: 2, name: 'LED Bulb Pack', price: 850, size: '9W', color: 'White', description: 'Energy-efficient LED bulbs', inStock: true, category: 'Lighting', image: 'https://picsum.photos/400/300?led' },
-];
-
-const initialNews: NewsItem[] = [
-  { id: 1, title: 'New Solar Panel Range', content: 'Added new solar panels', date: '2024-01-15', active: true },
-];
-
-const initialOrders: Order[] = [
-  { id: 'ORD-001', customer: 'John Doe', product: 'Industrial Circuit Breaker', status: 'Pending', date: '2024-01-20', total: 4500 },
-];
-
-const tabVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: 20 },
-};
-
-const initialCourseForm: Course = {
-  id: '',
-  title: '',
-  description: '',
-  duration: '',
-  price: 0,
-  instructor: '',
-  category: '',
-};
+const initialCourseForm: Course = { id: '', title: '', description: '', duration: '', price: 0, instructor: '', category: '' };
+const initialNewsForm: NewsItem = { title: '', content: '', date: new Date().toISOString().split('T')[0], active: true };
 
 const AdminPanel: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
-  const [products] = useState<Product[]>(initialProducts);
-  const [news] = useState<NewsItem[]>(initialNews);
-  const [orders] = useState<Order[]>(initialOrders);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [orders, setOrders] = useState<OrderItem[]>([]);
   const [courseDialogOpen, setCourseDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [courseForm, setCourseForm] = useState<Course>(initialCourseForm);
+  const [newsDialogOpen, setNewsDialogOpen] = useState(false);
+  const [editingNews, setEditingNews] = useState<NewsItem | null>(null);
+  const [newsForm, setNewsForm] = useState<NewsItem>(initialNewsForm);
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState<{ severity: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    getCoursesFromFirestore().then((firestoreCourses) => {
-      if (firestoreCourses.length > 0) {
-        setCourses(firestoreCourses);
-      }
-    });
-
-    const unsubscribe = subscribeToCourses((updatedCourses) => {
-      setCourses(updatedCourses);
-    });
-
-    return () => unsubscribe();
+    getCoursesFromFirestore().then(setCourses);
+    const unsubCourses = subscribeToCourses(setCourses);
+    getNewsFromFirestore().then(setNews);
+    const unsubNews = subscribeToNews(setNews);
+    getOrdersFromFirestore().then(setOrders);
+    const unsubOrders = subscribeToOrders(setOrders);
+    return () => { unsubCourses(); unsubNews(); unsubOrders(); };
   }, []);
 
   const formatPrice = (price: number) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0 }).format(price);
 
   if (user?.role !== 'admin') {
-    return (
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h4" color="error">Access Denied</Typography>
-        <Typography color="text.secondary">You must be an admin to view this page.</Typography>
-      </Container>
-    );
+    return <Container maxWidth="lg" sx={{ py: 8 }}><Typography variant="h4" color="error">Access Denied</Typography></Container>;
   }
 
-  const handleOpenCourseDialog = (course?: Course) => {
-    if (course) {
-      setEditingCourse(course);
-      setCourseForm(course);
-    } else {
-      setEditingCourse(null);
-      setCourseForm(initialCourseForm);
-    }
-    setAlert(null);
-    setCourseDialogOpen(true);
-  };
-
+  const handleOpenCourseDialog = (course?: Course) => { setEditingCourse(course || null); setCourseForm(course || initialCourseForm); setAlert(null); setCourseDialogOpen(true); };
   const handleSaveCourse = async () => {
-    if (!courseForm.title.trim()) {
-      setAlert({ severity: 'error', message: 'Please enter a course title' });
-      return;
-    }
-    
-    setSaving(true);
-    setAlert(null);
-    
+    if (!courseForm.title.trim()) { setAlert({ severity: 'error', message: 'Please enter a course title' }); return; }
+    setSaving(true); setAlert(null);
     try {
-      // Generate unique ID
       const timestamp = Date.now();
       const slug = courseForm.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      const courseId = editingCourse?.id || courseForm.id || `${slug}-${timestamp}`;
-      
-      const course: Course = {
-        ...courseForm,
-        id: courseId,
-      };
-      
-      console.log('[AdminPanel] Saving course:', course);
-      
+      const course: Course = { ...courseForm, id: editingCourse?.id || courseForm.id || `${slug}-${timestamp}` };
       const success = await saveCourseToFirestore(course);
-      
-      if (success) {
-        setAlert({ severity: 'success', message: editingCourse ? 'Course updated!' : 'Course created!' });
-        setTimeout(() => {
-          setCourseDialogOpen(false);
-          setAlert(null);
-        }, 1000);
-      } else {
-        setAlert({ severity: 'error', message: 'Failed to save course. Check console for details.' });
-      }
-    } catch (error) {
-      console.error('[AdminPanel] Error saving course:', error);
-      setAlert({ severity: 'error', message: 'Error saving course: ' + (error instanceof Error ? error.message : 'Unknown error') });
-    } finally {
-      setSaving(false);
-    }
+      if (success) { setAlert({ severity: 'success', message: editingCourse ? 'Course updated!' : 'Course created!' }); setTimeout(() => setCourseDialogOpen(false), 1000); }
+      else setAlert({ severity: 'error', message: 'Failed to save course' });
+    } catch { setAlert({ severity: 'error', message: 'Error saving course' }); }
+    finally { setSaving(false); }
   };
+  const handleDeleteCourse = async (id: string) => { if (window.confirm('Delete this course?')) await deleteCourseFromFirestore(id); };
 
-  const handleDeleteCourse = async (id: string) => {
-    if (window.confirm('Delete this course?')) {
-      try {
-        await deleteCourseFromFirestore(id);
-        setAlert({ severity: 'success', message: 'Course deleted!' });
-      } catch (error) {
-        setAlert({ severity: 'error', message: 'Failed to delete course' });
-      }
-    }
+  const handleOpenNewsDialog = (n?: NewsItem) => { setEditingNews(n || null); setNewsForm(n || initialNewsForm); setAlert(null); setNewsDialogOpen(true); };
+  const handleSaveNews = async () => {
+    if (!newsForm.title.trim()) { setAlert({ severity: 'error', message: 'Please enter a news title' }); return; }
+    setSaving(true); setAlert(null);
+    try {
+      const success = await saveNewsToFirestore(newsForm);
+      if (success) { setAlert({ severity: 'success', message: editingNews ? 'News updated!' : 'News created!' }); setTimeout(() => setNewsDialogOpen(false), 1000); }
+      else setAlert({ severity: 'error', message: 'Failed to save news' });
+    } catch { setAlert({ severity: 'error', message: 'Error saving news' }); }
+    finally { setSaving(false); }
   };
+  const handleDeleteNews = async (id: string) => { if (window.confirm('Delete this news?')) await deleteNewsFromFirestore(id); };
+
+  const stats = { totalCourses: courses.length, activeNews: news.filter(n => n.active).length, totalOrders: orders.length, revenue: orders.reduce((acc, o) => acc + (o.totalAmount || 0), 0) };
 
   return (
     <Box>
@@ -225,14 +85,8 @@ const AdminPanel: React.FC = () => {
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          {[
-            { icon: <Inventory />, label: 'Products', value: products.length, color: '#64FFDA' },
-            { icon: <School />, label: 'Courses', value: courses.length, color: '#AB47BC' },
-            { icon: <Article />, label: 'Active News', value: news.filter(n => n.active).length, color: '#64B5F6' },
-            { icon: <LocalShipping />, label: 'Pending Orders', value: orders.filter(o => o.status === 'Pending').length, color: '#FFB74D' },
-            { icon: <TrendingUp />, label: 'Revenue', value: formatPrice(orders.reduce((acc, o) => acc + o.total, 0)), color: '#81C784' },
-          ].map((stat, i) => (
-            <Grid size={{ xs: 6, md: 2.4 }} key={i}>
+          {[{ icon: <School />, label: 'Courses', value: stats.totalCourses, color: '#AB47BC' }, { icon: <Article />, label: 'Active News', value: stats.activeNews, color: '#64B5F6' }, { icon: <LocalShipping />, label: 'Orders', value: stats.totalOrders, color: '#FFB74D' }, { icon: <TrendingUp />, label: 'Revenue', value: formatPrice(stats.revenue), color: '#81C784' }].map((stat, i) => (
+            <Grid size={{ xs: 6, md: 3 }} key={i}>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
                 <Card sx={{ background: 'rgba(17, 34, 64, 0.5)', border: '1px solid rgba(100, 255, 218, 0.1)' }}>
                   <CardContent sx={{ textAlign: 'center', py: 3 }}>
@@ -247,47 +101,27 @@ const AdminPanel: React.FC = () => {
         </Grid>
 
         <Paper sx={{ background: 'rgba(17, 34, 64, 0.5)', border: '1px solid rgba(100, 255, 218, 0.1)' }}>
-          <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ borderBottom: '1px solid rgba(100, 255, 218, 0.1)', '& .MuiTab-root': { color: 'text.secondary' }, '& .Mui-selected': { color: 'primary.main' }, '& .MuiTabs-indicator': { backgroundColor: 'primary.main' } }}>
-            <Tab icon={<Inventory />} iconPosition="start" label="Inventory" />
+          <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ borderBottom: '1px solid rgba(100, 255, 218, 0.1)' }}>
             <Tab icon={<School />} iconPosition="start" label="Courses" />
-            <Tab icon={<Article />} iconPosition="start" label="News Manager" />
-            <Tab icon={<LocalShipping />} iconPosition="start" label="Order Tracker" />
+            <Tab icon={<Article />} iconPosition="start" label="News" />
+            <Tab icon={<LocalShipping />} iconPosition="start" label="Orders" />
           </Tabs>
 
           <Box sx={{ p: 3 }}>
             <AnimatePresence mode="wait">
               {activeTab === 0 && (
-                <motion.div key="inventory" variants={tabVariants} initial="hidden" animate="visible" exit="exit">
-                  <Typography variant="h5" sx={{ mb: 2 }}>Product Inventory</Typography>
-                  <Typography color="text.secondary">Manage your products here.</Typography>
-                </motion.div>
-              )}
-
-              {activeTab === 1 && (
-                <motion.div key="courses" variants={tabVariants} initial="hidden" animate="visible" exit="exit">
+                <motion.div key="courses" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h5">Course Management</Typography>
                     <Button variant="contained" startIcon={<Add />} onClick={() => handleOpenCourseDialog()}>Add Course</Button>
                   </Box>
                   <TableContainer>
                     <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Title</TableCell>
-                          <TableCell>Category</TableCell>
-                          <TableCell>Instructor</TableCell>
-                          <TableCell>Duration</TableCell>
-                          <TableCell>Price</TableCell>
-                          <TableCell>Status</TableCell>
-                          <TableCell align="right">Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
+                      <TableHead><TableRow><TableCell>Title</TableCell><TableCell>Category</TableCell><TableCell>Instructor</TableCell><TableCell>Duration</TableCell><TableCell>Price</TableCell><TableCell>Status</TableCell><TableCell align="right">Actions</TableCell></TableRow></TableHead>
                       <TableBody>
                         {courses.map((course) => (
                           <TableRow key={course.id} hover>
-                            <TableCell>
-                              <Typography variant="body2" fontWeight={600}>{course.title}</Typography>
-                            </TableCell>
+                            <TableCell><Typography fontWeight={600}>{course.title}</Typography></TableCell>
                             <TableCell><Chip label={course.category} size="small" /></TableCell>
                             <TableCell>{course.instructor}</TableCell>
                             <TableCell>{course.duration}</TableCell>
@@ -299,13 +133,35 @@ const AdminPanel: React.FC = () => {
                             </TableCell>
                           </TableRow>
                         ))}
-                        {courses.length === 0 && (
-                          <TableRow>
-                            <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                              <Typography color="text.secondary">No courses yet. Click "Add Course" to create one.</Typography>
+                        {courses.length === 0 && <TableRow><TableCell colSpan={7} align="center" sx={{ py: 4 }}>No courses yet.</TableCell></TableRow>}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </motion.div>
+              )}
+
+              {activeTab === 1 && (
+                <motion.div key="news" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h5">News Management</Typography>
+                    <Button variant="contained" startIcon={<Add />} onClick={() => handleOpenNewsDialog()}>Add News</Button>
+                  </Box>
+                  <TableContainer>
+                    <Table>
+                      <TableHead><TableRow><TableCell>Title</TableCell><TableCell>Date</TableCell><TableCell>Status</TableCell><TableCell align="right">Actions</TableCell></TableRow></TableHead>
+                      <TableBody>
+                        {news.map((n) => (
+                          <TableRow key={n.id} hover>
+                            <TableCell><Typography fontWeight={600}>{n.title}</Typography></TableCell>
+                            <TableCell>{n.date}</TableCell>
+                            <TableCell><Chip label={n.active ? 'Active' : 'Inactive'} size="small" color={n.active ? 'success' : 'default'} /></TableCell>
+                            <TableCell align="right">
+                              <IconButton onClick={() => handleOpenNewsDialog(n)} color="primary"><Edit /></IconButton>
+                              <IconButton onClick={() => handleDeleteNews(n.id!)} color="error"><Delete /></IconButton>
                             </TableCell>
                           </TableRow>
-                        )}
+                        ))}
+                        {news.length === 0 && <TableRow><TableCell colSpan={4} align="center" sx={{ py: 4 }}>No news yet.</TableCell></TableRow>}
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -313,16 +169,26 @@ const AdminPanel: React.FC = () => {
               )}
 
               {activeTab === 2 && (
-                <motion.div key="news" variants={tabVariants} initial="hidden" animate="visible" exit="exit">
-                  <Typography variant="h5" sx={{ mb: 2 }}>News Manager</Typography>
-                  <Typography color="text.secondary">Manage your news here.</Typography>
-                </motion.div>
-              )}
-
-              {activeTab === 3 && (
-                <motion.div key="orders" variants={tabVariants} initial="hidden" animate="visible" exit="exit">
-                  <Typography variant="h5" sx={{ mb: 2 }}>Order Tracker</Typography>
-                  <Typography color="text.secondary">Track your orders here.</Typography>
+                <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <Typography variant="h5" sx={{ mb: 3 }}>Order Management</Typography>
+                  <TableContainer>
+                    <Table>
+                      <TableHead><TableRow><TableCell>Order ID</TableCell><TableCell>Customer</TableCell><TableCell>Total</TableCell><TableCell>Payment</TableCell><TableCell>Status</TableCell><TableCell>Date</TableCell></TableRow></TableHead>
+                      <TableBody>
+                        {orders.map((order) => (
+                          <TableRow key={order.id} hover>
+                            <TableCell><Typography fontWeight={600}>{order.orderId || order.id}</Typography></TableCell>
+                            <TableCell>{order.customerName || order.customerEmail}</TableCell>
+                            <TableCell>{formatPrice(order.totalAmount)}</TableCell>
+                            <TableCell><Chip label={order.paymentStatus || 'Pending'} size="small" color={order.paymentStatus === 'paid' ? 'success' : 'warning'} /></TableCell>
+                            <TableCell><Chip label={order.orderStatus || 'Pending'} size="small" color={order.orderStatus === 'completed' ? 'success' : 'warning'} /></TableCell>
+                            <TableCell>{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'}</TableCell>
+                          </TableRow>
+                        ))}
+                        {orders.length === 0 && <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}>No orders yet.</TableCell></TableRow>}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -334,16 +200,12 @@ const AdminPanel: React.FC = () => {
       <Dialog open={courseDialogOpen} onClose={() => setCourseDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editingCourse ? 'Edit Course' : 'Add New Course'}</DialogTitle>
         <DialogContent>
-          {alert && (
-            <Alert severity={alert.severity} sx={{ mb: 2 }}>
-              {alert.message}
-            </Alert>
-          )}
+          {alert && <Alert severity={alert.severity} sx={{ mb: 2 }}>{alert.message}</Alert>}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField label="Course Title" value={courseForm.title} onChange={(e) => setCourseForm({ ...courseForm, title: e.target.value })} fullWidth required />
             <TextField label="Description" value={courseForm.description} onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })} fullWidth multiline rows={2} />
             <TextField label="Instructor" value={courseForm.instructor} onChange={(e) => setCourseForm({ ...courseForm, instructor: e.target.value })} fullWidth />
-            <TextField label="Duration (e.g., 4 weeks)" value={courseForm.duration} onChange={(e) => setCourseForm({ ...courseForm, duration: e.target.value })} fullWidth />
+            <TextField label="Duration" value={courseForm.duration} onChange={(e) => setCourseForm({ ...courseForm, duration: e.target.value })} fullWidth />
             <TextField label="Price (KES)" type="number" value={courseForm.price} onChange={(e) => setCourseForm({ ...courseForm, price: Number(e.target.value) })} fullWidth />
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
@@ -363,7 +225,28 @@ const AdminPanel: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCourseDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSaveCourse}>{editingCourse ? 'Update' : 'Create'}</Button>
+          <Button variant="contained" onClick={handleSaveCourse} disabled={saving}>{saving ? 'Saving...' : (editingCourse ? 'Update' : 'Create')}</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* News Dialog */}
+      <Dialog open={newsDialogOpen} onClose={() => setNewsDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingNews ? 'Edit News' : 'Add News'}</DialogTitle>
+        <DialogContent>
+          {alert && <Alert severity={alert.severity} sx={{ mb: 2 }}>{alert.message}</Alert>}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField label="Title" value={newsForm.title} onChange={(e) => setNewsForm({ ...newsForm, title: e.target.value })} fullWidth required />
+            <TextField label="Content" value={newsForm.content} onChange={(e) => setNewsForm({ ...newsForm, content: e.target.value })} fullWidth multiline rows={3} />
+            <TextField label="Date" type="date" value={newsForm.date} onChange={(e) => setNewsForm({ ...newsForm, date: e.target.value })} fullWidth InputLabelProps={{ shrink: true }} />
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Switch checked={Boolean(newsForm.active)} onChange={(e) => setNewsForm({ ...newsForm, active: e.target.checked })} />
+              <Typography>Active</Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNewsDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveNews} disabled={saving}>{saving ? 'Saving...' : (editingNews ? 'Update' : 'Create')}</Button>
         </DialogActions>
       </Dialog>
     </Box>
