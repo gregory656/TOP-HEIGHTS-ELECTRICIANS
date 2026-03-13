@@ -29,12 +29,13 @@ import { useAuth } from '../hooks/useAuth';
 interface LoginModalProps {
   open: boolean;
   onClose: () => void;
-  onLoginSuccess?: () => void;
+  onLoginSuccess?: (username: string, password: string) => void;
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }) => {
   const { login, loginWithGoogle, signup } = useAuth();
   const [tab, setTab] = useState(0);
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -48,6 +49,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
     setLoading(true);
 
     try {
+      if (tab === 0 && !username.trim()) {
+        setError('Please enter your username.');
+        setLoading(false);
+        return;
+      }
       let success = false;
       if (tab === 0) {
         // Login
@@ -74,7 +80,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
       }
 
       if (success) {
-        onLoginSuccess?.();
+        onLoginSuccess?.(username, password);
         handleClose();
       }
     } catch (err) {
@@ -92,7 +98,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
     try {
       const success = await loginWithGoogle();
       if (success) {
-        onLoginSuccess?.();
+        onLoginSuccess?.('', '');
         handleClose();
       } else {
         setError('Failed to sign in with Google');
@@ -108,6 +114,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
   };
 
   const handleClose = () => {
+    setUsername('');
     setEmail('');
     setPassword('');
     setName('');
@@ -223,11 +230,28 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLoginSuccess }
             </Tabs>
 
             <form onSubmit={handleSubmit}>
-              {tab === 1 && (
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  value={name}
+      {tab === 0 && (
+        <TextField
+          fullWidth
+          label="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          margin="normal"
+          required
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': { borderColor: 'rgba(100, 255, 218, 0.2)' },
+              '&:hover fieldset': { borderColor: 'rgba(100, 255, 218, 0.4)' },
+              '&.Mui-focused fieldset': { borderColor: '#64FFDA' },
+            },
+          }}
+        />
+      )}
+      {tab === 1 && (
+        <TextField
+          fullWidth
+          label="Full Name"
+          value={name}
                   onChange={(e) => setName(e.target.value)}
                   margin="normal"
                   sx={{

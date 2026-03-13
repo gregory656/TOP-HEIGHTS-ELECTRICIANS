@@ -66,6 +66,20 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow write: if false;
     }
+
+    // Courses - public read, admin write
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Enrollments - read by owner and admin, write by admin
+    match /enrollments/{enrollmentId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
   }
 }
 

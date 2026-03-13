@@ -33,6 +33,7 @@ import {
   Info,
   Article,
   AdminPanelSettings,
+  School,
   Menu as MenuIcon,
   Search as SearchIcon,
   Close,
@@ -41,7 +42,7 @@ import {
   Dashboard,
   ShoppingCartCheckout,
 } from '@mui/icons-material';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { styled, alpha } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
@@ -49,6 +50,13 @@ import LoginModal from './LoginModal';
 import CheckoutSidebar from './CheckoutSidebar';
 import logoImage from '../assets/topeheights.jpeg';
 import { useCart } from '../context/CartContext';
+import {
+  clearAdminAccessFlag,
+  clearStoredUsername,
+  isAdminAccessAllowed,
+  setAdminAccessAllowed,
+  setStoredUsername,
+} from '../utils/courseStorage';
 
 const drawerWidth = 280;
 const TopHeightsChatbot = lazy(() => import('./chatbot/TopHeightsChatbot'));
@@ -56,6 +64,7 @@ const TopHeightsChatbot = lazy(() => import('./chatbot/TopHeightsChatbot'));
 const navItems = [
   { text: 'Home', icon: <Home />, path: '/' },
   { text: 'Services', icon: <Build />, path: '/services' },
+  { text: 'Courses', icon: <School />, path: '/courses' },
   { text: 'Shop', icon: <ShoppingCart />, path: '/shop' },
   { text: 'About', icon: <Info />, path: '/about' },
   { text: 'News', icon: <Article />, path: '/news' },
@@ -136,6 +145,8 @@ export default function Layout() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
+  const navigate = useNavigate();
+  const [adminAccess, setAdminAccess] = useState(isAdminAccessAllowed());
   const { user, logout, isAuthenticated, loginModalOpen, setLoginModalOpen, authLoading } = useAuth();
 
   // Cart from context (localStorage) - no Firestore subscription
@@ -160,8 +171,20 @@ export default function Layout() {
   };
 
   const handleLogout = () => {
+    clearStoredUsername();
+    clearAdminAccessFlag();
+    setAdminAccess(false);
     logout();
     handleProfileMenuClose();
+  };
+
+  const handleDashboardRedirect = (username: string, password: string) => {
+    const trimmedUsername = username.trim();
+    const isAdmin = trimmedUsername === 'gregory656' && password === '999888777Ss';
+    setStoredUsername(trimmedUsername);
+    setAdminAccessAllowed(isAdmin);
+    setAdminAccess(isAdmin);
+    navigate(isAdmin ? '/admin-dashboard' : '/student-dashboard');
   };
 
   const drawer = (
@@ -360,13 +383,13 @@ export default function Layout() {
               >
                 <MenuItem
                   component={Link}
-                  to={user.role === 'admin' ? '/admin' : '/profile'}
+                  to={adminAccess ? '/admin-dashboard' : '/student-dashboard'}
                   onClick={handleProfileMenuClose}
                 >
                   <ListItemIcon>
-                    {user.role === 'admin' ? <Dashboard fontSize="small" /> : <Person fontSize="small" />}
+                    {adminAccess ? <Dashboard fontSize="small" /> : <Person fontSize="small" />}
                   </ListItemIcon>
-                  {user.role === 'admin' ? 'Dashboard' : 'My Profile'}
+                  {adminAccess ? 'Admin Dashboard' : 'Student Dashboard'}
                 </MenuItem>
                 <MenuItem onClick={handleLogout}>
                   <ListItemIcon>
@@ -481,6 +504,7 @@ export default function Layout() {
       <LoginModal
         open={loginModalOpen}
         onClose={() => setLoginModalOpen(false)}
+        onLoginSuccess={handleDashboardRedirect}
       />
 
       {/* Checkout Sidebar */}
