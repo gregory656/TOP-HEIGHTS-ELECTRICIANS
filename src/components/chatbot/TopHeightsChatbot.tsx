@@ -31,7 +31,7 @@ const DEFAULT_SUGGESTIONS = [
 const GREETING: ChatMessage = {
   id: 'greeting',
   role: 'bot',
-  text: 'Welcome to TopHeights AI Assistant. Ask me about our products, services, or how to get help quickly.',
+  text: 'Welcome to TopHeights AI Assistant. Ask me about our products, services, or how to get help quickly.(I can make mistakes!)',
   createdAt: Date.now(),
 };
 

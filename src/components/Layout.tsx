@@ -288,6 +288,7 @@ export default function Layout() {
         position="fixed"
         sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
+          display: checkoutOpen ? 'none' : 'flex',
         }}
       >
         <Toolbar>

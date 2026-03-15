@@ -30,6 +30,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../context/CartContext';
 import {
   createOrderWithItems,
+  initiateSTKPush,
+  pollPaymentStatus,
   updateOrderStatus,
 } from '../services/orderService';
 import { INTASEND_CONFIG } from '../config/intasendConfig';
@@ -531,20 +533,27 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         value={paymentMethod}
         onChange={(e) => setPaymentMethod(e.target.value as 'MPESA' | 'INTASEND')}
       >
-        <Box sx={{ 
-          p: 2, 
-          mb: 2, 
-          borderRadius: 2, 
-          border: paymentMethod === 'MPESA' ? '2px solid' : '1px solid',
-          borderColor: paymentMethod === 'MPESA' ? 'primary.main' : 'rgba(100, 255, 218, 0.2)',
-          backgroundColor: paymentMethod === 'MPESA' ? 'rgba(100, 255, 218, 0.05)' : 'transparent',
-        }}>
+        <Box
+          sx={{
+            p: 2,
+            mb: 2,
+            borderRadius: 2,
+            border: paymentMethod === 'MPESA' ? '2px solid' : '1px solid',
+            borderColor: paymentMethod === 'MPESA' ? 'primary.main' : 'rgba(100, 255, 218, 0.2)',
+            backgroundColor: paymentMethod === 'MPESA' ? 'rgba(100, 255, 218, 0.05)' : 'transparent',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            gap: 1,
+          }}
+        >
           <FormControlLabel
             value="MPESA"
             control={<Radio />}
             label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box 
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
+                <Box
                   component="img"
                   src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-Pesa_%28USSD%29.png"
                   sx={{ height: 24, width: 'auto' }}
@@ -555,24 +564,32 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                 <Typography>M-Pesa (STK Push)</Typography>
               </Box>
             }
+            sx={{ width: '100%', justifyContent: 'center', margin: 0 }}
           />
-          <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
+          <Typography variant="body2" color="text.secondary">
             Pay instantly via M-Pesa STK Push
           </Typography>
         </Box>
 
-        <Box sx={{ 
-          p: 2, 
-          borderRadius: 2, 
-          border: paymentMethod === 'INTASEND' ? '2px solid' : '1px solid',
-          borderColor: paymentMethod === 'INTASEND' ? 'primary.main' : 'rgba(100, 255, 218, 0.2)',
-          backgroundColor: paymentMethod === 'INTASEND' ? 'rgba(100, 255, 218, 0.05)' : 'transparent',
-        }}>
+        <Box
+          sx={{
+            p: 2,
+            borderRadius: 2,
+            border: paymentMethod === 'INTASEND' ? '2px solid' : '1px solid',
+            borderColor: paymentMethod === 'INTASEND' ? 'primary.main' : 'rgba(100, 255, 218, 0.2)',
+            backgroundColor: paymentMethod === 'INTASEND' ? 'rgba(100, 255, 218, 0.05)' : 'transparent',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            gap: 1,
+          }}
+        >
           <FormControlLabel
             value="INTASEND"
             control={<Radio />}
             label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
                 <AccountBalance sx={{ color: 'primary.main' }} />
                 <Typography>IntaSend</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 1 }}>
@@ -611,8 +628,9 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                 </Box>
               </Box>
             }
+            sx={{ width: '100%', justifyContent: 'center', margin: 0 }}
           />
-          <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
+          <Typography variant="body2" color="text.secondary">
             Pay via IntaSend (Card, M-Pesa, Bank)
           </Typography>
         </Box>
