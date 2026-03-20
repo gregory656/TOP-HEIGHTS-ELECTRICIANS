@@ -13,6 +13,7 @@ import {
   Avatar,
   CircularProgress,
   Alert,
+  Skeleton,
   FormControlLabel,
   Radio,
   RadioGroup,
@@ -54,6 +55,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'INTASEND'>('INTASEND');
   const [orderId, setOrderId] = useState('');
   const [paymentDebugLog, setPaymentDebugLog] = useState<string[]>([]);
+  const [skeletonActive, setSkeletonActive] = useState(false);
 
   const pushDebugLog = (entry: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -156,6 +158,16 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
       currency: 'KES',
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  const fieldStyles = {
+    '& .MuiInputBase-root': {
+      borderRadius: 3,
+      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+      '&.Mui-focused': {
+        boxShadow: '0 0 0 3px rgba(30, 144, 255, 0.35)',
+      },
+    },
   };
 
   const handleProceedToCheckout = () => {
@@ -312,13 +324,38 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   };
 
   const renderCartContent = () => (
-    <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box
+      sx={{
+        p: 3,
+        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+        borderRadius: 3,
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        boxShadow: '0 20px 45px rgba(0,0,0,0.35)',
+        backdropFilter: 'blur(16px)',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3,
+        }}
+      >
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Your Cart
         </Typography>
-        <IconButton onClick={onClose}>
+        <IconButton
+          onClick={onClose}
+          sx={{
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            transition: 'transform 0.3s ease, background 0.3s ease',
+            '&:hover': {
+              transform: 'scale(1.08)',
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            },
+          }}
+        >
           <Close />
         </IconButton>
       </Box>
@@ -327,23 +364,51 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress />
         </Box>
+      ) : skeletonActive && cartItems.length > 0 ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {[1, 2, 3].map((row) => (
+            <Skeleton
+              key={`cart-skeleton-${row}`}
+              variant="rounded"
+              height={70}
+              animation="wave"
+            />
+          ))}
+          <Skeleton variant="rounded" height={110} animation="wave" />
+          <Skeleton variant="rounded" height={48} width="80%" animation="wave" />
+          <Skeleton variant="rounded" height={48} width="60%" animation="wave" />
+        </Box>
       ) : cartItems.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 6 }}>
-          <ShoppingCartCheckout sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+          <ShoppingCartCheckout
+            sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }}
+          />
           <Typography variant="h6" color="text.secondary">
             You have nothing in cart
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Browse our shop and add some products!
           </Typography>
-          <Button variant="contained" onClick={onClose}>
+          <Button variant="contained" onClick={onClose} sx={{ mt: 1 }}>
             Continue Shopping
           </Button>
         </Box>
       ) : (
         <>
-          {/* Cart Items */}
-          <List sx={{ maxHeight: '50vh', overflow: 'auto' }}>
+          <List
+            sx={{
+              maxHeight: '50vh',
+              overflowY: 'auto',
+              pr: 1,
+              '&::-webkit-scrollbar': {
+                width: 6,
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: 'rgba(255,255,255,0.15)',
+                borderRadius: 99,
+              },
+            }}
+          >
             <AnimatePresence>
               {cartItems.map((item) => (
                 <motion.div
@@ -352,12 +417,30 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                 >
-                  <ListItem sx={{ px: 0, py: 2 }}>
-                    <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+                  <ListItem
+                    sx={{
+                      px: 0,
+                      py: 2,
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: 2,
+                        width: '100%',
+                        alignItems: 'center',
+                      }}
+                    >
                       <Avatar
                         variant="rounded"
                         src={item.image}
-                        sx={{ width: 60, height: 60 }}
+                        sx={{
+                          width: 60,
+                          height: 60,
+                          borderRadius: 2,
+                          border: '1px solid rgba(255,255,255,0.1)',
+                        }}
                       />
                       <Box sx={{ flex: 1 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -366,28 +449,41 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                         <Typography variant="body2" color="primary.main" sx={{ fontWeight: 600 }}>
                           {formatPrice(item.price)}
                         </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            mt: 1,
+                          }}
+                        >
                           <IconButton
                             size="small"
                             onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
-                            sx={{ 
-                              backgroundColor: 'rgba(100, 255, 218, 0.1)',
-                              width: 28,
-                              height: 28,
+                            sx={{
+                              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                              width: 32,
+                              height: 32,
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                              },
                             }}
                           >
                             <Remove fontSize="small" />
                           </IconButton>
-                          <Typography variant="body2" sx={{ minWidth: 20, textAlign: 'center' }}>
+                          <Typography variant="body2" sx={{ minWidth: 28, textAlign: 'center' }}>
                             {item.quantity}
                           </Typography>
                           <IconButton
                             size="small"
                             onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
-                            sx={{ 
-                              backgroundColor: 'rgba(100, 255, 218, 0.1)',
-                              width: 28,
-                              height: 28,
+                            sx={{
+                              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                              width: 32,
+                              height: 32,
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                              },
                             }}
                           >
                             <Add fontSize="small" />
@@ -395,7 +491,14 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                           <IconButton
                             size="small"
                             onClick={() => handleRemoveItem(item.productId)}
-                            sx={{ ml: 'auto', color: 'error.main' }}
+                            sx={{
+                              ml: 'auto',
+                              color: 'error.main',
+                              borderRadius: 2,
+                              '&:hover': {
+                                backgroundColor: 'rgba(255, 99, 132, 0.15)',
+                              },
+                            }}
                           >
                             <Delete fontSize="small" />
                           </IconButton>
@@ -403,26 +506,39 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                       </Box>
                     </Box>
                   </ListItem>
-                  <Divider sx={{ borderColor: 'rgba(100, 255, 218, 0.1)' }} />
+                  <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
                 </motion.div>
               ))}
             </AnimatePresence>
           </List>
 
-          {/* Total */}
-          <Box sx={{ mt: 3 }}>
+          <Box
+            sx={{
+              mt: 3,
+              px: 2,
+              py: 2.5,
+              borderRadius: 3,
+              background: 'linear-gradient(180deg, rgba(30, 144, 255, 0.08), rgba(108, 99, 255, 0.12))',
+              border: '1px solid rgba(255, 255, 255, 0.14)',
+              backdropFilter: 'blur(14px)',
+            }}
+          >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
               <Typography variant="body1">Subtotal:</Typography>
               <Typography variant="body1" sx={{ fontWeight: 600 }}>
                 {formatPrice(cartTotal)}
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-              <Typography variant="body2" color="text.secondary">Shipping:</Typography>
-              <Typography variant="body2" color="text.secondary">Calculated at checkout</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Shipping:
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Calculated at checkout
+              </Typography>
             </Box>
-            <Divider sx={{ mb: 3 }} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.15)', mb: 2 }} />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant="h6">Total:</Typography>
               <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
                 {formatPrice(cartTotal)}
@@ -434,7 +550,13 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
               size="large"
               startIcon={<ShoppingCartCheckout />}
               onClick={handleProceedToCheckout}
-              sx={{ py: 1.5 }}
+              sx={{
+                py: 1.5,
+                transform: 'translateY(0)',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                },
+              }}
             >
               Proceed to Checkout
             </Button>
@@ -445,7 +567,16 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   );
 
   const renderDetailsForm = () => (
-    <Box sx={{ p: 3 }}>
+    <Box
+      sx={{
+        p: 3,
+        borderRadius: 3,
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        background: 'rgba(255, 255, 255, 0.02)',
+        boxShadow: '0 20px 45px rgba(0, 0, 0, 0.35)',
+        backdropFilter: 'blur(16px)',
+      }}
+    >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Checkout Details
@@ -456,7 +587,13 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert
+          severity="error"
+          sx={{
+            mb: 2,
+            boxShadow: '0 12px 30px rgba(255, 99, 99, 0.35)',
+          }}
+        >
           {error}
         </Alert>
       )}
@@ -481,6 +618,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           required
           error={!!formErrors.email}
           helperText={formErrors.email}
+          sx={fieldStyles}
         />
         <TextField
           label="Phone Number"
@@ -500,6 +638,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           required
           error={!!formErrors.phone}
           helperText={formErrors.phone || 'Required for M-Pesa STK Push'}
+          sx={fieldStyles}
           placeholder="2547XX XXX XXX"
         />
         <TextField
@@ -520,6 +659,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           required
           error={!!formErrors.address}
           helperText={formErrors.address}
+          sx={fieldStyles}
           multiline
           rows={3}
         />
@@ -537,10 +677,18 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           sx={{
             p: 2,
             mb: 2,
-            borderRadius: 2,
+            borderRadius: 3,
             border: paymentMethod === 'MPESA' ? '2px solid' : '1px solid',
-            borderColor: paymentMethod === 'MPESA' ? 'primary.main' : 'rgba(100, 255, 218, 0.2)',
-            backgroundColor: paymentMethod === 'MPESA' ? 'rgba(100, 255, 218, 0.05)' : 'transparent',
+            borderColor:
+              paymentMethod === 'MPESA'
+                ? 'primary.light'
+                : 'rgba(255, 255, 255, 0.15)',
+            backgroundColor: paymentMethod === 'MPESA'
+              ? 'rgba(30, 144, 255, 0.16)'
+              : 'rgba(255, 255, 255, 0.02)',
+            boxShadow: paymentMethod === 'MPESA'
+              ? '0 15px 35px rgba(30, 144, 255, 0.25)'
+              : 'none',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -561,12 +709,14 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
-                <Typography>M-Pesa (STK Push)</Typography>
+                <Typography sx={{ color: 'text.primary', fontWeight: 600 }}>
+                  M-Pesa (STK Push)
+                </Typography>
               </Box>
             }
             sx={{ width: '100%', justifyContent: 'center', margin: 0 }}
           />
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             Pay instantly via M-Pesa STK Push
           </Typography>
         </Box>
@@ -574,10 +724,18 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         <Box
           sx={{
             p: 2,
-            borderRadius: 2,
+            borderRadius: 3,
             border: paymentMethod === 'INTASEND' ? '2px solid' : '1px solid',
-            borderColor: paymentMethod === 'INTASEND' ? 'primary.main' : 'rgba(100, 255, 218, 0.2)',
-            backgroundColor: paymentMethod === 'INTASEND' ? 'rgba(100, 255, 218, 0.05)' : 'transparent',
+            borderColor:
+              paymentMethod === 'INTASEND'
+                ? 'secondary.main'
+                : 'rgba(255, 255, 255, 0.15)',
+            backgroundColor: paymentMethod === 'INTASEND'
+              ? 'rgba(108, 99, 255, 0.18)'
+              : 'rgba(255, 255, 255, 0.02)',
+            boxShadow: paymentMethod === 'INTASEND'
+              ? '0 15px 35px rgba(108, 99, 255, 0.25)'
+              : 'none',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -591,7 +749,9 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
             label={
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
                 <AccountBalance sx={{ color: 'primary.main' }} />
-                <Typography>IntaSend</Typography>
+                <Typography sx={{ color: 'text.primary', fontWeight: 600 }}>
+                  IntaSend
+                </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 1 }}>
                   <Box
                     component="img"
@@ -630,19 +790,31 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
             }
             sx={{ width: '100%', justifyContent: 'center', margin: 0 }}
           />
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             Pay via IntaSend (Card, M-Pesa, Bank)
           </Typography>
         </Box>
       </RadioGroup>
 
       {/* Order Summary */}
-      <Box sx={{ mt: 3, p: 2, borderRadius: 2, backgroundColor: 'rgba(100, 255, 218, 0.05)' }}>
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>Order Summary:</Typography>
+      <Box
+        sx={{
+          mt: 3,
+          p: 3,
+          borderRadius: 3,
+          background: 'linear-gradient(180deg, rgba(30, 144, 255, 0.08), rgba(108, 99, 255, 0.12))',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          boxShadow: '0 15px 35px rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(16px)',
+        }}
+      >
+        <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+          Order Summary:
+        </Typography>
         <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
           {formatPrice(cartTotal)}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           {cartItems.length} item(s)
         </Typography>
       </Box>
@@ -651,7 +823,11 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         <Button
           variant="outlined"
           onClick={() => setCheckoutStep('cart')}
-          sx={{ flex: 1 }}
+          sx={{
+            flex: 1,
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            color: '#E6F1FF',
+          }}
         >
           Back to Cart
         </Button>
@@ -659,7 +835,14 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           variant="contained"
           onClick={handleSubmitOrder}
           disabled={processing || !formData.phone || !formData.address}
-          sx={{ flex: 1 }}
+          sx={{
+            flex: 1,
+            py: 1.5,
+            boxShadow: '0 15px 35px rgba(108, 99, 255, 0.35)',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+            },
+          }}
         >
           {processing ? <CircularProgress size={24} /> : 'Place Order'}
         </Button>
@@ -670,11 +853,13 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           sx={{
             mt: 2,
             p: 2,
-            borderRadius: 2,
-            border: '1px solid rgba(100, 255, 218, 0.2)',
-            backgroundColor: 'rgba(100, 255, 218, 0.05)',
+            borderRadius: 3,
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            background:
+              'linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(108, 99, 255, 0.08))',
             maxHeight: 160,
             overflow: 'auto',
+            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25)',
           }}
         >
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
@@ -697,8 +882,19 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   );
 
   const renderProcessing = () => (
-    <Box sx={{ p: 3, textAlign: 'center' }}>
-      <CircularProgress sx={{ mb: 3 }} />
+    <Box
+      sx={{
+        p: 3,
+        textAlign: 'center',
+        borderRadius: 3,
+        background:
+          'linear-gradient(180deg, rgba(30, 144, 255, 0.12), rgba(17, 34, 64, 0.95))',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        boxShadow: '0 20px 45px rgba(0, 0, 0, 0.35)',
+        backdropFilter: 'blur(18px)',
+      }}
+    >
+      <CircularProgress color="inherit" sx={{ mb: 3 }} />
       <Typography variant="h6" sx={{ mb: 1 }}>
         Processing Payment...
       </Typography>
@@ -714,9 +910,10 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
             mt: 3,
             p: 2,
             textAlign: 'left',
-            borderRadius: 2,
-            border: '1px solid rgba(100, 255, 218, 0.2)',
-            backgroundColor: 'rgba(100, 255, 218, 0.05)',
+            borderRadius: 3,
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            background:
+              'linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(108, 99, 255, 0.08))',
             maxHeight: 220,
             overflow: 'auto',
           }}
@@ -740,19 +937,35 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   );
 
   const renderSuccess = () => (
-    <Box sx={{ p: 3, textAlign: 'center' }}>
-      <Box sx={{ 
-        width: 80, 
-        height: 80, 
-        borderRadius: '50%', 
-        backgroundColor: 'rgba(100, 255, 218, 0.2)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        mx: 'auto',
-        mb: 3
-      }}>
-        <Typography variant="h3">✓</Typography>
+    <Box
+      sx={{
+        p: 3,
+        textAlign: 'center',
+        borderRadius: 3,
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+        background:
+          'linear-gradient(180deg, rgba(108, 99, 255, 0.15), rgba(10, 25, 47, 0.92))',
+        boxShadow: '0 25px 45px rgba(0, 0, 0, 0.35)',
+        backdropFilter: 'blur(18px)',
+      }}
+    >
+      <Box
+        sx={{
+          width: 88,
+          height: 88,
+          borderRadius: '50%',
+          background: 'rgba(108, 99, 255, 0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mx: 'auto',
+          mb: 3,
+          boxShadow: '0 0 35px rgba(108, 99, 255, 0.45)',
+        }}
+      >
+        <Typography variant="h3" sx={{ color: '#E6F1FF' }}>
+          ✓
+        </Typography>
       </Box>
       <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
         Order Placed Successfully!
@@ -760,10 +973,23 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Order ID: {orderId}
       </Typography>
-      <Alert severity="success" sx={{ mb: 3, textAlign: 'left' }}>
+      <Alert
+        severity="success"
+        sx={{
+          mb: 3,
+          textAlign: 'left',
+          boxShadow: '0 12px 30px rgba(108, 99, 255, 0.35)',
+          border: '1px solid rgba(108, 99, 255, 0.35)',
+        }}
+      >
         Thank you for your order! We will contact you shortly to confirm delivery.
       </Alert>
-      <Button variant="contained" onClick={onClose} fullWidth>
+      <Button
+        variant="contained"
+        onClick={onClose}
+        fullWidth
+        sx={{ py: 1.5, boxShadow: '0 15px 30px rgba(108, 99, 255, 0.35)' }}
+      >
         Continue Shopping
       </Button>
     </Box>
@@ -786,12 +1012,24 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
 
   // Reset checkout step when drawer opens
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
     if (open) {
       setCheckoutStep('cart');
       setError('');
       setPaymentDebugLog([]);
+      if (cartItems.length > 0) {
+        setSkeletonActive(true);
+        timer = setTimeout(() => setSkeletonActive(false), 900);
+      } else {
+        setSkeletonActive(false);
+      }
+    } else {
+      setSkeletonActive(false);
     }
-  }, [open]);
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [open, cartItems.length]);
 
   return (
     <Drawer
@@ -801,8 +1039,11 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
       PaperProps={{
         sx: {
           width: { xs: '100%', sm: 450 },
-          backgroundColor: '#112240',
-          borderLeft: '1px solid rgba(100, 255, 218, 0.1)',
+          background:
+            'linear-gradient(160deg, rgba(10, 25, 47, 0.98), rgba(17, 34, 64, 0.95))',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 30px 60px rgba(0, 0, 0, 0.45)',
+          backdropFilter: 'blur(18px)',
         },
       }}
     >
@@ -810,6 +1051,8 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         sx={{
           height: '100%',
           overflow: 'auto',
+          background:
+            'linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0))',
         }}
       >
         <AnimatePresence mode="wait">

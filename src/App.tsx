@@ -1,7 +1,7 @@
 // src/App.tsx
 import { ThemeProvider } from '@mui/material/styles';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import theme from './themes/theme';
+import theme from './theme/theme';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import AdminPanel from './pages/AdminPanel';

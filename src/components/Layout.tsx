@@ -1,46 +1,44 @@
-// src/components/Layout.tsx
 import React, { Suspense, lazy, useState } from 'react';
 import {
   AppBar,
-  Toolbar,
-  Typography,
-  Drawer,
+  Avatar,
+  Backdrop,
+  Badge,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Divider,
+  IconButton,
+  InputBase,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
-  CssBaseline,
-  IconButton,
-  Box,
-  InputBase,
-  useTheme,
-  useMediaQuery,
-  Divider,
-  Avatar,
-  Button,
   Menu,
   MenuItem,
-  Chip,
-  Badge,
-  CircularProgress,
-  Backdrop,
+  Toolbar,
   Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
-  Home,
-  Build,
-  ShoppingCart,
-  Info,
-  Article,
   AdminPanelSettings,
-  School,
-  Menu as MenuIcon,
-  Search as SearchIcon,
+  Article,
+  Build,
   Close,
-  Person,
-  Logout,
   Dashboard,
+  Home,
+  Info,
+  Menu as MenuIcon,
+  Person,
+  Search as SearchIcon,
+  School,
+  ShoppingCart,
   ShoppingCartCheckout,
+  Logout,
 } from '@mui/icons-material';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { styled, alpha } from '@mui/material/styles';
@@ -48,6 +46,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import LoginModal from './LoginModal';
 import CheckoutSidebar from './CheckoutSidebar';
+import PremiumSidebar, { NavItem } from './PremiumSidebar';
 import logoImage from '../assets/topeheights.jpeg';
 import { useCart } from '../context/CartContext';
 import {
@@ -59,9 +58,11 @@ import {
 } from '../utils/courseStorage';
 
 const drawerWidth = 280;
+const collapsedWidth = 88;
+
 const TopHeightsChatbot = lazy(() => import('./chatbot/TopHeightsChatbot'));
 
-const navItems = [
+const navItems: NavItem[] = [
   { text: 'Home', icon: <Home />, path: '/' },
   { text: 'Services', icon: <Build />, path: '/services' },
   { text: 'Courses', icon: <School />, path: '/courses' },
@@ -117,49 +118,28 @@ const LogoContainer = styled(Box)({
   gap: '8px',
 });
 
-const NavItem = styled(ListItem)<{ active?: string }>(({ theme, active }) => ({
-  margin: '4px 12px',
-  borderRadius: 12,
-  transition: 'all 0.3s ease',
-  backgroundColor: active === 'true' ? 'rgba(100, 255, 218, 0.1)' : 'transparent',
-  border: active === 'true' ? '1px solid rgba(100, 255, 218, 0.2)' : '1px solid transparent',
-  '&:hover': {
-    backgroundColor: 'rgba(100, 255, 218, 0.08)',
-    transform: 'translateX(4px)',
-  },
-  '& .MuiListItemIcon-root': {
-    color: active === 'true' ? theme.palette.primary.main : theme.palette.text.secondary,
-    minWidth: 40,
-  },
-  '& .MuiListItemText-primary': {
-    color: active === 'true' ? theme.palette.primary.main : theme.palette.text.primary,
-    fontWeight: active === 'true' ? 600 : 400,
-  },
-}));
-
-export default function Layout() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const { cartCount } = useCart();
+const Layout: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { user, logout, isAuthenticated, loginModalOpen, setLoginModalOpen, authLoading } =
+    useAuth();
+  const { cartCount } = useCart();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminAccess, setAdminAccess] = useState(isAdminAccessAllowed());
-  const { user, logout, isAuthenticated, loginModalOpen, setLoginModalOpen, authLoading } = useAuth();
 
-  // Cart from context (localStorage) - no Firestore subscription
-  const cartItemCount = cartCount;
+  const filteredNavItems = navItems.filter(
+    (item) => !(item.adminOnly && user?.role !== 'admin')
+  );
+
+  const desktopWidth = sidebarCollapsed ? collapsedWidth : drawerWidth;
 
   const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const handleNavClick = () => {
-    if (isMobile) {
-      setMobileOpen(false);
-    }
+    setMobileOpen((prev) => !prev);
   };
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -187,80 +167,100 @@ export default function Layout() {
     navigate(isAdmin ? '/admin-dashboard' : '/student-dashboard');
   };
 
-  const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box
-        sx={{
-          p: 3,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <LogoContainer>
+  const toggleSidebarCollapsed = () => {
+    setSidebarCollapsed((prev) => !prev);
+  };
+
+  const mobileDrawer = (
+    <Box
+      sx={{
+        width: drawerWidth,
+        p: 3,
+        background:
+          'linear-gradient(180deg, rgba(10, 25, 47, 0.95), rgba(17, 34, 64, 0.95))',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+      }}
+    >
+      <Box>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            mb: 3,
+          }}
+        >
           <Avatar
             src={logoImage}
-            alt="Top Heights Logo"
+            alt="Top Heights"
+            variant="rounded"
             sx={{
-              width: 40,
-              height: 40,
-              borderRadius: 2,
-              objectFit: 'cover',
+              width: 44,
+              height: 44,
+              borderRadius: 3,
+              border: '1px solid rgba(255,255,255,0.2)',
             }}
           />
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
               Top Heights
             </Typography>
-            <Typography variant="caption" sx={{ color: 'primary.main' }}>
+            <Typography variant="caption" sx={{ color: 'primary.light' }}>
               Electricals
             </Typography>
           </Box>
-        </LogoContainer>
-        {isMobile && (
-          <IconButton onClick={handleDrawerToggle} sx={{ color: 'text.primary' }}>
-            <Close />
-          </IconButton>
-        )}
+        </Box>
+        <List>
+          {filteredNavItems.map((item) => (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
+                component={Link}
+                to={item.path}
+                onClick={() => setMobileOpen(false)}
+                selected={location.pathname === item.path}
+                sx={{
+                  borderRadius: 2,
+                  mb: 1,
+                  backgroundColor:
+                    location.pathname === item.path
+                      ? 'rgba(108, 99, 255, 0.25)'
+                      : 'transparent',
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    color:
+                      location.pathname === item.path
+                        ? 'primary.light'
+                        : 'rgba(255,255,255,0.7)',
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.text}
+                  primaryTypographyProps={{ fontWeight: 600 }}
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
       </Box>
-      
-      <Divider sx={{ borderColor: 'rgba(100, 255, 218, 0.1)' }} />
-      
-      <List sx={{ flex: 1, px: 1, py: 2 }}>
-        {navItems.map((item) => {
-          if (item.adminOnly && user?.role !== 'admin') return null;
-          return (
-            <NavItem
-              // @ts-expect-error - MUI ListItem component prop compatibility
-              component={Link}
-              to={item.path}
-              key={item.text}
-              active={location.pathname === item.path ? 'true' : 'false'}
-              onClick={handleNavClick}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </NavItem>
-          );
-        })}
-      </List>
-
-      <Divider sx={{ borderColor: 'rgba(100, 255, 218, 0.1)' }} />
-      
-      <Box sx={{ p: 2 }}>
+      <Box>
+        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.15)', mb: 2 }} />
         <Box
           sx={{
-            p: 2,
-            borderRadius: 3,
-            backgroundColor: 'rgba(100, 255, 218, 0.05)',
-            border: '1px solid rgba(100, 255, 218, 0.1)',
+            px: 1,
           }}
         >
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
-            Need help with electrical services?
+          <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
+            Need help with planning?
           </Typography>
-          <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 600 }}>
-            📞 +254 711 343 412
+          <Typography variant="body2" sx={{ color: 'primary.light' }}>
+            +254 711 343 412
           </Typography>
         </Box>
       </Box>
@@ -269,9 +269,6 @@ export default function Layout() {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <CssBaseline />
-      
-      {/* Auth Loading Backdrop - prevents flickering during auth state resolution */}
       <Backdrop
         sx={{
           color: '#64FFDA',
@@ -282,13 +279,28 @@ export default function Layout() {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-      
-      {/* Top AppBar */}
+
+      <PremiumSidebar
+        navItems={filteredNavItems}
+        collapsed={sidebarCollapsed}
+        activePath={location.pathname}
+        isAdmin={adminAccess}
+        logoSrc={logoImage}
+        logoAlt="Top Heights Logo"
+        onToggle={toggleSidebarCollapsed}
+        onItemClick={() => setMobileOpen(false)}
+      />
+
       <AppBar
         position="fixed"
         sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
           display: checkoutOpen ? 'none' : 'flex',
+          ml: isMobile ? 0 : `${desktopWidth}px`,
+          width: isMobile ? '100%' : `calc(100% - ${desktopWidth}px)`,
+          transition: 'all 0.3s ease',
+          zIndex: (theme) => theme.zIndex.drawer + 2,
+          backgroundColor: 'rgba(10, 25, 47, 0.85)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         }}
       >
         <Toolbar>
@@ -303,7 +315,6 @@ export default function Layout() {
               <MenuIcon />
             </IconButton>
           )}
-          
           <LogoContainer sx={{ display: { xs: 'none', sm: 'flex' } }}>
             <Avatar
               src={logoImage}
@@ -319,20 +330,14 @@ export default function Layout() {
               <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
                 Top Heights
               </Typography>
-              <Typography variant="caption" sx={{ color: 'primary.main' }}>
+              <Typography variant="caption" sx={{ color: 'primary.light' }}>
                 Electricals
               </Typography>
             </Box>
           </LogoContainer>
 
-          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', gap: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Top Heights
-            </Typography>
-          </Box>
-
           <Box sx={{ flexGrow: 1 }} />
-          
+
           <Search>
             <SearchIconWrapper>
               <SearchIcon />
@@ -342,15 +347,14 @@ export default function Layout() {
               inputProps={{ 'aria-label': 'search' }}
             />
           </Search>
-          
-          {/* Cart Button - opens cart sidebar (drawer) */}
-          <Tooltip title={cartItemCount > 0 ? `Cart (${cartItemCount} items)` : 'Cart'}>
+
+          <Tooltip title={cartCount > 0 ? `Cart (${cartCount} items)` : 'Cart'}>
             <IconButton
               onClick={() => setCheckoutOpen(true)}
-              sx={{ ml: 1, color: 'primary.main' }}
-              aria-label={cartItemCount > 0 ? `Cart has ${cartItemCount} items` : 'Open cart'}
+              sx={{ ml: 1, color: 'primary.light' }}
+              aria-label={cartCount > 0 ? `Cart has ${cartCount} items` : 'Open cart'}
             >
-              <Badge badgeContent={cartItemCount} color="secondary">
+              <Badge badgeContent={cartCount} color="secondary">
                 <ShoppingCartCheckout />
               </Badge>
             </IconButton>
@@ -363,10 +367,10 @@ export default function Layout() {
                 onClick={handleProfileMenuOpen}
                 sx={{
                   ml: 1,
-                  backgroundColor: 'rgba(100, 255, 218, 0.1)',
-                  color: 'primary.main',
+                  backgroundColor: 'rgba(108, 99, 255, 0.18)',
+                  color: 'primary.light',
                   '&:hover': {
-                    backgroundColor: 'rgba(100, 255, 218, 0.2)',
+                    backgroundColor: 'rgba(108, 99, 255, 0.25)',
                   },
                 }}
               />
@@ -377,7 +381,7 @@ export default function Layout() {
                 PaperProps={{
                   sx: {
                     backgroundColor: '#112240',
-                    border: '1px solid rgba(100, 255, 218, 0.2)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
                     mt: 1,
                   },
                 }}
@@ -402,16 +406,13 @@ export default function Layout() {
             </>
           ) : (
             <Button
-              variant="contained"
+              variant="outlined"
               size="small"
               onClick={() => setLoginModalOpen(true)}
               sx={{
                 ml: 2,
-                backgroundColor: 'rgba(100, 255, 218, 0.1)',
-                color: 'primary.main',
-                '&:hover': {
-                  backgroundColor: 'rgba(100, 255, 218, 0.2)',
-                },
+                borderColor: 'rgba(255,255,255,0.25)',
+                color: '#E6F1FF',
               }}
             >
               Sign In
@@ -420,103 +421,93 @@ export default function Layout() {
         </Toolbar>
       </AppBar>
 
-      {/* Sidebar Drawer */}
-      <Box
-        component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
-      >
-        {/* Mobile Drawer */}
+      <Box component="nav">
         <AnimatePresence>
           {isMobile && mobileOpen && (
-            <Drawer
-              variant="temporary"
-              open={mobileOpen}
-              onClose={handleDrawerToggle}
-              ModalProps={{
-                keepMounted: true,
-              }}
-              sx={{
-                display: { xs: 'block', md: 'none' },
-                '& .MuiDrawer-paper': {
-                  boxSizing: 'border-box',
-                  width: drawerWidth,
-                  borderRight: 'none',
-                },
-              }}
-              slotProps={{
-                paper: {
-                  ...( {
-                    component: motion.div,
-                    initial: { x: -drawerWidth, opacity: 0 },
-                    animate: { x: 0, opacity: 1 },
-                    exit: { x: -drawerWidth, opacity: 0 },
-                    transition: { type: 'spring', stiffness: 300, damping: 30 },
-                  } as unknown as Record<string, unknown> ),
-                },
-              }}
+            <motion.div
+              initial={{ x: -320, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -320, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 30 }}
             >
-              {drawer}
-            </Drawer>
+              <Box
+                component="div"
+                sx={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  height: '100vh',
+                  zIndex: theme.zIndex.drawer + 3,
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    background:
+                      'linear-gradient(180deg, rgba(10, 25, 47, 0.95), rgba(17, 34, 64, 0.95))',
+                    backdropFilter: 'blur(12px)',
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'relative',
+                    zIndex: 1,
+                    height: '100%',
+                  }}
+                >
+                  <IconButton
+                    onClick={handleDrawerToggle}
+                    sx={{ position: 'absolute', top: 16, right: 16 }}
+                  >
+                    <Close />
+                  </IconButton>
+                  {mobileDrawer}
+                </Box>
+              </Box>
+            </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Desktop Drawer */}
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-            },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
       </Box>
 
-      {/* Main Content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
           minHeight: '100vh',
+          ml: isMobile ? 0 : `${desktopWidth}px`,
+          transition: 'margin 0.3s ease',
+          pt: 10,
+          px: { xs: 2, sm: 3, md: 5 },
         }}
       >
-        <Toolbar />
-        <Box sx={{ p: { xs: 2, sm: 3 } }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
-        </Box>
+        <Toolbar enableColorOnDark />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </Box>
 
-      {/* Login Modal */}
       <LoginModal
         open={loginModalOpen}
         onClose={() => setLoginModalOpen(false)}
         onLoginSuccess={handleDashboardRedirect}
       />
 
-      {/* Checkout Sidebar */}
-      <CheckoutSidebar
-        open={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
-      />
+      <CheckoutSidebar open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
 
       <Suspense fallback={null}>
         <TopHeightsChatbot />
       </Suspense>
     </Box>
   );
-}
+};
+
+export default Layout;
