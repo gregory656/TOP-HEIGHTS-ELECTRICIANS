@@ -121,7 +121,7 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          background: 'rgba(17, 34, 64, 0.75)',
+          background: `linear-gradient(180deg, ${glassOverlay}, rgba(17, 34, 64, 0.8))`,
           border: `1px solid ${borderColor}`,
           boxShadow: softShadow,
           backdropFilter: 'blur(18px)',
@@ -131,7 +131,7 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          background: 'rgba(15, 25, 45, 0.85)',
+          background: `linear-gradient(180deg, ${glassOverlay}, rgba(15, 25, 45, 0.85))`,
           border: `1px solid ${borderColor}`,
           borderRadius: 24,
           boxShadow: softShadow,

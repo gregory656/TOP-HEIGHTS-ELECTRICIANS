@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import {
   Avatar,
   Box,
@@ -26,6 +26,10 @@ import { Link } from 'react-router-dom';
 import { products } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
+import LiveQuoteDeck from '../components/LiveQuoteDeck';
+import ProofDispatchFeed from '../components/ProofDispatchFeed';
+import DanceWordTrail from '../components/ui/DanceWordTrail';
+import { heroWordSequence } from '../constants/wordSequences';
 import logoImage from '../assets/topeheights.jpeg';
 import useExplorerTracker, {
   AchievementState,
@@ -34,30 +38,6 @@ import AchievementBadge from '../components/gamification/AchievementBadge';
 import ExplorerProgress from '../components/gamification/ExplorerProgress';
 import InteractionCounter from '../components/gamification/InteractionCounter';
 import SparkButton from '../components/ui/SparkButton';
-
-const shimmerGlow = keyframes`
-  0% {
-    opacity: 0.4;
-    text-shadow: 0 0 25px rgba(94, 240, 255, 0.6);
-  }
-  50% {
-    opacity: 1;
-    text-shadow: 0 0 40px rgba(94, 240, 255, 0.9);
-  }
-  100% {
-    opacity: 0.4;
-    text-shadow: 0 0 25px rgba(94, 240, 255, 0.6);
-  }
-`;
-
-const marqueeSlide = keyframes`
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-`;
 
 const pulseLine = keyframes`
   0% {
@@ -131,6 +111,7 @@ const Home: React.FC = () => {
   const servicesRef = useRef<HTMLElement | null>(null);
   const productsRef = useRef<HTMLElement | null>(null);
   const ctaRef = useRef<HTMLElement | null>(null);
+  const [quoteOpen, setQuoteOpen] = useState(false);
 
   const heroInView = useInView(heroRef, { once: true, margin: '-30% 0px' });
   const servicesInView = useInView(servicesRef, { once: true, margin: '-30% 0px' });
@@ -256,30 +237,14 @@ const Home: React.FC = () => {
                   }}
                 />
 
-                <Typography
-                  variant="h1"
-                  sx={{
-                    fontSize: { xs: '2.5rem', md: '4rem' },
-                    fontWeight: 800,
-                    lineHeight: 1.1,
-                    mb: 3,
-                  background:
-                    'linear-gradient(120deg, rgba(255,255,255,0.9), rgba(255, 120, 139, 0.9), rgba(255, 179, 71, 0.8))',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                      animation: `${shimmerGlow} 4s ease-in-out infinite`,
-                  }}
-                >
-                  Welcome to TopHeights Electricals — Powering Innovation
-                </Typography>
+                <DanceWordTrail words={heroWordSequence} variant="hero" />
 
                 <Typography
                   variant="h6"
                   color="text.secondary"
                   sx={{ mb: 4, maxWidth: 600 }}
                 >
-                  Premium electrical resources, gamified exploration, and polished
-                  micro-interactions—built for adventurous engineering minds.
+                  Premium electrical resources, gamified exploration, and polished micro-interactions, letting the dancing words reinforce the playful craft throughout the experience.
                 </Typography>
 
                 <Box
@@ -290,30 +255,42 @@ const Home: React.FC = () => {
                     alignItems: 'center',
                   }}
                 >
-                  <Link
-                    to="/shop"
-                    style={{ textDecoration: 'none', display: 'inline-flex' }}
-                    aria-label="Shop Now"
-                  >
-                    <SparkButton endIcon={<ArrowForward />}>Shop Now</SparkButton>
-                  </Link>
+                <Link
+                  to="/shop"
+                  style={{ textDecoration: 'none', display: 'inline-flex' }}
+                  aria-label="Shop Now"
+                >
+                  <SparkButton endIcon={<ArrowForward />}>Shop Now</SparkButton>
+                </Link>
 
-                  <Button
-                    component="a"
-                    href="https://wa.me/254711343412"
-                    target="_blank"
-                    variant="outlined"
-                    startIcon={<WhatsApp />}
-                    sx={{
-                      borderColor: 'rgba(94, 240, 255, 0.5)',
-                      color: 'primary.light',
-                      borderRadius: 3,
-                    }}
-                    onMouseEnter={() => addPoints(3)}
-                  >
-                    WhatsApp Us
-                  </Button>
-                </Box>
+                <Button
+                  component="a"
+                  href="https://wa.me/254711343412"
+                  target="_blank"
+                  variant="outlined"
+                  startIcon={<WhatsApp />}
+                  sx={{
+                    borderColor: 'rgba(94, 240, 255, 0.5)',
+                    color: 'primary.light',
+                    borderRadius: 3,
+                  }}
+                  onMouseEnter={() => addPoints(3)}
+                >
+                  WhatsApp Us
+                </Button>
+
+                <Button
+                  variant="contained"
+                  startIcon={<FlashOn />}
+                  sx={{
+                    borderRadius: 3,
+                    boxShadow: '0 12px 30px rgba(28, 164, 255, 0.35)',
+                  }}
+                  onClick={() => setQuoteOpen(true)}
+                >
+                  Launch Live Quote
+                </Button>
+              </Box>
 
                 <Box
                   sx={{
@@ -721,6 +698,8 @@ const Home: React.FC = () => {
         </Container>
       </Box>
 
+      <ProofDispatchFeed />
+
       <Box
         component="section"
         ref={productsRef}
@@ -846,9 +825,19 @@ const Home: React.FC = () => {
         </Container>
       </Box>
 
+      <LiveQuoteDeck open={quoteOpen} onClose={() => setQuoteOpen(false)} />
       <Footer />
     </Box>
   );
 };
 
 export default Home;
+
+
+
+
+
+
+
+
+

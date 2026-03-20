@@ -143,7 +143,7 @@ export const services: Service[] = [
     id: 'emergency-repairs',
     title: 'Emergency Electrical Repairs',
     shortDescription: 'Rapid response electrical repair services available around the clock for urgent electrical issues.',
-    fullDescription: 'Electrical emergencies can happen at any time, which is why our Emergency Electrical Repair service is available 24/7, 365 days a year. Our rapid response team is equipped to handle any electrical emergency, from power outages and faulty wiring to electrical fires and equipment failures. We prioritize safety and swift resolution, arriving fully stocked with the tools and parts needed to restore your electrical systems quickly. Don\'t risk property damage or personal injury—call us immediately for expert emergency electrical services.',
+    fullDescription: 'Electrical emergencies can happen at any time, which is why our Emergency Electrical Repair service is available 24/7, 365 days a year. Our rapid response team is equipped to handle any electrical emergency, from power outages and faulty wiring to electrical fires and equipment failures. We prioritize safety and swift resolution, arriving fully stocked with the tools and parts needed to restore your electrical systems quickly. Don\'t risk property damage or personal injury - call us immediately for expert emergency electrical services.',
     image: '/emergencyrepairs.jpeg',
     keyBenefits: [
       '30-minute average response time',
@@ -154,3 +154,4 @@ export const services: Service[] = [
     ],
   },
 ];
+

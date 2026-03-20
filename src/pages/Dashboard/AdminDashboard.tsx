@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
   Card,
   CardContent,
   Container,
-  Divider,
   Stack,
   Switch,
   TextField,
@@ -29,17 +28,16 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  CircularProgress,
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Edit, Delete, Add, School, People, TrendingUp } from '@mui/icons-material';
 import { Course } from '../../utils/courseStorage';
 import { useAuth } from '../../hooks/useAuth';
 import {
-  getCoursesFromFirestore,
   saveCourseToFirestore,
   deleteCourseFromFirestore,
   subscribeToCourses,
-  getEnrollmentsFromFirestore,
   subscribeToEnrollments,
   StudentEnrollment,
 } from '../../services/courseService';
@@ -185,6 +183,17 @@ const AdminDashboard: React.FC = () => {
     };
   });
 
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center' }}>
+        <CircularProgress color="primary" />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Loading dashboards...
+        </Typography>
+      </Container>
+    );
+  }
+
   if (!user || user.role !== 'admin') {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -257,6 +266,12 @@ const AdminDashboard: React.FC = () => {
             <Typography variant="caption" color="text.secondary">Completed</Typography>
           </CardContent>
         </Card>
+      </Box>
+
+      <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        {categories.map((category) => (
+          <Chip key={category} label={category} size="small" variant="outlined" />
+        ))}
       </Box>
 
       {/* Tabs */}

@@ -56,6 +56,8 @@ import {
   setAdminAccessAllowed,
   setStoredUsername,
 } from '../utils/courseStorage';
+import DanceWordTrail from './ui/DanceWordTrail';
+import { heroWordSequence } from '../constants/wordSequences';
 
 const drawerWidth = 280;
 const collapsedWidth = 88;
@@ -479,8 +481,21 @@ const Layout: React.FC = () => {
           transition: 'margin 0.3s ease',
           pt: 10,
           px: { xs: 2, sm: 3, md: 5 },
+          position: 'relative',
         }}
       >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 20,
+            right: { xs: 12, md: 32 },
+            pointerEvents: 'none',
+            zIndex: 2,
+            opacity: { xs: 0.4, md: 0.65 },
+          }}
+        >
+          <DanceWordTrail words={heroWordSequence} variant="subtle" />
+        </Box>
         <Toolbar enableColorOnDark />
         <AnimatePresence mode="wait">
           <motion.div

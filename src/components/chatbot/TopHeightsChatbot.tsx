@@ -22,6 +22,8 @@ import { askTopHeightsAssistant } from '../../services/chatbotService';
 const STORAGE_KEY = 'topheights-chat-history-v1';
 const MAX_MESSAGES = 40;
 
+const getTimestamp = () => Date.now();
+
 const DEFAULT_SUGGESTIONS = [
   'How do payments work?',
   'What services does TopHeights offer?',
@@ -32,13 +34,13 @@ const GREETING: ChatMessage = {
   id: 'greeting',
   role: 'bot',
   text: 'Welcome to TopHeights AI Assistant. Ask me about our products, services, or how to get help quickly.(I can make mistakes!)',
-  createdAt: Date.now(),
+  createdAt: getTimestamp(),
 };
 
 const getRandomDelay = () => 700 + Math.floor(Math.random() * 800);
 
 function generateId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return `${getTimestamp()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function wait(ms: number) {
@@ -104,7 +106,7 @@ export default function TopHeightsChatbot() {
     setIsStreaming(true);
     setMessages((previous) => [
       ...previous.slice(-MAX_MESSAGES + 1),
-      { id, role: 'bot', text: '', createdAt: Date.now() },
+      { id, role: 'bot', text: '', createdAt: getTimestamp() },
     ]);
 
     for (let index = 0; index < words.length; index += 1) {
@@ -126,7 +128,7 @@ export default function TopHeightsChatbot() {
       id: generateId(),
       role: 'user',
       text: message,
-      createdAt: Date.now(),
+      createdAt: getTimestamp(),
     };
 
     setInput('');
