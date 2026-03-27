@@ -79,7 +79,7 @@ const ProofDispatchFeed: React.FC = () => {
 
         <Grid container spacing={3}>
           {filteredFeed.map((entry) => (
-            <Grid item xs={12} md={6} key={entry.id}>
+            <Grid key={entry.id} size={{ xs: 12, md: 6 }}>
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}

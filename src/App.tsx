@@ -1,7 +1,5 @@
 // src/App.tsx
-import { ThemeProvider } from '@mui/material/styles';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import theme from './theme/theme';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import AdminPanel from './pages/AdminPanel';
@@ -29,10 +27,9 @@ const Placeholder = ({ title }: { title: string }) => (
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider theme={theme}>
-        <AuthProvider>
-          <CartProvider>
-            <Router>
+      <AuthProvider>
+        <CartProvider>
+          <Router>
             <Routes>
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
@@ -50,10 +47,9 @@ function App() {
                 <Route path="*" element={<Placeholder title="404 - Not Found" />} />
               </Route>
             </Routes>
-            </Router>
-          </CartProvider>
-        </AuthProvider>
-      </ThemeProvider>
+          </Router>
+        </CartProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

@@ -49,6 +49,7 @@ import CheckoutSidebar from './CheckoutSidebar';
 import PremiumSidebar, { NavItem } from './PremiumSidebar';
 import logoImage from '../assets/topeheights.jpeg';
 import { useCart } from '../context/CartContext';
+import ThemeToggle from './ThemeToggle';
 import {
   clearAdminAccessFlag,
   clearStoredUsername,
@@ -301,8 +302,9 @@ const Layout: React.FC = () => {
           width: isMobile ? '100%' : `calc(100% - ${desktopWidth}px)`,
           transition: 'all 0.3s ease',
           zIndex: (theme) => theme.zIndex.drawer + 2,
-          backgroundColor: 'rgba(10, 25, 47, 0.85)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          // Use tokens so AppBar adapts with theme
+          backgroundColor: theme.palette.background.paper,
+          borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Toolbar>
@@ -353,7 +355,7 @@ const Layout: React.FC = () => {
           <Tooltip title={cartCount > 0 ? `Cart (${cartCount} items)` : 'Cart'}>
             <IconButton
               onClick={() => setCheckoutOpen(true)}
-              sx={{ ml: 1, color: 'primary.light' }}
+              sx={{ ml: 1, color: 'text.primary' }}
               aria-label={cartCount > 0 ? `Cart has ${cartCount} items` : 'Open cart'}
             >
               <Badge badgeContent={cartCount} color="secondary">
@@ -361,6 +363,8 @@ const Layout: React.FC = () => {
               </Badge>
             </IconButton>
           </Tooltip>
+
+          <ThemeToggle />
 
           {isAuthenticated && user ? (
             <>
@@ -413,8 +417,8 @@ const Layout: React.FC = () => {
               onClick={() => setLoginModalOpen(true)}
               sx={{
                 ml: 2,
-                borderColor: 'rgba(255,255,255,0.25)',
-                color: '#E6F1FF',
+                borderColor: 'divider',
+                color: 'text.primary',
               }}
             >
               Sign In
@@ -496,7 +500,7 @@ const Layout: React.FC = () => {
         >
           <DanceWordTrail words={heroWordSequence} variant="subtle" />
         </Box>
-        <Toolbar enableColorOnDark />
+        <Toolbar />
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

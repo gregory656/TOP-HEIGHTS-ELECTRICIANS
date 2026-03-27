@@ -1,47 +1,57 @@
-import { createTheme, type PaletteOptions } from '@mui/material/styles';
+import { createTheme, ThemeOptions } from '@mui/material/styles';
 
-const palette = {
-  mode: 'dark',
+const lightPalette = {
   primary: {
     main: '#1E90FF',
     light: '#6CB4FF',
     dark: '#0B4F99',
-    contrastText: '#E6F1FF',
+    contrastText: '#FFFFFF',
   },
   secondary: {
     main: '#6C63FF',
     light: '#9B8CFF',
     dark: '#4A2FC9',
-    contrastText: '#E6F1FF',
+    contrastText: '#FFFFFF',
   },
   background: {
-    default: '#0A192F',
-    paper: '#112240',
+    default: '#F8FAFC',
+    paper: '#FFFFFF',
   },
   text: {
-    primary: '#E6F1FF',
-    secondary: '#8892B0',
+    primary: '#1E293B',
+    secondary: '#64748B',
   },
-  divider: 'rgba(255, 255, 255, 0.1)',
+  divider: 'rgba(0, 0, 0, 0.08)',
   info: {
     main: '#6C63FF',
-    contrastText: '#E6F1FF',
+    contrastText: '#FFFFFF',
   },
   action: {
-    active: '#E6F1FF',
-    hover: 'rgba(255, 255, 255, 0.08)',
-    selected: 'rgba(108, 99, 255, 0.2)',
-    disabledBackground: 'rgba(255, 255, 255, 0.06)',
-    disabled: 'rgba(255, 255, 255, 0.3)',
+    active: '#1E293B',
+    hover: 'rgba(0, 0, 0, 0.04)',
+    selected: 'rgba(108, 99, 255, 0.15)',
+    disabledBackground: 'rgba(0, 0, 0, 0.04)',
+    disabled: 'rgba(0, 0, 0, 0.26)',
   },
-} satisfies PaletteOptions;
+  success: {
+    main: '#10B981',
+    contrastText: '#FFFFFF',
+  },
+  warning: {
+    main: '#F59E0B',
+    contrastText: '#1E293B',
+  },
+  error: {
+    main: '#EF4444',
+    contrastText: '#FFFFFF',
+  },
+};
 
-const glassOverlay = 'rgba(255, 255, 255, 0.05)';
-const borderColor = 'rgba(255, 255, 255, 0.1)';
-const softShadow = '0 8px 32px rgba(0, 0, 0, 0.25)';
-
-const theme = createTheme({
-  palette,
+const lightThemeOptions: ThemeOptions = {
+  palette: {
+    mode: 'light',
+    ...lightPalette,
+  },
   shape: {
     borderRadius: 20,
   },
@@ -66,7 +76,7 @@ const theme = createTheme({
     },
     body2: {
       lineHeight: 1.6,
-      color: palette.text.secondary,
+      color: lightPalette.text.secondary,
     },
     button: {
       textTransform: 'none',
@@ -77,34 +87,33 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         ':root': {
-          backgroundColor: palette.background.default,
-          color: palette.text.primary,
+          backgroundColor: lightPalette.background.default,
+          color: lightPalette.text.primary,
         },
         body: {
           margin: 0,
           minHeight: '100vh',
-          backgroundImage:
-            'radial-gradient(circle at 10% 20%, rgba(30, 144, 255, 0.15), transparent 35%), radial-gradient(circle at 80% 0%, rgba(108, 99, 255, 0.15), transparent 40%), linear-gradient(180deg, #0A192F 0%, #06122A 70%)',
-          backgroundColor: palette.background.default,
-          color: palette.text.primary,
+          backgroundImage: 'linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%)',
+          backgroundColor: lightPalette.background.default,
+          color: lightPalette.text.primary,
           fontFamily: '"Inter", "Poppins", system-ui, sans-serif',
-          transition: 'all 0.3s ease',
+          transition: 'background-color 0.3s ease, color 0.3s ease',
           overflowX: 'hidden',
         },
         '#root': {
           minHeight: '100vh',
         },
         '*': {
-          transition: 'all 0.3s ease',
+          transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(10, 25, 47, 0.92)',
-          borderBottom: `1px solid ${borderColor}`,
-          boxShadow: softShadow,
+          backgroundColor: 'rgba(255, 255, 255, 0.92)',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
           backdropFilter: 'blur(12px)',
         },
       },
@@ -112,7 +121,7 @@ const theme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          background: `linear-gradient(180deg, rgba(10, 25, 47, 0.95), rgba(17, 34, 64, 0.95))`,
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
           borderRight: 'none',
           backdropFilter: 'blur(12px)',
         },
@@ -121,9 +130,9 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          background: `linear-gradient(180deg, ${glassOverlay}, rgba(17, 34, 64, 0.8))`,
-          border: `1px solid ${borderColor}`,
-          boxShadow: softShadow,
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
+          border: '1px solid rgba(0, 0, 0, 0.06)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
           backdropFilter: 'blur(18px)',
         },
       },
@@ -131,10 +140,10 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          background: `linear-gradient(180deg, ${glassOverlay}, rgba(15, 25, 45, 0.85))`,
-          border: `1px solid ${borderColor}`,
+          background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 95%)',
+          border: '1px solid rgba(0, 0, 0, 0.06)',
           borderRadius: 24,
-          boxShadow: softShadow,
+          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
           backdropFilter: 'blur(18px)',
         },
       },
@@ -145,31 +154,30 @@ const theme = createTheme({
           borderRadius: 999,
           padding: '12px 28px',
           letterSpacing: 0.5,
-          boxShadow: softShadow,
-          border: `1px solid transparent`,
+          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.1)',
+          border: '1px solid transparent',
           '&:focus-visible': {
-            boxShadow: '0 0 0 3px rgba(108, 99, 255, 0.4)',
+            boxShadow: '0 0 0 3px rgba(108, 99, 255, 0.3)',
           },
         },
         contained: {
           backgroundImage: 'linear-gradient(135deg, #1E90FF 0%, #6C63FF 75%)',
-          color: '#E6F1FF',
-          textShadow: '0 0 12px rgba(255, 255, 255, 0.4)',
+          color: '#FFFFFF',
           '&:hover': {
             transform: 'translateY(-2px)',
-            boxShadow: '0 20px 40px rgba(108, 99, 255, 0.35)',
+            boxShadow: '0 12px 28px rgba(108, 99, 255, 0.25)',
           },
         },
         outlined: {
-          borderColor: 'rgba(255, 255, 255, 0.25)',
-          color: '#E6F1FF',
+          borderColor: 'rgba(0, 0, 0, 0.2)',
+          color: lightPalette.text.primary,
           '&:hover': {
-            borderColor: palette.secondary.main,
-            backgroundColor: 'rgba(108, 99, 255, 0.15)',
+            borderColor: lightPalette.secondary.main,
+            backgroundColor: 'rgba(108, 99, 255, 0.08)',
           },
         },
         text: {
-          color: '#E6F1FF',
+          color: lightPalette.text.primary,
         },
       },
     },
@@ -181,10 +189,10 @@ const theme = createTheme({
           marginBottom: 4,
           transition: 'all 0.3s ease',
           '&.Mui-selected': {
-            backgroundColor: 'rgba(108, 99, 255, 0.25)',
+            backgroundColor: 'rgba(108, 99, 255, 0.15)',
           },
           '&:focus-visible': {
-            boxShadow: '0 0 0 3px rgba(30, 144, 255, 0.4)',
+            boxShadow: '0 0 0 3px rgba(30, 144, 255, 0.3)',
           },
         },
       },
@@ -192,14 +200,14 @@ const theme = createTheme({
     MuiInputBase: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(255, 255, 255, 0.02)',
+          backgroundColor: 'rgba(0, 0, 0, 0.02)',
           borderRadius: 16,
           padding: '12px 14px',
           '&:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+            backgroundColor: 'rgba(0, 0, 0, 0.03)',
           },
           '&.Mui-focused': {
-            boxShadow: '0 0 0 3px rgba(30, 144, 255, 0.35)',
+            boxShadow: '0 0 0 3px rgba(30, 144, 255, 0.25)',
           },
         },
       },
@@ -208,10 +216,10 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiInputBase-root': {
-            color: palette.text.primary,
+            color: lightPalette.text.primary,
           },
           '& .MuiFormHelperText-root': {
-            color: palette.text.secondary,
+            color: lightPalette.text.secondary,
           },
         },
       },
@@ -219,14 +227,14 @@ const theme = createTheme({
     MuiIconButton: {
       styleOverrides: {
         root: {
-          color: '#E6F1FF',
+          color: lightPalette.text.primary,
           borderRadius: 14,
           transition: 'all 0.3s ease',
           '&:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            backgroundColor: 'rgba(0, 0, 0, 0.04)',
           },
           '&:focus-visible': {
-            boxShadow: '0 0 0 3px rgba(30, 144, 255, 0.35)',
+            boxShadow: '0 0 0 3px rgba(30, 144, 255, 0.25)',
           },
         },
       },
@@ -234,33 +242,33 @@ const theme = createTheme({
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
-          backgroundColor: '#1E90FF',
-          color: '#0A192F',
+          backgroundColor: '#1E293B',
+          color: '#FFFFFF',
           fontWeight: 600,
           borderRadius: 12,
         },
         arrow: {
-          color: '#1E90FF',
+          color: '#1E293B',
         },
       },
     },
     MuiAlert: {
       styleOverrides: {
         standardSuccess: {
-          backgroundColor: 'rgba(108, 99, 255, 0.15)',
-          border: `1px solid rgba(108, 99, 255, 0.25)`,
-          color: '#E6F1FF',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          border: '1px solid rgba(16, 185, 129, 0.3)',
+          color: lightPalette.text.primary,
         },
         standardError: {
-          backgroundColor: 'rgba(255, 99, 132, 0.08)',
-          border: '1px solid rgba(255, 99, 132, 0.4)',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
         },
       },
     },
     MuiSkeleton: {
       styleOverrides: {
         root: {
-          background: 'linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.15), rgba(255,255,255,0.03))',
+          background: 'linear-gradient(90deg, rgba(0,0,0,0.04), rgba(0,0,0,0.1), rgba(0,0,0,0.04))',
           borderRadius: 16,
         },
       },
@@ -268,7 +276,7 @@ const theme = createTheme({
     MuiBackdrop: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(5, 5, 12, 0.75)',
+          backgroundColor: 'rgba(248, 250, 252, 0.8)',
           backdropFilter: 'blur(8px)',
         },
       },
@@ -277,13 +285,15 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 999,
-          border: `1px solid ${borderColor}`,
-          backgroundColor: 'rgba(255, 255, 255, 0.04)',
-          color: '#E6F1FF',
+          border: '1px solid rgba(0, 0, 0, 0.08)',
+          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+          color: lightPalette.text.primary,
         },
       },
     },
   },
-});
+};
 
-export default theme;
+const lightTheme = createTheme(lightThemeOptions);
+
+export default lightTheme;

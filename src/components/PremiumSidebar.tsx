@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { ChevronLeft, ChevronRight, ContactSupport } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 
 export interface NavItem {
   text: string;
@@ -31,7 +31,7 @@ export interface PremiumSidebarProps {
   onItemClick?: () => void;
 }
 
-const sidebarVariants = {
+const sidebarVariants: Variants = {
   open: {
     width: 280,
     transition: { type: 'spring', stiffness: 220, damping: 28 },
@@ -42,7 +42,7 @@ const sidebarVariants = {
   },
 };
 
-const listVariants = {
+const listVariants: Variants = {
   open: {
     transition: {
       staggerChildren: 0.08,
@@ -57,7 +57,7 @@ const listVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   open: {
     opacity: 1,
     x: 0,
@@ -68,15 +68,14 @@ const itemVariants = {
   },
 };
 
-const iconLabelVariants = {
-  icon: {
-    open: { scale: 1, opacity: 1 },
-    closed: { scale: 1, opacity: 1 },
-  },
-  label: {
-    open: { opacity: 1, x: 0 },
-    closed: { opacity: 0, x: -20 },
-  },
+const iconVariants: Variants = {
+  open: { scale: 1, opacity: 1 },
+  closed: { scale: 1, opacity: 1 },
+};
+
+const labelVariants: Variants = {
+  open: { opacity: 1, x: 0 },
+  closed: { opacity: 0, x: -20 },
 };
 
 const MotionSidebar = motion(Box);
@@ -97,7 +96,6 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
 }) => {
   return (
     <MotionSidebar
-      component="aside"
       variants={sidebarVariants}
       animate={collapsed ? 'closed' : 'open'}
       initial={false}
@@ -157,7 +155,6 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
         </Box>
 
         <MotionList
-          component="nav"
           disablePadding
           variants={listVariants}
           sx={{
@@ -173,7 +170,6 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
               <MotionListItem
                 key={item.text}
                 variants={itemVariants}
-                component="div"
                 sx={{
                   display: 'flex',
                 }}
@@ -232,7 +228,7 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
                         }}
                       />
                       <MotionIconWrapper
-                        variants={iconLabelVariants.icon}
+                        variants={iconVariants}
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
@@ -247,7 +243,7 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
                         <MotionLabel
                           variant="body1"
                           noWrap
-                          variants={iconLabelVariants.label}
+                          variants={labelVariants}
                           sx={{ fontWeight: 600 }}
                         >
                           {item.text}

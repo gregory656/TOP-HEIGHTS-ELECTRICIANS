@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 
 interface DanceWordTrailProps {
   words: string[];
@@ -18,20 +18,26 @@ const variantConfig = {
   },
 };
 
-const wordVariants = {
+const wordVariants: Variants = {
   hidden: { y: -60, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 120, damping: 16 } },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 120, damping: 16 },
+  },
 };
 
 const DanceWordTrail: React.FC<DanceWordTrailProps> = ({ words, variant = 'hero' }) => (
   <Box
     component={motion.div}
-    variants={{
-      hidden: {},
-      visible: {
-        transition: { staggerChildren: 0.24, delayChildren: 0.1 },
-      },
-    }}
+    variants={
+      {
+        hidden: {},
+        visible: {
+          transition: { staggerChildren: 0.24, delayChildren: 0.1 },
+        },
+      } satisfies Variants
+    }
     initial="hidden"
     animate="visible"
     sx={{

@@ -39,6 +39,40 @@
     <!-- Theme Color -->
     <meta name="theme-color" content="#0A192F" />
     <meta name="msapplication-TileColor" content="#0A192F" />
+
+    <!--
+      Anti-flicker theme initializer (CRITICAL)
+      - Reads persisted preference from localStorage key: "app-theme"
+      - If none, uses system preference via matchMedia
+      - Applies theme to <html> before React mounts
+    -->
+    <script>
+      (function () {
+        try {
+          var STORAGE_KEY = 'app-theme';
+          var stored = localStorage.getItem(STORAGE_KEY);
+          var mode = 'system';
+          if (stored) {
+            try {
+              var parsed = JSON.parse(stored);
+              mode = parsed && parsed.mode ? parsed.mode : 'system';
+            } catch (e) {
+              mode = 'system';
+            }
+          }
+
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var resolved = mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode;
+
+          var root = document.documentElement;
+          root.setAttribute('data-theme', resolved);
+          root.classList.remove('light', 'dark');
+          root.classList.add(resolved);
+        } catch (e) {
+          // no-op
+        }
+      })();
+    </script>
     
     <!-- Preconnect to external resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

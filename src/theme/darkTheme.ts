@@ -1,7 +1,6 @@
-import { createTheme, type PaletteOptions } from '@mui/material/styles';
+import { createTheme, ThemeOptions } from '@mui/material/styles';
 
-const palette = {
-  mode: 'dark',
+const darkPalette = {
   primary: {
     main: '#1E90FF',
     light: '#6CB4FF',
@@ -34,14 +33,29 @@ const palette = {
     disabledBackground: 'rgba(255, 255, 255, 0.06)',
     disabled: 'rgba(255, 255, 255, 0.3)',
   },
-} satisfies PaletteOptions;
+  success: {
+    main: '#10B981',
+    contrastText: '#E6F1FF',
+  },
+  warning: {
+    main: '#F59E0B',
+    contrastText: '#0A192F',
+  },
+  error: {
+    main: '#EF4444',
+    contrastText: '#E6F1FF',
+  },
+};
 
 const glassOverlay = 'rgba(255, 255, 255, 0.05)';
 const borderColor = 'rgba(255, 255, 255, 0.1)';
 const softShadow = '0 8px 32px rgba(0, 0, 0, 0.25)';
 
-const theme = createTheme({
-  palette,
+const darkThemeOptions: ThemeOptions = {
+  palette: {
+    mode: 'dark',
+    ...darkPalette,
+  },
   shape: {
     borderRadius: 20,
   },
@@ -66,7 +80,7 @@ const theme = createTheme({
     },
     body2: {
       lineHeight: 1.6,
-      color: palette.text.secondary,
+      color: darkPalette.text.secondary,
     },
     button: {
       textTransform: 'none',
@@ -77,25 +91,25 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         ':root': {
-          backgroundColor: palette.background.default,
-          color: palette.text.primary,
+          backgroundColor: darkPalette.background.default,
+          color: darkPalette.text.primary,
         },
         body: {
           margin: 0,
           minHeight: '100vh',
           backgroundImage:
             'radial-gradient(circle at 10% 20%, rgba(30, 144, 255, 0.15), transparent 35%), radial-gradient(circle at 80% 0%, rgba(108, 99, 255, 0.15), transparent 40%), linear-gradient(180deg, #0A192F 0%, #06122A 70%)',
-          backgroundColor: palette.background.default,
-          color: palette.text.primary,
+          backgroundColor: darkPalette.background.default,
+          color: darkPalette.text.primary,
           fontFamily: '"Inter", "Poppins", system-ui, sans-serif',
-          transition: 'all 0.3s ease',
+          transition: 'background-color 0.3s ease, color 0.3s ease',
           overflowX: 'hidden',
         },
         '#root': {
           minHeight: '100vh',
         },
         '*': {
-          transition: 'all 0.3s ease',
+          transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
         },
       },
     },
@@ -164,7 +178,7 @@ const theme = createTheme({
           borderColor: 'rgba(255, 255, 255, 0.25)',
           color: '#E6F1FF',
           '&:hover': {
-            borderColor: palette.secondary.main,
+            borderColor: darkPalette.secondary.main,
             backgroundColor: 'rgba(108, 99, 255, 0.15)',
           },
         },
@@ -208,10 +222,10 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiInputBase-root': {
-            color: palette.text.primary,
+            color: darkPalette.text.primary,
           },
           '& .MuiFormHelperText-root': {
-            color: palette.text.secondary,
+            color: darkPalette.text.secondary,
           },
         },
       },
@@ -284,6 +298,8 @@ const theme = createTheme({
       },
     },
   },
-});
+};
 
-export default theme;
+const darkTheme = createTheme(darkThemeOptions);
+
+export default darkTheme;
