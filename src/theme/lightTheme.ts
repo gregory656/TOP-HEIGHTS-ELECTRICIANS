@@ -2,34 +2,34 @@ import { createTheme, ThemeOptions } from '@mui/material/styles';
 
 const lightPalette = {
   primary: {
-    main: '#1E90FF',
-    light: '#6CB4FF',
-    dark: '#0B4F99',
+    main: '#0E7A3D',
+    light: '#2FBF68',
+    dark: '#07572B',
     contrastText: '#FFFFFF',
   },
   secondary: {
-    main: '#6C63FF',
-    light: '#9B8CFF',
-    dark: '#4A2FC9',
+    main: '#F4B740',
+    light: '#FFD36F',
+    dark: '#B57912',
     contrastText: '#FFFFFF',
   },
   background: {
-    default: '#F8FAFC',
+    default: '#FFFFFF',
     paper: '#FFFFFF',
   },
   text: {
-    primary: '#1E293B',
-    secondary: '#64748B',
+    primary: '#102018',
+    secondary: '#52675D',
   },
   divider: 'rgba(0, 0, 0, 0.08)',
   info: {
-    main: '#6C63FF',
+    main: '#0E7A3D',
     contrastText: '#FFFFFF',
   },
   action: {
     active: '#1E293B',
-    hover: 'rgba(0, 0, 0, 0.04)',
-    selected: 'rgba(108, 99, 255, 0.15)',
+    hover: 'rgba(14, 122, 61, 0.05)',
+    selected: 'rgba(14, 122, 61, 0.12)',
     disabledBackground: 'rgba(0, 0, 0, 0.04)',
     disabled: 'rgba(0, 0, 0, 0.26)',
   },
@@ -53,17 +53,17 @@ const lightThemeOptions: ThemeOptions = {
     ...lightPalette,
   },
   shape: {
-    borderRadius: 20,
+    borderRadius: 8,
   },
   typography: {
     fontFamily: '"Inter", "Poppins", system-ui, sans-serif',
     h1: {
       fontWeight: 800,
-      letterSpacing: '-0.02em',
+      letterSpacing: 0,
     },
     h2: {
       fontWeight: 700,
-      letterSpacing: '-0.01em',
+      letterSpacing: 0,
     },
     h3: {
       fontWeight: 600,
@@ -93,7 +93,7 @@ const lightThemeOptions: ThemeOptions = {
         body: {
           margin: 0,
           minHeight: '100vh',
-          backgroundImage: 'linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%)',
+          backgroundImage: 'none',
           backgroundColor: lightPalette.background.default,
           color: lightPalette.text.primary,
           fontFamily: '"Inter", "Poppins", system-ui, sans-serif',
@@ -111,9 +111,9 @@ const lightThemeOptions: ThemeOptions = {
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(255, 255, 255, 0.92)',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+          backgroundColor: '#FFFFFF',
+          borderBottom: '1px solid #E4EFE8',
+          boxShadow: '0 8px 24px rgba(25, 58, 42, 0.05)',
           backdropFilter: 'blur(12px)',
         },
       },
@@ -121,7 +121,7 @@ const lightThemeOptions: ThemeOptions = {
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
+          background: '#FFFFFF',
           borderRight: 'none',
           backdropFilter: 'blur(12px)',
         },
@@ -130,9 +130,9 @@ const lightThemeOptions: ThemeOptions = {
     MuiPaper: {
       styleOverrides: {
         root: {
-          background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)',
-          border: '1px solid rgba(0, 0, 0, 0.06)',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+          background: '#FFFFFF',
+          border: '1px solid #E4EFE8',
+          boxShadow: '0 10px 30px rgba(25, 58, 42, 0.06)',
           backdropFilter: 'blur(18px)',
         },
       },
@@ -140,10 +140,10 @@ const lightThemeOptions: ThemeOptions = {
     MuiCard: {
       styleOverrides: {
         root: {
-          background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 95%)',
-          border: '1px solid rgba(0, 0, 0, 0.06)',
-          borderRadius: 24,
-          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
+          background: '#FFFFFF',
+          border: '1px solid #E4EFE8',
+          borderRadius: 8,
+          boxShadow: '0 14px 36px rgba(25, 58, 42, 0.07)',
           backdropFilter: 'blur(18px)',
         },
       },
@@ -151,7 +151,7 @@ const lightThemeOptions: ThemeOptions = {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 999,
+          borderRadius: 8,
           padding: '12px 28px',
           letterSpacing: 0.5,
           boxShadow: '0 4px 14px rgba(0, 0, 0, 0.1)',
@@ -161,19 +161,20 @@ const lightThemeOptions: ThemeOptions = {
           },
         },
         contained: {
-          backgroundImage: 'linear-gradient(135deg, #1E90FF 0%, #6C63FF 75%)',
+          backgroundImage: 'none',
+          backgroundColor: '#0E7A3D',
           color: '#FFFFFF',
           '&:hover': {
             transform: 'translateY(-2px)',
-            boxShadow: '0 12px 28px rgba(108, 99, 255, 0.25)',
+            boxShadow: '0 12px 28px rgba(14, 122, 61, 0.20)',
           },
         },
         outlined: {
           borderColor: 'rgba(0, 0, 0, 0.2)',
           color: lightPalette.text.primary,
           '&:hover': {
-            borderColor: lightPalette.secondary.main,
-            backgroundColor: 'rgba(108, 99, 255, 0.08)',
+            borderColor: lightPalette.primary.main,
+            backgroundColor: 'rgba(14, 122, 61, 0.06)',
           },
         },
         text: {
@@ -189,7 +190,7 @@ const lightThemeOptions: ThemeOptions = {
           marginBottom: 4,
           transition: 'all 0.3s ease',
           '&.Mui-selected': {
-            backgroundColor: 'rgba(108, 99, 255, 0.15)',
+            backgroundColor: 'rgba(14, 122, 61, 0.12)',
           },
           '&:focus-visible': {
             boxShadow: '0 0 0 3px rgba(30, 144, 255, 0.3)',

@@ -138,7 +138,7 @@ const ProductDetailDialog: React.FC<ProductDetailDialogProps> = ({ open, onClose
                 </Box>
 
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  Free shipping within Thika. 30-day return policy on all electrical products.
+                  Free consultation within Thika. 30-day support policy on selected solar products.
                 </Typography>
               </Grid>
             </Grid>

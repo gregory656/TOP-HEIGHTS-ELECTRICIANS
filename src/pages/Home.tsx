@@ -1,739 +1,363 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import {
   Avatar,
   Box,
   Button,
+  Card,
+  CardMedia,
   Chip,
   Container,
+  Stack,
   Typography,
-  Card,
 } from '@mui/material';
 import {
-  ElectricBolt,
-  FlashOn,
-  AutoGraph,
-  Bolt,
-  TrendingUp,
-  SupportAgent,
-  LocalShipping,
   ArrowForward,
+  BatteryChargingFull,
+  Engineering,
+  SolarPower,
+  Speed,
   WhatsApp,
-  EmojiObjects,
+  WbSunny,
 } from '@mui/icons-material';
-import { motion, useInView, useScroll } from 'framer-motion';
-import { keyframes } from '@mui/material/styles';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { products } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
-import LiveQuoteDeck from '../components/LiveQuoteDeck';
-import ProofDispatchFeed from '../components/ProofDispatchFeed';
-import DanceWordTrail from '../components/ui/DanceWordTrail';
-import { heroWordSequence } from '../constants/wordSequences';
-import logoImage from '../assets/topeheights.jpeg';
-import useExplorerTracker, {
-  AchievementState,
-} from '../hooks/useExplorerTracker';
-import AchievementBadge from '../components/gamification/AchievementBadge';
-import ExplorerProgress from '../components/gamification/ExplorerProgress';
-import InteractionCounter from '../components/gamification/InteractionCounter';
-import SparkButton from '../components/ui/SparkButton';
-
-const pulseLine = keyframes`
-  0% {
-    transform: scaleX(0.8);
-    opacity: 0.4;
-  }
-  50% {
-    transform: scaleX(1);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scaleX(0.8);
-    opacity: 0.4;
-  }
-`;
+import { publicAsset } from '../utils/publicAsset';
 
 const stats = [
-  { icon: <ElectricBolt />, value: '10+', label: 'Years Experience' },
-  { icon: <TrendingUp />, value: '5000+', label: 'Projects Powered' },
-  { icon: <SupportAgent />, value: '24/7', label: 'Support' },
-  { icon: <LocalShipping />, value: '48hrs', label: 'Delivery' },
+  { value: '10+', label: 'Years building reliable energy systems' },
+  { value: '500+', label: 'Solar and backup projects delivered' },
+  { value: '48hr', label: 'Site assessment turnaround in Nairobi' },
+  { value: '24/7', label: 'Support for installed systems' },
 ];
 
 const services = [
   {
-    title: 'Residential Wiring',
-    description: 'Smart, secure and future-ready home wiring solutions.',
-    icon: <ElectricBolt fontSize="large" />,
+    title: 'Home Solar Systems',
+    description: 'Clean roof-mounted solar packages sized for daily home use, backup comfort, and lower bills.',
+    icon: <SolarPower />,
+    image: '/solarpeople.jpg',
   },
   {
-    title: 'Commercial Solutions',
-    description: 'Scalable electrical systems for offices, malls, and retail.',
-    icon: <TrendingUp fontSize="large" />,
+    title: 'Commercial Solar',
+    description: 'High-output solar arrays for shops, offices, schools, farms, and light industrial facilities.',
+    icon: <WbSunny />,
+    image: '/solafarm.jpg',
   },
   {
-    title: 'Industrial Projects',
-    description: 'Heavy-duty installations designed for uptime and safety.',
-    icon: <SupportAgent fontSize="large" />,
+    title: 'Battery Backup',
+    description: 'Hybrid inverter and battery systems that keep essentials running during outages.',
+    icon: <BatteryChargingFull />,
+    image: '/leadacidbatteries.jpeg',
   },
 ];
 
-const sparkParticles = [
-  { top: '12%', left: '16%', size: 6, delay: 0 },
-  { top: '28%', left: '70%', size: 8, delay: 0.4 },
-  { top: '45%', left: '40%', size: 5, delay: 0.7 },
-  { top: '65%', left: '22%', size: 7, delay: 0.2 },
-  { top: '55%', left: '80%', size: 6, delay: 0.5 },
+const process = [
+  'Site survey and load audit',
+  'Custom solar design and quote',
+  'Professional installation',
+  'Monitoring, maintenance, and support',
 ];
 
-const floatingIcons = [
-  { id: 'bolt', icon: <Bolt sx={{ fontSize: 34 }} />, position: { top: '10%', right: '14%' }, delay: 0.2 },
-  { id: 'flash', icon: <FlashOn sx={{ fontSize: 28 }} />, position: { bottom: '26%', left: '12%' }, delay: 0.5 },
-  { id: 'spark', icon: <ElectricBolt sx={{ fontSize: 32 }} />, position: { top: '48%', right: '6%' }, delay: 0.8 },
-];
-
-const mascots = [
-  { id: 'core', label: 'Power Core', position: { top: '70%', right: '8%' }, delay: 0.4 },
-  { id: 'guardian', label: 'Circuit Guardian', position: { bottom: '12%', left: '6%' }, delay: 0.7 },
-];
-
-const badgeIconMap: Record<AchievementState['id'], React.ReactNode> = {
-  hero: <ElectricBolt color="primary" />,
-  services: <FlashOn color="primary" />,
-  products: <AutoGraph color="primary" />,
-  cta: <Bolt color="primary" />,
-  master: <EmojiObjects color="primary" />,
-};
+const featuredProducts = products
+  .filter((product) =>
+    ['Solar Panels', 'Renewable Energy', 'Solar Storage', 'Solar Accessories'].includes(product.category)
+  )
+  .slice(0, 4);
 
 const Home: React.FC = () => {
-  const heroRef = useRef<HTMLDivElement | null>(null);
-  const servicesRef = useRef<HTMLElement | null>(null);
-  const productsRef = useRef<HTMLElement | null>(null);
-  const ctaRef = useRef<HTMLElement | null>(null);
-  const [quoteOpen, setQuoteOpen] = useState(false);
-
-  const heroInView = useInView(heroRef, { once: true, margin: '-30% 0px' });
-  const servicesInView = useInView(servicesRef, { once: true, margin: '-30% 0px' });
-  const productsInView = useInView(productsRef, { once: true, margin: '-30% 0px' });
-  const ctaInView = useInView(ctaRef, { once: true, margin: '-30% 0px' });
-
-  const { achievements, addPoints, markSectionVisited, points, progress } =
-    useExplorerTracker();
-
-  const { scrollYProgress } = useScroll();
-
-  useEffect(() => {
-    if (heroInView) {
-      markSectionVisited('hero');
-    }
-  }, [heroInView, markSectionVisited]);
-
-  useEffect(() => {
-    if (servicesInView) {
-      markSectionVisited('services');
-    }
-  }, [servicesInView, markSectionVisited]);
-
-  useEffect(() => {
-    if (productsInView) {
-      markSectionVisited('products');
-    }
-  }, [productsInView, markSectionVisited]);
-
-  useEffect(() => {
-    if (ctaInView) {
-      markSectionVisited('cta');
-    }
-  }, [ctaInView, markSectionVisited]);
-
-  const handleSparkBoost = () => {
-    addPoints(10);
-  };
-
   return (
-    <Box component="main" sx={{ position: 'relative', overflow: 'hidden' }}>
-      <Box
-        component="section"
-        ref={heroRef}
-        sx={{
-          minHeight: '90vh',
-          position: 'relative',
-          overflow: 'hidden',
-          pt: { xs: 6, md: 8 },
-          pb: { xs: 8, md: 10 },
-        }}
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(circle at 20% 20%, rgba(94, 240, 255, 0.25), transparent 40%), radial-gradient(circle at 80% 0%, rgba(125, 159, 255, 0.2), transparent 35%)',
-            opacity: 0.8,
-            pointerEvents: 'none',
-          }}
-        />
-
-        <Box
-          sx={{
-            position: 'relative',
-            zIndex: 1,
-            px: { xs: 2, md: 0 },
-          }}
-        >
-          <Container maxWidth="lg">
-            <Box sx={{ mb: 4 }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  letterSpacing: 1,
-                  textTransform: 'uppercase',
-                  color: 'primary.light',
-                }}
-              >
-                Electrify your curiosity
-              </Typography>
-              <Box
-                sx={{
-                  width: '100%',
-                  height: 6,
-                  mt: 1,
-                  borderRadius: 3,
-                  background: 'rgba(255,255,255,0.08)',
-                  overflow: 'hidden',
-                }}
-              >
-                <motion.div
-                  style={{
-                    height: '100%',
-                    background: 'linear-gradient(90deg, #5EF0FF, #C5D1FF 60%, #F4F6FF)',
-                    transformOrigin: '0 0',
-                    scaleX: scrollYProgress,
-                  }}
-                />
-              </Box>
-            </Box>
-
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { md: '7fr 5fr' },
-                gap: 4,
-                alignItems: 'center',
-                position: 'relative',
-              }}
-            >
-              <Box>
-                <Chip
-                  label="Kenya's Premium Electrical House"
-                  sx={{
-                    mb: 3,
-                    borderRadius: 2,
-                    border: '1px solid rgba(255, 120, 139, 0.6)',
-                    color: '#FF9EB8',
-                    backdropFilter: 'blur(18px)',
-                    backgroundColor: 'rgba(255, 120, 139, 0.08)',
-                  }}
-                />
-
-                <DanceWordTrail words={heroWordSequence} variant="hero" />
-
-                <Typography
-                  variant="h6"
-                  color="text.secondary"
-                  sx={{ mb: 4, maxWidth: 600 }}
-                >
-                  Premium electrical resources, gamified exploration, and polished micro-interactions, letting the dancing words reinforce the playful craft throughout the experience.
-                </Typography>
-
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: 2,
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                  }}
-                >
-                <Link
-                  to="/shop"
-                  style={{ textDecoration: 'none', display: 'inline-flex' }}
-                  aria-label="Shop Now"
-                >
-                  <SparkButton endIcon={<ArrowForward />}>Shop Now</SparkButton>
-                </Link>
-
-                <Button
-                  component="a"
-                  href="https://wa.me/254711343412"
-                  target="_blank"
-                  variant="outlined"
-                  startIcon={<WhatsApp />}
-                  sx={{
-                    borderColor: 'rgba(94, 240, 255, 0.5)',
-                    color: 'primary.light',
-                    borderRadius: 3,
-                  }}
-                  onMouseEnter={() => addPoints(3)}
-                >
-                  WhatsApp Us
-                </Button>
-
-                <Button
-                  variant="contained"
-                  startIcon={<FlashOn />}
-                  sx={{
-                    borderRadius: 3,
-                    boxShadow: '0 12px 30px rgba(28, 164, 255, 0.35)',
-                  }}
-                  onClick={() => setQuoteOpen(true)}
-                >
-                  Launch Live Quote
-                </Button>
-              </Box>
-
-                <Box
-                  sx={{
-                    mt: 5,
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                    gap: 2,
-                  }}
-                >
-                  {stats.map((stat) => (
-                    <motion.div
-                      key={stat.label}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      <Box
-                        sx={{
-                          borderRadius: 3,
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          px: 2,
-                          py: 2.5,
-                          backgroundColor: 'rgba(255,255,255,0.02)',
-                          backdropFilter: 'blur(18px)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 0.5,
-                        }}
-                      >
-                        <Avatar
-                          sx={{
-                            width: 42,
-                            height: 42,
-                            bgcolor: 'rgba(94, 240, 255, 0.15)',
-                            color: 'primary.main',
-                            mb: 0.5,
-                          }}
-                        >
-                          {stat.icon}
-                        </Avatar>
-                        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                          {stat.value}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ letterSpacing: 0.5 }}
-                        >
-                          {stat.label}
-                        </Typography>
-                      </Box>
-                    </motion.div>
-                  ))}
-                </Box>
-              </Box>
-
-              <Box>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                >
-                  <Box
-                    sx={{
-                      borderRadius: 4,
-                      border: '1px solid rgba(94, 240, 255, 0.4)',
-                      background:
-                        'radial-gradient(circle at 20% 20%, rgba(94, 240, 255, 0.4), transparent 60%)',
-                      position: 'relative',
-                      p: 4,
-                      overflow: 'hidden',
-                      minHeight: 360,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 160,
-                        height: 160,
-                        borderRadius: '50%',
-                        margin: '0 auto',
-                        border: '2px solid rgba(255,255,255,0.2)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 0 45px rgba(94, 240, 255, 0.25)',
-                      }}
-                    >
-                      <ElectricBolt
-                        sx={{
-                          fontSize: 100,
-                          color: 'primary.main',
-                          filter: 'drop-shadow(0 0 20px rgba(94, 240, 255, 0.6))',
-                        }}
-                      />
-                    </Box>
-
-                    <Box sx={{ textAlign: 'center', mt: 3 }}>
-                      <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                        Top Heights
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Electrical craft, premium service, playful discovery.
-                      </Typography>
-                    </Box>
-
-                    <Box
-                      component="img"
-                      src={logoImage}
-                      alt="Top Heights Electricals logo"
-                      sx={{
-                        width: 96,
-                        height: 96,
-                        objectFit: 'cover',
-                        borderRadius: '50%',
-                        border: '2px solid rgba(94, 240, 255, 0.4)',
-                        position: 'absolute',
-                        bottom: 24,
-                        right: 24,
-                      }}
-                    />
-                  </Box>
-                </motion.div>
-              </Box>
-            </Box>
-          </Container>
-
-          {floatingIcons.map((floating) => (
-            <motion.div
-              key={floating.id}
-              animate={{ y: ['0%', '-8%', '0%'] }}
-              transition={{ duration: 4, repeat: Infinity, delay: floating.delay }}
-              style={{
-                position: 'absolute',
-                ...floating.position,
-                pointerEvents: 'none',
-              }}
-            >
-              <motion.div
-                animate={{ rotate: [0, 8, -8, 0] }}
-                transition={{ duration: 6, repeat: Infinity, delay: floating.delay }}
-              >
-                <Box
-                  sx={{
-                    width: 56,
-                    height: 56,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '50%',
-                    background:
-                      'radial-gradient(circle, rgba(255, 120, 139, 0.35), transparent 70%)',
-                    border: '1px solid rgba(255, 120, 139, 0.7)',
-                    boxShadow: '0 0 24px rgba(255, 120, 139, 0.65)',
-                  }}
-                >
-                  {floating.icon}
-                </Box>
-              </motion.div>
-            </motion.div>
-          ))}
-
-          {mascots.map((mascot) => (
-            <motion.div
-              key={mascot.id}
-              animate={{ scale: [0.9, 1.05, 0.9], opacity: [0.7, 1, 0.7] }}
-              transition={{ duration: 5, repeat: Infinity, delay: mascot.delay }}
-              style={{
-                position: 'absolute',
-                ...mascot.position,
-              }}
-            >
-              <Box
-                sx={{
-                  px: 2.5,
-                  py: 1.25,
-                  borderRadius: 2,
-                  border: '1px solid rgba(94, 240, 255, 0.4)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  boxShadow: '0 8px 20px rgba(5, 12, 30, 0.65)',
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.6,
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                {mascot.label}
-              </Box>
-            </motion.div>
-          ))}
-          {sparkParticles.map((particle, index) => (
-            <motion.span
-              key={`spark-${index}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 1, 0], scale: [0.8, 1.2, 0.8] }}
-              transition={{ duration: 3, repeat: Infinity, delay: particle.delay }}
-              style={{
-                position: 'absolute',
-                width: particle.size,
-                height: particle.size,
-                top: particle.top,
-                left: particle.left,
-                borderRadius: '50%',
-                background:
-                  'radial-gradient(circle, rgba(94, 240, 255, 0.9), transparent 70%)',
-                boxShadow: '0 0 25px rgba(94, 240, 255, 0.5)',
-              }}
-            />
-          ))}
-        </Box>
-      </Box>
-
+    <Box component="main" sx={{ bgcolor: '#FFFFFF', color: '#102018', overflow: 'hidden' }}>
       <Box
         component="section"
         sx={{
-          mt: 6,
-          px: { xs: 2, md: 0 },
+          minHeight: { xs: 'auto', md: 'calc(100vh - 96px)' },
+          display: 'flex',
+          alignItems: 'center',
+          py: { xs: 5, md: 8 },
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Box
             sx={{
               display: 'grid',
-              gap: 3,
-              gridTemplateColumns: { md: 'repeat(3, 1fr)' },
+              gridTemplateColumns: { xs: '1fr', lg: '1.02fr 0.98fr' },
+              gap: { xs: 5, lg: 7 },
+              alignItems: 'center',
             }}
           >
-            <Box>
-              <ExplorerProgress progress={progress} points={points} />
-            </Box>
-            <Box>
-              <InteractionCounter points={points} />
-            </Box>
-            <Box>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                <Box
+            <Stack spacing={3.5}>
+              <Chip
+                icon={<SolarPower />}
+                label="Solar energy systems for Kenya"
+                sx={{
+                  alignSelf: 'flex-start',
+                  bgcolor: '#F0FFF6',
+                  borderColor: '#BFEFD0',
+                  color: '#0D6B37',
+                  fontWeight: 700,
+                }}
+              />
+
+              <Box>
+                <Typography
+                  variant="h1"
                   sx={{
-                    borderRadius: 3,
-                    border: '1px solid rgba(94, 240, 255, 0.3)',
-                    backgroundColor: 'rgba(255,255,255,0.02)',
-                    p: 3,
-                    textAlign: 'center',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    backdropFilter: 'blur(18px)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 1.5,
+                    fontSize: { xs: '2.6rem', sm: '3.4rem', lg: '4.8rem' },
+                    lineHeight: 0.96,
+                    letterSpacing: 0,
+                    color: '#101914',
+                    maxWidth: 760,
                   }}
                 >
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Charge the beacon
-                  </Typography>
-                  <SparkButton endIcon={<Bolt />} onClick={handleSparkBoost}>
-                    Release Spark
-                  </SparkButton>
-                  <Typography variant="caption" color="text.secondary">
-                    +10 points stored in localStorage
-                  </Typography>
-                </Box>
-              </motion.div>
-            </Box>
-          </Box>
+                  Top Heights Solar
+                </Typography>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    mt: 2,
+                    maxWidth: 690,
+                    color: '#355044',
+                    fontSize: { xs: '1.15rem', md: '1.45rem' },
+                    lineHeight: 1.45,
+                    fontWeight: 500,
+                  }}
+                >
+                  Premium solar design, installation, and backup power for homes and businesses that want cleaner energy without drama.
+                </Typography>
+              </Box>
 
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 2,
-              justifyContent: 'center',
-              mt: 4,
-            }}
-          >
-            {achievements.map((item) => (
-              <AchievementBadge
-                key={item.id}
-                title={item.title}
-                description={item.description}
-                unlocked={item.unlocked}
-                icon={badgeIconMap[item.id]}
-              />
-            ))}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Button
+                  component="a"
+                  href="https://wa.me/254711343412?text=I%20want%20a%20solar%20quote%20from%20Top%20Heights%20Solar."
+                  target="_blank"
+                  variant="contained"
+                  size="large"
+                  startIcon={<WhatsApp />}
+                  sx={{
+                    bgcolor: '#0E7A3D',
+                    boxShadow: '0 16px 36px rgba(14, 122, 61, 0.22)',
+                    '&:hover': { bgcolor: '#0A6231' },
+                  }}
+                >
+                  Get Solar Quote
+                </Button>
+                <Button
+                  component={Link}
+                  to="/services"
+                  variant="outlined"
+                  size="large"
+                  endIcon={<ArrowForward />}
+                  sx={{
+                    borderColor: '#C9DED2',
+                    color: '#102018',
+                    bgcolor: '#FFFFFF',
+                  }}
+                >
+                  View Solar Services
+                </Button>
+              </Stack>
+
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+                  gap: 1.5,
+                  maxWidth: 820,
+                }}
+              >
+                {stats.map((stat) => (
+                  <Box
+                    key={stat.label}
+                    sx={{
+                      p: 2,
+                      border: '1px solid #E4EFE8',
+                      borderRadius: 2,
+                      bgcolor: '#FFFFFF',
+                    }}
+                  >
+                    <Typography variant="h4" sx={{ color: '#0E7A3D', fontWeight: 800 }}>
+                      {stat.value}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#52675D', display: 'block' }}>
+                      {stat.label}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Stack>
+
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              <Box
+                sx={{
+                  position: 'relative',
+                  minHeight: { xs: 420, md: 620 },
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  boxShadow: '0 28px 80px rgba(25, 58, 42, 0.16)',
+                }}
+              >
+                <Box
+                  component="img"
+                  src={publicAsset('/solarpeople.jpg')}
+                  alt="Solar technicians installing panels on a roof"
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    position: 'absolute',
+                    inset: 0,
+                    objectFit: 'cover',
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0) 35%, rgba(9, 43, 25, 0.68) 100%)',
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    left: 24,
+                    right: 24,
+                    bottom: 24,
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'auto 1fr' },
+                    gap: 2,
+                    alignItems: 'center',
+                    color: '#FFFFFF',
+                  }}
+                >
+                  <Avatar sx={{ width: 56, height: 56, bgcolor: '#FFFFFF', color: '#0E7A3D' }}>
+                    <Engineering />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                      Designed before installation begins
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.86)' }}>
+                      Every quote starts with load needs, roof conditions, battery goals, and long-term service.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </motion.div>
           </Box>
         </Container>
       </Box>
 
-      <Box
-        sx={{
-          mt: 6,
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
-        <Box
-          component={motion.div}
-          initial={{ scaleX: 0.6, opacity: 0.4 }}
-          whileInView={{ scaleX: 1, opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          sx={{
-            width: { xs: '85%', md: '70%' },
-            height: 6,
-            borderRadius: 3,
-            background:
-              'linear-gradient(90deg, transparent, rgba(94, 240, 255, 0.6), transparent)',
-            position: 'relative',
-            overflow: 'hidden',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              inset: 0,
-              background:
-                'linear-gradient(90deg, rgba(94, 240, 255, 0), rgba(94, 240, 255, 0.9), rgba(94, 240, 255, 0))',
-              animation: `${pulseLine} 2.6s ease-in-out infinite`,
-            },
-          }}
-        />
-      </Box>
-
-      <Box
-        component="section"
-        ref={servicesRef}
-        sx={{ py: 10, px: { xs: 2, md: 0 } }}
-      >
-        <Container maxWidth="lg">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <Box sx={{ textAlign: 'center', mb: 6 }}>
-              <Typography variant="h2" sx={{ mb: 1 }}>
-                Our Services
-              </Typography>
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                sx={{ maxWidth: 680, mx: 'auto' }}
-              >
-                Elegant, resilient, and future-aware electrical systems for homes,
-                offices, and industries across Kenya.
-              </Typography>
-            </Box>
-          </motion.div>
+      <Box component="section" sx={{ py: { xs: 6, md: 9 }, bgcolor: '#F7FBF8' }}>
+        <Container maxWidth="xl">
+          <Stack spacing={1.5} sx={{ mb: 4, maxWidth: 780 }}>
+            <Typography variant="h2" sx={{ color: '#101914', fontSize: { xs: '2rem', md: '3rem' } }}>
+              Solar solutions, stripped down to what matters
+            </Typography>
+            <Typography variant="body1" sx={{ color: '#52675D' }}>
+              Clean energy should feel clear: the right panels, the right inverter, the right batteries, and a team that stands behind the system.
+            </Typography>
+          </Stack>
 
           <Box
             sx={{
               display: 'grid',
-              gap: 3,
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+              gap: 2.5,
             }}
           >
             {services.map((service) => (
-              <Box key={service.title}>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <Card
-                    onMouseEnter={() => addPoints(3)}
-                    sx={{
-                      p: 4,
-                      borderRadius: 3,
-                      border: '1px solid rgba(94, 240, 255, 0.15)',
-                      background:
-                        'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(94, 240, 255, 0.04))',
-                      cursor: 'pointer',
-                      '&:hover': {
-                        boxShadow: '0 20px 40px rgba(94, 240, 255, 0.25)',
-                        transform: 'translateY(-4px)',
-                      },
-                      transition: 'transform 0.35s ease, box-shadow 0.35s ease',
-                    }}
-                  >
-                    <Avatar
-                      sx={{
-                        width: 64,
-                        height: 64,
-                        mb: 2,
-                        bgcolor: 'rgba(94, 240, 255, 0.12)',
-                        color: 'primary.main',
-                      }}
-                    >
-                      {service.icon}
-                    </Avatar>
-                    <Typography variant="h5" sx={{ mb: 1, fontWeight: 700 }}>
-                      {service.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {service.description}
-                    </Typography>
-                  </Card>
-                </motion.div>
-              </Box>
+              <Card key={service.title} sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 'none' }}>
+                <CardMedia component="img" src={publicAsset(service.image)} alt={service.title} height="230" />
+                <Box sx={{ p: 3 }}>
+                  <Avatar sx={{ bgcolor: '#ECFFF4', color: '#0E7A3D', mb: 2 }}>
+                    {service.icon}
+                  </Avatar>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+                    {service.title}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#52675D' }}>
+                    {service.description}
+                  </Typography>
+                </Box>
+              </Card>
             ))}
           </Box>
         </Container>
       </Box>
 
-      <ProofDispatchFeed />
-
-      <Box
-        component="section"
-        ref={productsRef}
-        sx={{ py: 10, backgroundColor: 'rgba(94, 240, 255, 0.04)' }}
-      >
-        <Container maxWidth="lg">
+      <Box component="section" sx={{ py: { xs: 6, md: 9 } }}>
+        <Container maxWidth="xl">
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              justifyContent: 'space-between',
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', lg: '0.8fr 1.2fr' },
+              gap: { xs: 4, lg: 7 },
               alignItems: 'center',
-              gap: 2,
-              mb: 4,
             }}
           >
             <Box>
-              <Typography variant="h2" sx={{ mb: 1 }}>
-                Featured Products
+              <Typography variant="h2" sx={{ color: '#101914', fontSize: { xs: '2rem', md: '3rem' }, mb: 2 }}>
+                A simple path to solar confidence
               </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Hand-picked tools that match the TopHeights standard.
+              <Typography variant="body1" sx={{ color: '#52675D', mb: 4 }}>
+                We remove guesswork from solar by turning your energy needs into a practical system plan before a panel is mounted.
+              </Typography>
+              <Stack spacing={2}>
+                {process.map((item, index) => (
+                  <Stack key={item} direction="row" spacing={2} alignItems="center">
+                    <Avatar sx={{ bgcolor: '#0E7A3D', color: '#FFFFFF', fontWeight: 800 }}>
+                      {index + 1}
+                    </Avatar>
+                    <Typography variant="h6" sx={{ color: '#102018' }}>
+                      {item}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            </Box>
+            <Box
+              component="img"
+              src={publicAsset('/solafarm2.jpg')}
+              alt="Large solar panel installation"
+              sx={{
+                width: '100%',
+                height: { xs: 360, md: 520 },
+                objectFit: 'cover',
+                borderRadius: 2,
+              }}
+            />
+          </Box>
+        </Container>
+      </Box>
+
+      <Box component="section" sx={{ py: { xs: 6, md: 9 }, bgcolor: '#F7FBF8' }}>
+        <Container maxWidth="xl">
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            justifyContent="space-between"
+            alignItems={{ xs: 'flex-start', md: 'flex-end' }}
+            spacing={2}
+            sx={{ mb: 4 }}
+          >
+            <Box>
+              <Typography variant="h2" sx={{ color: '#101914', fontSize: { xs: '2rem', md: '3rem' } }}>
+                Featured solar products
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#52675D' }}>
+                Panels, inverters, batteries, and accessories selected for dependable systems.
               </Typography>
             </Box>
-            <Link
-              to="/shop"
-              style={{ textDecoration: 'none', display: 'inline-flex' }}
-              aria-label="Browse Catalog"
-            >
-              <SparkButton variant="contained" endIcon={<ArrowForward />}>
-                Browse Catalog
-              </SparkButton>
-            </Link>
-          </Box>
+            <Button component={Link} to="/shop" variant="outlined" endIcon={<ArrowForward />}>
+              Browse Shop
+            </Button>
+          </Stack>
 
           <Box
             sx={{
@@ -742,102 +366,67 @@ const Home: React.FC = () => {
               gridTemplateColumns: {
                 xs: '1fr',
                 sm: 'repeat(2, minmax(0, 1fr))',
-                md: 'repeat(4, minmax(0, 1fr))',
+                lg: 'repeat(4, minmax(0, 1fr))',
               },
             }}
           >
-            {products.slice(0, 4).map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                onMouseEnter={() => addPoints(2)}
-              >
-                <ProductCard
-                  product={product}
-                  onOrder={() => console.log('Order:', product)}
-                />
-              </motion.div>
+            {featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} onOrder={() => undefined} />
             ))}
           </Box>
         </Container>
       </Box>
 
-      <Box
-        component="section"
-        ref={ctaRef}
-        sx={{
-          py: 10,
-          px: { xs: 2, md: 0 },
-          background:
-            'linear-gradient(135deg, rgba(94, 240, 255, 0.15), rgba(8, 12, 32, 0.95))',
-        }}
-      >
-        <Container maxWidth="md">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+      <Box component="section" sx={{ py: { xs: 7, md: 10 } }}>
+        <Container maxWidth="lg">
+          <Box
+            sx={{
+              p: { xs: 3, md: 5 },
+              borderRadius: 2,
+              bgcolor: '#0E7A3D',
+              color: '#FFFFFF',
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr auto' },
+              gap: 3,
+              alignItems: 'center',
+            }}
           >
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h2" sx={{ mb: 2 }}>
-                Ready to explore the future of electrical craft?
+            <Box>
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+                <Speed />
+                <Typography variant="overline" sx={{ letterSpacing: 1 }}>
+                  Fast solar assessment
+                </Typography>
+              </Stack>
+              <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
+                Ready to lower your power bill?
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                Our team merges precision, gamified discovery, and premium service
-                to keep your projects shining bright.
+              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.84)' }}>
+                Send us your location and power needs. We will recommend a clear solar package and installation plan.
               </Typography>
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 2,
-                  justifyContent: 'center',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <Link
-                  to="/services"
-                  style={{ textDecoration: 'none', display: 'inline-flex' }}
-                  aria-label="Book a Consultation"
-                >
-                  <SparkButton>Book a Consultation</SparkButton>
-                </Link>
-                <Button
-                  component="a"
-                  href="https://wa.me/254711343412"
-                  target="_blank"
-                  variant="outlined"
-                  sx={{
-                    borderColor: 'rgba(94, 240, 255, 0.5)',
-                    color: 'primary.light',
-                    borderRadius: 3,
-                  }}
-                  onMouseEnter={() => addPoints(3)}
-                >
-                  Chat with an Engineer
-                </Button>
-              </Box>
             </Box>
-          </motion.div>
+            <Button
+              component="a"
+              href="https://wa.me/254711343412?text=Hello%20Top%20Heights%20Solar%2C%20I%20need%20a%20solar%20assessment."
+              target="_blank"
+              variant="contained"
+              startIcon={<WhatsApp />}
+              sx={{
+                bgcolor: '#FFFFFF',
+                color: '#0E7A3D',
+                minWidth: 210,
+                '&:hover': { bgcolor: '#EAF7EF' },
+              }}
+            >
+              WhatsApp Now
+            </Button>
+          </Box>
         </Container>
       </Box>
 
-      <LiveQuoteDeck open={quoteOpen} onClose={() => setQuoteOpen(false)} />
       <Footer />
     </Box>
   );
 };
 
 export default Home;
-
-
-
-
-
-
-
-
-

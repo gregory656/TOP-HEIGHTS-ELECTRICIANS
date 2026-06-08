@@ -9,8 +9,8 @@ import {
   Button,
 } from '@mui/material';
 import {
-  Build,
-  ElectricBolt,
+  BatteryChargingFull,
+  SolarPower,
   WhatsApp,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -59,7 +59,7 @@ const Services: React.FC = () => {
   };
 
   const handleWhatsAppContact = () => {
-    const message = 'I am interested in your electrical services. Please provide more information.';
+    const message = 'I am interested in a solar energy system. Please provide more information.';
     const phoneNumber = '254719637416';
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
@@ -71,38 +71,12 @@ const Services: React.FC = () => {
       <Box
         sx={{
           py: 8,
-          background: 'linear-gradient(135deg, rgba(100, 255, 218, 0.05) 0%, rgba(100, 181, 246, 0.02) 100%)',
-          borderBottom: '1px solid rgba(100, 255, 218, 0.1)',
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E4EFE8',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        {/* Background decoration */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -100,
-            right: -100,
-            width: 400,
-            height: 400,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(100, 255, 218, 0.08) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: -150,
-            left: -150,
-            width: 500,
-            height: 500,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(100, 181, 246, 0.05) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-        
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -111,15 +85,15 @@ const Services: React.FC = () => {
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
               <Chip
-                icon={<Build sx={{ fontSize: 16 }} />}
-                label="Our Services"
+                icon={<SolarPower sx={{ fontSize: 16 }} />}
+                label="Solar Services"
                 size="small"
                 sx={{
-                  backgroundColor: 'rgba(100, 255, 218, 0.15)',
+                  backgroundColor: '#F0FFF6',
                   color: 'primary.main',
                   fontWeight: 600,
                   fontSize: '0.75rem',
-                  border: '1px solid rgba(100, 255, 218, 0.3)',
+                  border: '1px solid #BFEFD0',
                   '& .MuiChip-icon': {
                     color: 'primary.main',
                   },
@@ -132,13 +106,10 @@ const Services: React.FC = () => {
               sx={{
                 mb: 2,
                 fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' },
-                background: 'linear-gradient(135deg, #E6F1FF 0%, #64FFDA 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                color: '#101914',
               }}
             >
-              Professional Electrical Services
+              Professional Solar Services
             </Typography>
             
             <Typography
@@ -151,9 +122,8 @@ const Services: React.FC = () => {
                 lineHeight: 1.8,
               }}
             >
-              Top Heights Electricians delivers comprehensive electrical solutions 
-              tailored to residential, commercial, and industrial needs. 
-              Our certified team ensures safety, efficiency, and innovation in every project.
+              Top Heights Solar designs, installs, and maintains clean energy systems for homes,
+              businesses, schools, and farms across Kenya.
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -172,13 +142,13 @@ const Services: React.FC = () => {
               <Button
                 variant="outlined"
                 size="large"
-                startIcon={<ElectricBolt />}
+                startIcon={<BatteryChargingFull />}
                 sx={{
                   py: 1.5,
                   px: 3,
                 }}
               >
-                View Portfolio
+                Plan Battery Backup
               </Button>
             </Box>
           </motion.div>
@@ -218,17 +188,16 @@ const Services: React.FC = () => {
               mt: 8,
               p: 4,
               borderRadius: 3,
-              background: 'linear-gradient(135deg, rgba(100, 255, 218, 0.08) 0%, rgba(100, 181, 246, 0.03) 100%)',
-              border: '1px solid rgba(100, 255, 218, 0.15)',
+              background: '#F7FBF8',
+              border: '1px solid #E4EFE8',
               textAlign: 'center',
             }}
           >
             <Typography variant="h4" sx={{ mb: 2, color: 'text.primary' }}>
-              Need a Custom Electrical Solution?
+              Need a Custom Solar Solution?
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 500, mx: 'auto' }}>
-              Our team specializes in tailored electrical solutions. 
-              Contact us today to discuss your specific requirements.
+              Tell us your location, power needs, and budget. We will recommend a practical solar system.
             </Typography>
             <Button
               variant="contained"

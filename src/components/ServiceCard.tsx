@@ -20,6 +20,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import type { Service } from '../data/services';
+import { publicAsset } from '../utils/publicAsset';
 
 interface ServiceCardProps {
   service: Service;
@@ -28,6 +29,11 @@ interface ServiceCardProps {
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service, onExplore }) => {
   const [hovered, setHovered] = React.useState(false);
+  const [imageSrc, setImageSrc] = React.useState(publicAsset(service.image));
+
+  React.useEffect(() => {
+    setImageSrc(publicAsset(service.image));
+  }, [service.image]);
 
   const handleWhatsAppClick = () => {
     const message = `I am interested in a quote for ${service.title}.`;
@@ -80,8 +86,9 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onExplore }) => {
             component="img"
             className="service-image"
             height="180"
-            image={service.image}
+            src={imageSrc}
             alt={service.title}
+            onError={() => setImageSrc(publicAsset('/solarenergy.jpeg'))}
             sx={{
               objectFit: 'cover',
               transition: 'transform 0.5s ease',

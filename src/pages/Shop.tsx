@@ -36,7 +36,7 @@ const Shop: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('name');
-  const [priceRange, setPriceRange] = useState<number[]>([0, 200000]);
+  const [priceRange, setPriceRange] = useState<number[]>([0, 400000]);
   const [currentPage, setCurrentPage] = useState(1);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
@@ -113,8 +113,8 @@ const Shop: React.FC = () => {
       <Box
         sx={{
           py: 6,
-          background: 'linear-gradient(135deg, rgba(100, 255, 218, 0.05) 0%, rgba(100, 181, 246, 0.02) 100%)',
-          borderBottom: '1px solid rgba(100, 255, 218, 0.1)',
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E4EFE8',
         }}
       >
         <Container maxWidth="lg">
@@ -124,10 +124,10 @@ const Shop: React.FC = () => {
             transition={{ duration: 0.5 }}
           >
             <Typography variant="h1" sx={{ mb: 1 }}>
-              Shop
+              Solar Shop
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Browse our collection of premium electrical products
+              Browse solar panels, batteries, inverters, and complete installation packages.
             </Typography>
           </motion.div>
         </Container>
@@ -171,15 +171,15 @@ const Shop: React.FC = () => {
                   backgroundColor:
                     selectedCategory === category
                       ? 'primary.main'
-                      : 'rgba(100, 255, 218, 0.1)',
+                      : '#F0FFF6',
                   color:
-                    selectedCategory === category ? '#0A192F' : 'text.secondary',
+                    selectedCategory === category ? '#FFFFFF' : 'text.secondary',
                   fontWeight: selectedCategory === category ? 600 : 400,
                   '&:hover': {
                     backgroundColor:
                       selectedCategory === category
                         ? 'primary.dark'
-                        : 'rgba(100, 255, 218, 0.15)',
+                        : '#E6F7ED',
                   },
                 }}
               />
@@ -217,7 +217,7 @@ const Shop: React.FC = () => {
         </Box>
 
         {/* Active Filters */}
-        {(selectedCategory !== 'All' || priceRange[0] > 0 || priceRange[1] < 200000) && (
+        {(selectedCategory !== 'All' || priceRange[0] > 0 || priceRange[1] < 400000) && (
           <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
             <Typography variant="body2" color="text.secondary">
               Active filters:
@@ -228,20 +228,20 @@ const Shop: React.FC = () => {
                 size="small"
                 onDelete={() => setSelectedCategory('All')}
                 sx={{
-                  backgroundColor: 'rgba(100, 255, 218, 0.1)',
+                  backgroundColor: '#F0FFF6',
                   '& .MuiChip-label': {
                     color: 'primary.main',
                   },
                 }}
               />
             )}
-            {(priceRange[0] > 0 || priceRange[1] < 200000) && (
+            {(priceRange[0] > 0 || priceRange[1] < 400000) && (
               <Chip
                 label={`Price: KES ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}`}
                 size="small"
-                onDelete={() => setPriceRange([0, 200000])}
+                onDelete={() => setPriceRange([0, 400000])}
                 sx={{
-                  backgroundColor: 'rgba(100, 255, 218, 0.1)',
+                  backgroundColor: '#F0FFF6',
                   '& .MuiChip-label': {
                     color: 'primary.main',
                   },
@@ -287,12 +287,12 @@ const Shop: React.FC = () => {
                   size={isMobile ? 'small' : 'medium'}
                   sx={{
                     '& .MuiPaginationItem-root': {
-                      backgroundColor: 'rgba(100, 255, 218, 0.05)',
-                      border: '1px solid rgba(100, 255, 218, 0.1)',
+                      backgroundColor: '#F0FFF6',
+                      border: '1px solid #E4EFE8',
                     },
                     '& .Mui-selected': {
                       backgroundColor: 'primary.main !important',
-                      color: '#0A192F',
+                      color: '#FFFFFF',
                     },
                   }}
                 />
@@ -304,9 +304,9 @@ const Shop: React.FC = () => {
             sx={{
               textAlign: 'center',
               py: 8,
-              backgroundColor: 'rgba(100, 255, 218, 0.02)',
+              backgroundColor: '#F7FBF8',
               borderRadius: 3,
-              border: '1px solid rgba(100, 255, 218, 0.1)',
+              border: '1px solid #E4EFE8',
             }}
           >
             <Typography variant="h5" sx={{ mb: 1 }}>
@@ -320,7 +320,7 @@ const Shop: React.FC = () => {
               onClick={() => {
                 setSearchQuery('');
                 setSelectedCategory('All');
-                setPriceRange([0, 200000]);
+                setPriceRange([0, 400000]);
                 setCurrentPage(1);
               }}
             >
@@ -338,7 +338,7 @@ const Shop: React.FC = () => {
         PaperProps={{
           sx: {
             width: 320,
-            backgroundColor: '#112240',
+            backgroundColor: '#FFFFFF',
             p: 3,
           },
         }}
@@ -361,11 +361,11 @@ const Shop: React.FC = () => {
           onChange={(_, value) => setPriceRange(value as number[])}
           valueLabelDisplay="auto"
           min={0}
-          max={200000}
+          max={400000}
           sx={{
             color: 'primary.main',
             '& .MuiSlider-thumb': {
-              backgroundColor: '#0A192F',
+              backgroundColor: '#0E7A3D',
             },
           }}
         />
@@ -392,9 +392,9 @@ const Shop: React.FC = () => {
                 backgroundColor:
                   selectedCategory === category
                     ? 'primary.main'
-                    : 'rgba(100, 255, 218, 0.1)',
+                    : '#F0FFF6',
                 color:
-                  selectedCategory === category ? '#0A192F' : 'text.secondary',
+                  selectedCategory === category ? '#FFFFFF' : 'text.secondary',
               }}
             />
           ))}

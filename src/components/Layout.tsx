@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { useState } from 'react';
 import {
   AppBar,
   Avatar,
@@ -26,7 +26,6 @@ import {
 } from '@mui/material';
 import {
   AdminPanelSettings,
-  Article,
   Build,
   Close,
   Dashboard,
@@ -35,7 +34,6 @@ import {
   Menu as MenuIcon,
   Person,
   Search as SearchIcon,
-  School,
   ShoppingCart,
   ShoppingCartCheckout,
   Logout,
@@ -49,7 +47,6 @@ import CheckoutSidebar from './CheckoutSidebar';
 import PremiumSidebar, { NavItem } from './PremiumSidebar';
 import logoImage from '../assets/topeheights.jpeg';
 import { useCart } from '../context/CartContext';
-import ThemeToggle from './ThemeToggle';
 import {
   clearAdminAccessFlag,
   clearStoredUsername,
@@ -57,21 +54,15 @@ import {
   setAdminAccessAllowed,
   setStoredUsername,
 } from '../utils/courseStorage';
-import DanceWordTrail from './ui/DanceWordTrail';
-import { heroWordSequence } from '../constants/wordSequences';
 
 const drawerWidth = 280;
 const collapsedWidth = 88;
 
-const TopHeightsChatbot = lazy(() => import('./chatbot/TopHeightsChatbot'));
-
 const navItems: NavItem[] = [
   { text: 'Home', icon: <Home />, path: '/' },
   { text: 'Services', icon: <Build />, path: '/services' },
-  { text: 'Courses', icon: <School />, path: '/courses' },
   { text: 'Shop', icon: <ShoppingCart />, path: '/shop' },
   { text: 'About', icon: <Info />, path: '/about' },
-  { text: 'News', icon: <Article />, path: '/news' },
   { text: 'Admin', icon: <AdminPanelSettings />, path: '/admin', adminOnly: true },
 ];
 
@@ -179,8 +170,7 @@ const Layout: React.FC = () => {
       sx={{
         width: drawerWidth,
         p: 3,
-        background:
-          'linear-gradient(180deg, rgba(10, 25, 47, 0.95), rgba(17, 34, 64, 0.95))',
+        background: '#FFFFFF',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -204,7 +194,7 @@ const Layout: React.FC = () => {
               width: 44,
               height: 44,
               borderRadius: 3,
-              border: '1px solid rgba(255,255,255,0.2)',
+              border: '1px solid #E4EFE8',
             }}
           />
           <Box>
@@ -212,7 +202,7 @@ const Layout: React.FC = () => {
               Top Heights
             </Typography>
             <Typography variant="caption" sx={{ color: 'primary.light' }}>
-              Electricals
+              Solar
             </Typography>
           </Box>
         </Box>
@@ -229,7 +219,7 @@ const Layout: React.FC = () => {
                   mb: 1,
                   backgroundColor:
                     location.pathname === item.path
-                      ? 'rgba(108, 99, 255, 0.25)'
+                      ? 'rgba(14, 122, 61, 0.12)'
                       : 'transparent',
                 }}
               >
@@ -237,8 +227,8 @@ const Layout: React.FC = () => {
                   sx={{
                     color:
                       location.pathname === item.path
-                        ? 'primary.light'
-                        : 'rgba(255,255,255,0.7)',
+                        ? 'primary.main'
+                        : 'text.secondary',
                   }}
                 >
                   {item.icon}
@@ -253,14 +243,14 @@ const Layout: React.FC = () => {
         </List>
       </Box>
       <Box>
-        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.15)', mb: 2 }} />
+        <Divider sx={{ borderColor: '#E4EFE8', mb: 2 }} />
         <Box
           sx={{
             px: 1,
           }}
         >
           <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
-            Need help with planning?
+            Need solar planning?
           </Typography>
           <Typography variant="body2" sx={{ color: 'primary.light' }}>
             +254 711 343 412
@@ -335,7 +325,7 @@ const Layout: React.FC = () => {
                 Top Heights
               </Typography>
               <Typography variant="caption" sx={{ color: 'primary.light' }}>
-                Electricals
+                Solar
               </Typography>
             </Box>
           </LogoContainer>
@@ -364,8 +354,6 @@ const Layout: React.FC = () => {
             </IconButton>
           </Tooltip>
 
-          <ThemeToggle />
-
           {isAuthenticated && user ? (
             <>
               <Chip
@@ -373,10 +361,10 @@ const Layout: React.FC = () => {
                 onClick={handleProfileMenuOpen}
                 sx={{
                   ml: 1,
-                  backgroundColor: 'rgba(108, 99, 255, 0.18)',
-                  color: 'primary.light',
+                    backgroundColor: 'rgba(14, 122, 61, 0.12)',
+                  color: 'primary.main',
                   '&:hover': {
-                    backgroundColor: 'rgba(108, 99, 255, 0.25)',
+                    backgroundColor: 'rgba(14, 122, 61, 0.18)',
                   },
                 }}
               />
@@ -386,8 +374,8 @@ const Layout: React.FC = () => {
                 onClose={handleProfileMenuClose}
                 PaperProps={{
                   sx: {
-                    backgroundColor: '#112240',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E4EFE8',
                     mt: 1,
                   },
                 }}
@@ -450,8 +438,7 @@ const Layout: React.FC = () => {
                   sx={{
                     position: 'absolute',
                     inset: 0,
-                    background:
-                      'linear-gradient(180deg, rgba(10, 25, 47, 0.95), rgba(17, 34, 64, 0.95))',
+                    background: '#FFFFFF',
                     backdropFilter: 'blur(12px)',
                   }}
                 />
@@ -484,22 +471,10 @@ const Layout: React.FC = () => {
           ml: isMobile ? 0 : `${desktopWidth}px`,
           transition: 'margin 0.3s ease',
           pt: 10,
-          px: { xs: 2, sm: 3, md: 5 },
+          px: { xs: 0, sm: 0, md: 0 },
           position: 'relative',
         }}
       >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 20,
-            right: { xs: 12, md: 32 },
-            pointerEvents: 'none',
-            zIndex: 2,
-            opacity: { xs: 0.4, md: 0.65 },
-          }}
-        >
-          <DanceWordTrail words={heroWordSequence} variant="subtle" />
-        </Box>
         <Toolbar />
         <AnimatePresence mode="wait">
           <motion.div
@@ -522,9 +497,6 @@ const Layout: React.FC = () => {
 
       <CheckoutSidebar open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
 
-      <Suspense fallback={null}>
-        <TopHeightsChatbot />
-      </Suspense>
     </Box>
   );
 };

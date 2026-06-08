@@ -1,377 +1,188 @@
-// src/components/Footer.tsx
 import React from 'react';
 import {
   Box,
-  Container,
-  Grid,
-  Typography,
-  TextField,
   Button,
-  IconButton,
+  Container,
   Divider,
+  IconButton,
   Link as MuiLink,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material';
 import {
-  YouTube,
-  WhatsApp,
-  Instagram,
-  Facebook,
-  Twitter,
-  Send,
   Email,
-  Phone,
+  Facebook,
+  Instagram,
   LocationOn,
-  ElectricBolt,
+  Phone,
+  SolarPower,
+  WhatsApp,
+  YouTube,
 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   const [email, setEmail] = React.useState('');
   const [subscribed, setSubscribed] = React.useState(false);
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      setSubscribed(true);
-      setTimeout(() => setSubscribed(false), 3000);
-      setEmail('');
-    }
+  const handleSubscribe = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!email) return;
+    setSubscribed(true);
+    setEmail('');
+    window.setTimeout(() => setSubscribed(false), 2600);
   };
 
   const socialLinks = [
-    { icon: <YouTube />, label: 'YouTube', url: 'https://youtube.com/@topheightselectricians' },
     { icon: <WhatsApp />, label: 'WhatsApp', url: 'https://wa.me/254711343412' },
     { icon: <Instagram />, label: 'Instagram', url: 'https://www.instagram.com/topheightselectricians?igsh=ZjBvcTU3ZmV3bWFy' },
     { icon: <Facebook />, label: 'Facebook', url: 'https://facebook.com/TopHeightsElectricalsPLC' },
-    { icon: <Twitter />, label: 'X (Twitter)', url: 'https://x.com/topheightselec' },
+    { icon: <YouTube />, label: 'YouTube', url: 'https://youtube.com/@topheightselectricians' },
   ];
 
-  const footerLinks = {
-    company: [
-      { label: 'About Us', path: '/about' },
-      { label: 'Our Services', path: '/services' },
-      { label: 'Shop', path: '/shop' },
-      { label: 'News', path: '/news' },
-    ],
-    support: [
-      { label: 'Contact Us', path: '#' },
-      { label: 'FAQs', path: '#' },
-      { label: 'Shipping Info', path: '#' },
-      { label: 'Returns', path: '#' },
-    ],
-  };
-
-  const newsItems = [
-    {
-      title: 'Kenya Launches New Electrical Safety Standards',
-      date: 'Feb 10, 2026',
-      excerpt: 'New regulations aim to improve electrical safety across residential and commercial buildings.',
-    },
-    {
-      title: 'Renewable Energy Adoption Grows in East Africa',
-      date: 'Feb 8, 2026',
-      excerpt: 'More homeowners are switching to solar and renewable energy solutions.',
-    },
-    {
-      title: 'Smart Home Technology Trends for 2026',
-      date: 'Feb 5, 2026',
-      excerpt: 'The latest innovations in electrical and smart home automation.',
-    },
+  const links = [
+    { label: 'Solar Services', path: '/services' },
+    { label: 'Solar Shop', path: '/shop' },
+    { label: 'About Top Heights', path: '/about' },
   ];
 
   return (
-    <Box
-      component="footer"
-      sx={{
-        mt: 8,
-        backgroundColor: '#112240',
-        borderTop: '1px solid rgba(100, 255, 218, 0.1)',
-      }}
-    >
-      {/* Newsletter Section */}
-      <Box
-        sx={{
-          background: 'linear-gradient(135deg, rgba(100, 255, 218, 0.1) 0%, rgba(100, 181, 246, 0.05) 100%)',
-          py: 4,
-          borderBottom: '1px solid rgba(100, 255, 218, 0.1)',
-        }}
-      >
-        <Container maxWidth="lg">
-          <Grid container spacing={2} alignItems="center">
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 2,
-                    backgroundColor: 'primary.main',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Send sx={{ color: '#0A192F' }} />
-                </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    Stay Updated
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Get the latest electrical news and exclusive offers
-                  </Typography>
-                </Box>
+    <Box component="footer" sx={{ mt: 8, bgcolor: '#FFFFFF', borderTop: '1px solid #E4EFE8' }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 5, md: 7 } }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1.15fr 0.85fr 1fr' },
+            gap: 4,
+          }}
+        >
+          <Stack spacing={2.5}>
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 2,
+                  bgcolor: '#F0FFF6',
+                  color: '#0E7A3D',
+                  display: 'grid',
+                  placeItems: 'center',
+                }}
+              >
+                <SolarPower />
               </Box>
-            </Grid>
-            <Grid size={{ xs: 12, md: 8 }}>
-              <form onSubmit={handleSubscribe}>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    placeholder="Enter your email..."
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        backgroundColor: 'rgba(255,255,255,0.05)',
-                      },
-                    }}
-                  />
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    sx={{
-                      minWidth: 'auto',
-                      px: 3,
-                    }}
-                  >
-                    {subscribed ? '✓' : 'Subscribe'}
-                  </Button>
-                </Box>
-              </form>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-
-      {/* Main Footer Content */}
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Grid container spacing={4}>
-          {/* Company Info */}
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <ElectricBolt sx={{ color: 'primary.main', fontSize: 32 }} />
-                <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                  Top Heights
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 800, color: '#101914' }}>
+                  Top Heights Solar
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#52675D' }}>
+                  Clean energy systems for Kenya
                 </Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Your trusted partner for all electrical solutions in Kenya. 
-                Quality products, expert services, and reliable support since 2015.
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <LocationOn sx={{ color: 'primary.main', fontSize: 20 }} />
-                  <Typography variant="body2" color="text.secondary">
-                    Nairobi, Kenya
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Phone sx={{ color: 'primary.main', fontSize: 20 }} />
-                  <Typography variant="body2" color="text.secondary">
-                    +254 711 343 412
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Email sx={{ color: 'primary.main', fontSize: 20 }} />
-                  <Typography variant="body2" color="text.secondary">
-                    topheightselectricals@gmail.com
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </Grid>
+            </Stack>
 
-          {/* Quick Links */}
-          <Grid size={{ xs: 6, md: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Company
+            <Typography variant="body2" sx={{ color: '#52675D', maxWidth: 460 }}>
+              Solar design, installation, battery backup, and maintenance for homes, businesses, schools, and farms.
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {footerLinks.company.map((link) => (
-                <MuiLink
-                  key={link.label}
-                  component={Link}
-                  to={link.path}
-                  underline="none"
+
+            <Stack spacing={1.2}>
+              <Stack direction="row" spacing={1.2} alignItems="center">
+                <LocationOn fontSize="small" sx={{ color: '#0E7A3D' }} />
+                <Typography variant="body2" sx={{ color: '#52675D' }}>
+                  Nairobi, Kenya
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1.2} alignItems="center">
+                <Phone fontSize="small" sx={{ color: '#0E7A3D' }} />
+                <Typography variant="body2" sx={{ color: '#52675D' }}>
+                  +254 711 343 412
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1.2} alignItems="center">
+                <Email fontSize="small" sx={{ color: '#0E7A3D' }} />
+                <Typography variant="body2" sx={{ color: '#52675D' }}>
+                  topheightselectricals@gmail.com
+                </Typography>
+              </Stack>
+            </Stack>
+          </Stack>
+
+          <Stack spacing={2}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#101914' }}>
+              Explore
+            </Typography>
+            {links.map((item) => (
+              <MuiLink
+                key={item.label}
+                component={Link}
+                to={item.path}
+                underline="none"
+                sx={{
+                  color: '#52675D',
+                  width: 'fit-content',
+                  '&:hover': { color: '#0E7A3D' },
+                }}
+              >
+                {item.label}
+              </MuiLink>
+            ))}
+            <Stack direction="row" spacing={1} sx={{ pt: 1 }}>
+              {socialLinks.map((social) => (
+                <IconButton
+                  key={social.label}
+                  component="a"
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.label}
                   sx={{
-                    color: 'text.secondary',
-                    fontSize: '0.9rem',
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      color: 'primary.main',
-                      transform: 'translateX(4px)',
-                    },
+                    border: '1px solid #E4EFE8',
+                    color: '#52675D',
+                    '&:hover': { color: '#0E7A3D', bgcolor: '#F0FFF6' },
                   }}
                 >
-                  {link.label}
-                </MuiLink>
+                  {social.icon}
+                </IconButton>
               ))}
-            </Box>
-          </Grid>
+            </Stack>
+          </Stack>
 
-          {/* Support */}
-          <Grid size={{ xs: 6, md: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Support
+          <Box component="form" onSubmit={handleSubscribe}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#101914', mb: 1 }}>
+              Get solar updates
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {footerLinks.support.map((link) => (
-                <MuiLink
-                  key={link.label}
-                  component={Link}
-                  to={link.path}
-                  underline="none"
-                  sx={{
-                    color: 'text.secondary',
-                    fontSize: '0.9rem',
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      color: 'primary.main',
-                      transform: 'translateX(4px)',
-                    },
-                  }}
-                >
-                  {link.label}
-                </MuiLink>
-              ))}
-            </Box>
-          </Grid>
-
-          {/* News Section */}
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Latest News
+            <Typography variant="body2" sx={{ color: '#52675D', mb: 2 }}>
+              Receive practical solar offers, maintenance tips, and installation availability.
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {newsItems.map((news, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <Box
-                    sx={{
-                      p: 2,
-                      borderRadius: 2,
-                      backgroundColor: 'rgba(255,255,255,0.02)',
-                      border: '1px solid rgba(100, 255, 218, 0.05)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        backgroundColor: 'rgba(100, 255, 218, 0.05)',
-                        borderColor: 'rgba(100, 255, 218, 0.1)',
-                      },
-                    }}
-                  >
-                    <Typography
-                      variant="subtitle2"
-                      sx={{
-                        fontWeight: 600,
-                        mb: 0.5,
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      {news.title}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      color="primary.main"
-                      sx={{ display: 'block', mb: 0.5 }}
-                    >
-                      {news.date}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        fontSize: '0.8rem',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {news.excerpt}
-                    </Typography>
-                  </Box>
-                </motion.div>
-              ))}
-            </Box>
-          </Grid>
-        </Grid>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <TextField
+                fullWidth
+                size="small"
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+              <Button type="submit" variant="contained">
+                {subscribed ? 'Done' : 'Subscribe'}
+              </Button>
+            </Stack>
+          </Box>
+        </Box>
       </Container>
 
-      {/* Bottom Bar */}
-      <Divider sx={{ borderColor: 'rgba(100, 255, 218, 0.1)' }} />
-      <Box sx={{ py: 3 }}>
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 2,
-            }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              © 2026 Top Heights Electricals. All rights reserved.
-            </Typography>
-            {/* Social Media Icons - Moved to bottom */}
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              {socialLinks.map((social) => (
-                <motion.div
-                  key={social.label}
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <IconButton
-                    component="a"
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{
-                      color: 'text.secondary',
-                      '&:hover': {
-                        color: 'primary.main',
-                        backgroundColor: 'rgba(100, 255, 218, 0.1)',
-                      },
-                    }}
-                    aria-label={social.label}
-                  >
-                    {social.icon}
-                  </IconButton>
-                </motion.div>
-              ))}
-            </Box>
-            <Typography variant="body2" color="text.secondary">
-              Made with ⚡ by{' '}
-              <Typography
-                component="span"
-                variant="body2"
-                sx={{ color: 'primary.main', fontWeight: 600 }}
-              >
-                @topheightselectricals
-              </Typography>
-            </Typography>
-          </Box>
-        </Container>
-      </Box>
+      <Divider sx={{ borderColor: '#E4EFE8' }} />
+      <Container maxWidth="xl" sx={{ py: 2.5 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>
+          <Typography variant="body2" sx={{ color: '#52675D' }}>
+            © 2026 Top Heights Solar. All rights reserved.
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#52675D' }}>
+            Solar installation, backup power, and maintenance in Kenya.
+          </Typography>
+        </Stack>
+      </Container>
     </Box>
   );
 };

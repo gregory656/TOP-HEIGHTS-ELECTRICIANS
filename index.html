@@ -6,30 +6,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Primary Meta Tags -->
-    <title>Top Heights Electricals | Kenya's Trusted Electrical Supplier</title>
-    <meta name="title" content="Top Heights Electricals | Kenya's Trusted Electrical Supplier" />
-    <meta name="description" content="Top Heights Electricals - Your trusted partner for premium electrical solutions in Kenya. Quality products, expert services, and reliable support since 2015. Shop now!" />
-    <meta name="keywords" content="electrical supplies, Kenya, Nairobi, circuit breakers, voltage regulators, LED lighting, solar inverters, electrical services, wholesale electrical, Top Heights" />
+    <title>Top Heights Solar | Premium Solar Energy Systems in Kenya</title>
+    <meta name="title" content="Top Heights Solar | Premium Solar Energy Systems in Kenya" />
+    <meta name="description" content="Top Heights Solar designs, installs, and maintains solar panel systems, battery backup, and renewable energy packages for homes and businesses in Kenya." />
+    <meta name="keywords" content="solar installation Kenya, solar panels Nairobi, solar batteries, solar inverter, renewable energy Kenya, home solar, commercial solar, Top Heights Solar" />
     <meta name="author" content="@topheightselectricals" />
     <meta name="robots" content="index, follow" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://topheightselectricals.com/" />
-    <meta property="og:title" content="Top Heights Electricals | Kenya's Trusted Electrical Supplier" />
-    <meta property="og:description" content="Your trusted partner for premium electrical solutions in Kenya. Quality products, expert services, and reliable support." />
+    <meta property="og:title" content="Top Heights Solar | Premium Solar Energy Systems in Kenya" />
+    <meta property="og:description" content="Solar panel installation, battery backup, and clean energy systems for homes and businesses in Kenya." />
     <meta property="og:image" content="/topeheights.jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Top Heights Electricals Logo" />
+    <meta property="og:image:alt" content="Top Heights Solar Logo" />
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://topheightselectricals.com/" />
-    <meta property="twitter:title" content="Top Heights Electricals | Kenya's Trusted Electrical Supplier" />
-    <meta property="twitter:description" content="Your trusted partner for premium electrical solutions in Kenya. Quality products, expert services, and reliable support." />
+    <meta property="twitter:title" content="Top Heights Solar | Premium Solar Energy Systems in Kenya" />
+    <meta property="twitter:description" content="Solar panel installation, battery backup, and clean energy systems for homes and businesses in Kenya." />
     <meta property="twitter:image" content="/topeheights.jpeg" />
-    <meta property="twitter:image:alt" content="Top Heights Electricals Logo" />
+    <meta property="twitter:image:alt" content="Top Heights Solar Logo" />
     <meta name="twitter:site" content="@topheightselectricals" />
     <meta name="twitter:creator" content="@topheightselectricals" />
 
@@ -37,8 +37,8 @@
     <link rel="canonical" href="https://topheightselectricals.com/" />
 
     <!-- Theme Color -->
-    <meta name="theme-color" content="#0A192F" />
-    <meta name="msapplication-TileColor" content="#0A192F" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <meta name="msapplication-TileColor" content="#FFFFFF" />
 
     <!--
       Anti-flicker theme initializer (CRITICAL)
@@ -51,18 +51,17 @@
         try {
           var STORAGE_KEY = 'app-theme';
           var stored = localStorage.getItem(STORAGE_KEY);
-          var mode = 'system';
+          var mode = 'light';
           if (stored) {
             try {
               var parsed = JSON.parse(stored);
-              mode = parsed && parsed.mode ? parsed.mode : 'system';
+              mode = parsed && parsed.mode && parsed.mode !== 'dark' ? parsed.mode : 'light';
             } catch (e) {
-              mode = 'system';
+              mode = 'light';
             }
           }
 
-          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          var resolved = mode === 'system' ? (prefersDark ? 'dark' : 'light') : mode;
+          var resolved = 'light';
 
           var root = document.documentElement;
           root.setAttribute('data-theme', resolved);
@@ -86,9 +85,9 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "ElectricalStore",
-      "name": "Top Heights Electricals",
-      "description": "Your trusted partner for premium electrical solutions in Kenya. Quality products, expert services, and reliable support since 2015.",
+      "@type": "LocalBusiness",
+      "name": "Top Heights Solar",
+      "description": "Solar panel installation, battery backup, and renewable energy systems for homes and businesses in Kenya.",
       "url": "https://topheightselectricals.com/",
       "logo": "/topeheights.jpeg",
       "image": "/topeheights.jpeg",

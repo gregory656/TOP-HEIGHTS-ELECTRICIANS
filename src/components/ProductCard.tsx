@@ -1,5 +1,5 @@
 // src/components/ProductCard.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -26,6 +26,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../context/CartContext';
 import { orderViaWhatsApp } from '../services/whatsappService';
 import LoginRequiredDialog from './LoginRequiredDialog';
+import { publicAsset } from '../utils/publicAsset';
 
 interface ProductCardProps {
   product: Product;
@@ -45,8 +46,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [hovered, setHovered] = useState(false);
   const [localFavorite, setLocalFavorite] = useState(isFavorite);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [imageSrc, setImageSrc] = useState(publicAsset(product.image));
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const [loginRequiredOpen, setLoginRequiredOpen] = useState(false);
+
+  useEffect(() => {
+    setImageSrc(publicAsset(product.image));
+  }, [product.image]);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -161,8 +167,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
               component="img"
               className="product-image"
               height="200"
-              image={product.image}
+              src={imageSrc}
               alt={product.name}
+              onError={() => setImageSrc(publicAsset('/solarenergy.jpeg'))}
               sx={{
                 objectFit: 'cover',
                 transition: 'transform 0.5s ease',

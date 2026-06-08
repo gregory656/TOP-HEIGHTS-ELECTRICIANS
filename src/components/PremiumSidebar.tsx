@@ -104,10 +104,9 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
         top: 0,
         left: 0,
         height: '100vh',
-        background:
-          'linear-gradient(180deg, rgba(10, 25, 47, 0.98), rgba(17, 34, 64, 0.95))',
-        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 20px 45px rgba(5, 6, 20, 0.8)',
+        background: '#FFFFFF',
+        borderRight: '1px solid #E4EFE8',
+        boxShadow: '8px 0 30px rgba(25, 58, 42, 0.06)',
         display: { xs: 'none', md: 'flex' },
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -138,8 +137,8 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
               width: 48,
               height: 48,
               borderRadius: 3,
-              border: '1px solid rgba(255,255,255,0.2)',
-              boxShadow: '0 8px 20px rgba(5,5,15,0.6)',
+              border: '1px solid #E4EFE8',
+              boxShadow: '0 8px 20px rgba(25, 58, 42, 0.08)',
             }}
           />
           {!collapsed && (
@@ -148,7 +147,7 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
                 Top Heights
               </Typography>
               <Typography variant="caption" sx={{ color: 'primary.light' }}>
-                Electricals
+                Solar
               </Typography>
             </Stack>
           )}
@@ -193,12 +192,12 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
                         px: collapsed ? 1.5 : 2.75,
                         py: 1.25,
                         borderRadius: 2,
-                        color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.85)',
+                        color: isActive ? '#0E7A3D' : '#52675D',
                         backgroundColor: isActive
-                          ? 'rgba(108, 99, 255, 0.25)'
+                          ? 'rgba(14, 122, 61, 0.10)'
                           : 'transparent',
                         boxShadow: isActive
-                          ? '0 10px 30px rgba(108, 99, 255, 0.25)'
+                          ? '0 10px 30px rgba(14, 122, 61, 0.08)'
                           : 'none',
                         overflow: 'hidden',
                         transition: 'all 0.3s ease',
@@ -206,7 +205,7 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
                       component={motion.div}
                       whileHover={{
                         scale: 1.03,
-                        boxShadow: '0 0 30px rgba(108, 99, 255, 0.35)',
+                        boxShadow: '0 10px 28px rgba(14, 122, 61, 0.10)',
                       }}
                       whileTap={{ scale: 0.97 }}
                     >
@@ -220,10 +219,10 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
                           top: '50%',
                           transform: 'translateY(-50%)',
                           background: isActive
-                            ? 'linear-gradient(180deg, #6C63FF, #1E90FF)'
+                            ? '#0E7A3D'
                             : 'transparent',
                           boxShadow: isActive
-                            ? '0 0 12px rgba(108, 99, 255, 0.8)'
+                            ? '0 0 12px rgba(14, 122, 61, 0.25)'
                             : 'none',
                         }}
                       />
@@ -234,7 +233,7 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
                           alignItems: 'center',
                           justifyContent: 'center',
                           minWidth: 32,
-                          color: 'primary.light',
+                          color: isActive ? '#0E7A3D' : '#809287',
                         }}
                       >
                         {item.icon}
@@ -257,7 +256,7 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
           })}
         </MotionList>
 
-        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+        <Divider sx={{ borderColor: '#E4EFE8' }} />
 
         <Stack
           spacing={0.5}
@@ -266,7 +265,7 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
           }}
         >
           <Stack direction="row" alignItems="center" spacing={1}>
-            <ContactSupport fontSize="small" sx={{ color: 'primary.light' }} />
+            <ContactSupport fontSize="small" sx={{ color: 'primary.main' }} />
             {!collapsed && (
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                 Need support?
@@ -290,8 +289,8 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({
           <IconButton
             onClick={onToggle}
             sx={{
-              border: `1px solid rgba(255, 255, 255, 0.2)`,
-              color: '#E6F1FF',
+              border: '1px solid #D9E8DF',
+              color: '#0E7A3D',
               width: 40,
               height: 40,
             }}

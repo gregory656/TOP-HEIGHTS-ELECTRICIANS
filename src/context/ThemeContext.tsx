@@ -35,21 +35,14 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
  * Get system preference
  */
 function getSystemPreference(): 'light' | 'dark' {
-  if (typeof window === 'undefined') return 'dark';
-  
-  return window.matchMedia('(prefers-color-scheme: dark)').matches 
-    ? 'dark' 
-    : 'light';
+  return 'light';
 }
 
 /**
  * Resolve the actual theme mode (excluding 'system')
  */
 function resolveMode(mode: ThemeMode): 'light' | 'dark' {
-  if (mode === 'system') {
-    return getSystemPreference();
-  }
-  return mode;
+  return 'light';
 }
 
 /**
@@ -69,18 +62,18 @@ function applyTheme(mode: 'light' | 'dark'): void {
 export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   // Get initial mode from localStorage or default to 'system'
   const getInitialMode = (): ThemeMode => {
-    if (typeof window === 'undefined') return 'system';
+    if (typeof window === 'undefined') return 'light';
     
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        return parsed.mode || 'system';
+        return parsed.mode === 'dark' ? 'light' : parsed.mode || 'light';
       } catch {
-        return 'system';
+        return 'light';
       }
     }
-    return 'system';
+    return 'light';
   };
 
   const [mode, setModeState] = useState<ThemeMode>(getInitialMode);
@@ -180,7 +173,7 @@ export function initializeTheme(): 'light' | 'dark' {
   if (typeof window === 'undefined') return 'dark';
   
   const storedMode = localStorage.getItem(STORAGE_KEY);
-  let mode: ThemeMode = 'system';
+  let mode: ThemeMode = 'light';
   
   if (storedMode) {
     try {
