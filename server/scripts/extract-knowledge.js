@@ -67,34 +67,18 @@ function extractProductsKnowledge() {
   }));
 }
 
-function extractMilestonesKnowledge() {
+function extractAboutKnowledge() {
   const source = readFromRoot('src/pages/About.tsx');
-  const milestones = extractArrayLiteral(
-    source,
-    /const milestones:\s*CompanyMilestone\[\]\s*=\s*(\[[\s\S]*?\]);/m,
-    'milestones'
-  );
-
-  return milestones.map((milestone) => ({
-    id: `milestone-${milestone.year}`,
+  const values = source.match(/const values\s*=\s*(\[[\s\S]*?\]);/m)?.[1];
+  if (!values) throw new Error('Could not extract About page values');
+  const entries = [...values.matchAll(/title:\s*'((?:\\.|[^'\\])*)',\s*description:\s*'((?:\\.|[^'\\])*)'/g)];
+  if (!entries.length) throw new Error('No About page values found');
+  return entries.map((match, index) => ({
+    id: `about-value-${index + 1}`,
     type: 'about',
-    title: `${milestone.year} ${milestone.title}`,
-    content: decode(milestone.description),
-    keywords: ['about', milestone.year, milestone.title],
-  }));
-}
-
-function extractPillarsKnowledge() {
-  const source = readFromRoot('src/pages/About.tsx');
-  const descriptionMatches = [...source.matchAll(/description:\s*'([^']*(?:\\'[^']*)*)'/g)];
-  const descriptions = descriptionMatches.map((match) => decode(match[1])).filter(Boolean);
-
-  return descriptions.slice(0, 3).map((description, index) => ({
-    id: `pillar-${index + 1}`,
-    type: 'about',
-    title: ['Our Mission', 'Our Vision', 'Our Values'][index] ?? `About ${index + 1}`,
-    content: description,
-    keywords: ['mission', 'vision', 'values', 'about'],
+    title: decode(match[1]),
+    content: decode(match[2]),
+    keywords: ['about', 'values', decode(match[1])],
   }));
 }
 
@@ -142,8 +126,7 @@ function main() {
   const knowledgeEntries = dedupeById([
     ...extractServicesKnowledge(),
     ...extractProductsKnowledge(),
-    ...extractMilestonesKnowledge(),
-    ...extractPillarsKnowledge(),
+    ...extractAboutKnowledge(),
     ...extractContactKnowledge(),
   ]);
 
