@@ -35,22 +35,22 @@ export const generateProductWhatsAppMessage = (
   customerPhone?: string
 ): string => {
   const total = product.price * quantity;
-  
+
   let message = `*TOP HEIGHTS ELECTRICIANS - ORDER REQUEST*\n\n`;
   message += `*Product Details:*\n`;
   message += `• Product: ${product.name}\n`;
   message += `• Quantity: ${quantity}\n`;
   message += `• Unit Price: ${formatPrice(product.price)}\n`;
   message += `• Total: ${formatPrice(total)}\n\n`;
-  
+
   if (customerPhone) {
     message += `*Customer Phone:* ${customerPhone}\n\n`;
   }
-  
+
   message += `-----------------------------------\n`;
   message += `Please confirm availability and delivery details.\n`;
   message += `Thank you for choosing Top Heights Electricians!`;
-  
+
   return encodeURIComponent(message);
 };
 
@@ -58,33 +58,33 @@ export const generateProductWhatsAppMessage = (
  * Generate WhatsApp message for cart items
  */
 export const generateCartWhatsAppMessage = (
-  items: CartItem[] | LocalCartItem[],
+  items: (CartItem | LocalCartItem)[],
   customerPhone?: string
 ): string => {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  
+
   let message = `*TOP HEIGHTS ELECTRICIANS - ORDER REQUEST*\n\n`;
   message += `*Order Details:*\n`;
   message += `-----------------------------------\n`;
-  
+
   items.forEach((item, index) => {
     const itemTotal = item.price * item.quantity;
     message += `${index + 1}. ${item.name}\n`;
     message += `   Quantity: ${item.quantity} x ${formatPrice(item.price)}\n`;
     message += `   Subtotal: ${formatPrice(itemTotal)}\n\n`;
   });
-  
+
   message += `-----------------------------------\n`;
   message += `*TOTAL: ${formatPrice(total)}*\n`;
   message += `-----------------------------------\n\n`;
-  
+
   if (customerPhone) {
     message += `*Customer Phone:* ${customerPhone}\n\n`;
   }
-  
+
   message += `Please confirm availability and delivery details.\n`;
   message += `Thank you for choosing Top Heights Electricians!`;
-  
+
   return encodeURIComponent(message);
 };
 
@@ -96,16 +96,16 @@ export const generateCustomOrderWhatsAppMessage = (
   customerPhone?: string
 ): string => {
   let fullMessage = `*TOP HEIGHTS ELECTRICIANS - CUSTOM ORDER REQUEST*\n\n`;
-  
+
   if (customerPhone) {
     fullMessage += `*Customer Phone:* ${customerPhone}\n\n`;
   }
-  
+
   fullMessage += `*Message:*\n${message}\n\n`;
   fullMessage += `-----------------------------------\n`;
   fullMessage += `Please respond to this inquiry.\n`;
   fullMessage += `Thank you for choosing Top Heights Electricians!`;
-  
+
   return encodeURIComponent(fullMessage);
 };
 
@@ -126,7 +126,7 @@ export const orderViaWhatsApp = (
  * Open WhatsApp with pre-filled message for cart items
  */
 export const orderCartViaWhatsApp = (
-  items: CartItem[] | LocalCartItem[],
+  items: (CartItem | LocalCartItem)[],
   customerPhone?: string
 ): void => {
   const message = generateCartWhatsAppMessage(items, customerPhone);

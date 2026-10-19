@@ -4,20 +4,27 @@
   "main": "lib/index.js",
   "type": "commonjs",
   "engines": {
-    "node": "18"
+    "node": "22"
   },
   "scripts": {
     "build": "tsc",
-    "serve": "firebase emulators:start --only functions",
+    "test": "npm --prefix ../.. run test:commerce",
+    "serve": "npm run build && firebase emulators:start --project demo-topheights-commerce --only functions,firestore,auth",
     "deploy": "firebase deploy --only functions"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "firebase-admin": "^13.7.0",
-    "firebase-functions": "^4.9.0"
+    "firebase-functions": "^7.4.0",
+    "serverless-http": "^4.0.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.0.0",
+    "firebase-tools": "^15.30.2",
     "typescript": "^5.9.3"
   }
 }

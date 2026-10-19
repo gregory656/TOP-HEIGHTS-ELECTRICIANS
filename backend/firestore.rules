@@ -18,8 +18,8 @@ service cloud.firestore {
 
     // Public catalog reads
     match /products/{productId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if false;
     }
 
     match /categories/{categoryId} {
@@ -34,7 +34,14 @@ service cloud.firestore {
 
     // Users + per-user cart
     match /users/{userId} {
-      allow read, create, update: if isOwner(userId);
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.role == 'customer'
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'email', 'photoURL', 'role', 'createdAt', 'updatedAt']);
+      allow update: if isOwner(userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid', 'name', 'email', 'photoURL', 'updatedAt'])
+        && request.resource.data.uid == userId;
       allow delete: if false;
 
       match /cart/{productId} {
@@ -46,17 +53,13 @@ service cloud.firestore {
 
     // Orders
     match /orders/{orderId} {
-      // Customer can create their own order, pending only.
-      allow create: if signedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.paymentStatus == "pending"
-        && request.resource.data.orderStatus == "pending";
+      // Server quotes prices and verifies all payment/fulfilment writes.
+      allow create: if false;
 
       // Customer can read their own orders; admin can read all.
       allow read: if (signedIn() && resource.data.userId == request.auth.uid) || isAdmin();
 
-      // Recommended: only backend/admin updates status fields.
-      allow update: if isAdmin();
+      allow update: if false;
 
       allow delete: if false;
     }
@@ -66,6 +69,17 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow write: if false;
     }
+
+    match /fulfilmentEvents/{eventId} {
+      allow read: if isAdmin() || (signedIn() && get(/databases/$(database)/documents/orders/$(resource.data.orderId)).data.userId == request.auth.uid);
+      allow write: if false;
+    }
+    match /inventoryMovements/{movementId} { allow read: if isAdmin(); allow write: if false; }
+    match /catalogueKeys/{keyId} { allow read, write: if false; }
+
+    // Provider signatures and payment references are server-only.
+    match /paymentSessions/{orderId} { allow read, write: if false; }
+    match /paymentReferences/{referenceId} { allow read, write: if false; }
 
     // Courses - public read, admin write
     match /courses/{courseId} {
@@ -83,9 +97,8 @@ service cloud.firestore {
 
     // News - public read, admin write
     match /news/{newsId} {
-      allow read: if true;
-      allow write: if isAdmin();
-      allow delete: if isAdmin();
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if false;
     }
   }
 }

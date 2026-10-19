@@ -16,8 +16,8 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onEnroll, enrolling }) 
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: 'rgba(17, 34, 64, 0.8)',
-        border: '1px solid rgba(100, 255, 218, 0.1)',
+        background: '#FFFFFF',
+        border: '1px solid #DDE5DF',
       }}
     >
       <CardContent sx={{ flex: 1 }}>

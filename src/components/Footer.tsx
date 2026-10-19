@@ -44,6 +44,7 @@ const Footer: React.FC = () => {
   const links = [
     { label: 'Solar Services', path: '/services' },
     { label: 'Solar Shop', path: '/shop' },
+    { label: 'News & advice', path: '/blog' },
     { label: 'About Top Heights', path: '/about' },
   ];
 

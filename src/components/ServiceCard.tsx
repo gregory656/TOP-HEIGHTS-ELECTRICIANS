@@ -28,7 +28,6 @@ interface ServiceCardProps {
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service, onExplore }) => {
-  const [hovered, setHovered] = React.useState(false);
   const [imageSrc, setImageSrc] = React.useState(publicAsset(service.image));
 
   React.useEffect(() => {
@@ -46,10 +45,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onExplore }) => {
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -8 }}
+      style={{ height: '100%' }}
       transition={{ duration: 0.4 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       <Card
         sx={{
@@ -58,26 +55,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onExplore }) => {
           flexDirection: 'column',
           position: 'relative',
           overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'linear-gradient(135deg, rgba(100, 255, 218, 0.1) 0%, rgba(100, 181, 246, 0.05) 100%)',
-            opacity: hovered ? 1 : 0,
-            transition: 'opacity 0.3s ease',
-            pointerEvents: 'none',
-            zIndex: 0,
-          },
-          '&:hover': {
-            transform: 'translateY(-8px)',
-            boxShadow: '0 20px 40px rgba(100, 255, 218, 0.15)',
-            '& .service-image': {
-              transform: 'scale(1.1)',
-            },
-          },
         }}
       >
         {/* Service Image */}
@@ -85,7 +62,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onExplore }) => {
           <CardMedia
             component="img"
             className="service-image"
-            height="180"
+            height="220"
+            loading="lazy"
             src={imageSrc}
             alt={service.title}
             onError={() => setImageSrc(publicAsset('/solarenergy.jpeg'))}
@@ -103,16 +81,16 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onExplore }) => {
               position: 'absolute',
               top: 12,
               left: 12,
-              backgroundColor: 'rgba(100, 255, 218, 0.15)',
+              backgroundColor: 'background.paper',
               color: 'primary.main',
               fontWeight: 600,
-              fontSize: '0.7rem',
-              border: '1px solid rgba(100, 255, 218, 0.3)',
+              fontSize: '0.75rem',
+              border: '1px solid #DDE5DF',
             }}
           />
         </Box>
 
-        <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
+        <CardContent sx={{ p: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
           {/* Service Title */}
           <Typography
             variant="h5"
@@ -201,7 +179,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onExplore }) => {
               sx={{
                 flex: 1,
                 py: 1,
-                fontSize: '0.75rem',
+                fontSize: '0.8rem',
+                px: 1,
               }}
             >
               Request Quote
@@ -214,7 +193,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onExplore }) => {
               sx={{
                 flex: 1,
                 py: 1,
-                fontSize: '0.75rem',
+                fontSize: '0.8rem',
+                px: 1,
               }}
             >
               Explore

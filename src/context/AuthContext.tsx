@@ -9,16 +9,14 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { syncUserProfile } from '../services/userProfile';
+import { setStoredUsername } from '../utils/courseStorage';
 import { auth, googleProvider, db, authPersistenceReady } from '../services/firebase';
 
 import { AuthContext, type User } from './AuthContextData';
 
 // Re-export AuthContext for useAuth hook
 export { AuthContext };
-
-// Admin email - change this to your admin email
-const ADMIN_EMAIL = 'kamaugatehi@gmail.com';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -34,58 +32,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return 'User';
   }, []);
 
-  const upsertUserDocument = useCallback(async (fbUser: FirebaseUser, fallbackName?: string) => {
-    const isAdmin = fbUser.email === ADMIN_EMAIL;
-    const userDocRef = doc(db, 'users', fbUser.uid);
-    const name = getDisplayName(fbUser, fallbackName);
-
-    await setDoc(
-      userDocRef,
-      {
-        uid: fbUser.uid,
-        role: isAdmin ? 'admin' : 'customer',
-        name,
-        email: fbUser.email || '',
-        photoURL: fbUser.photoURL || null,
-        updatedAt: serverTimestamp(),
-        createdAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
-  }, [getDisplayName]);
-
-  // Function to fetch user and ensure user document exists
-  const fetchOrCreateUser = useCallback(async (fbUser: FirebaseUser): Promise<User> => {
-    const userDocRef = doc(db, 'users', fbUser.uid);
-    const isAdmin = fbUser.email === ADMIN_EMAIL;
-    let userData: { role?: string; name?: string; email?: string; photoURL?: string } | null = null;
-
-    try {
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        userData = userDoc.data() as { role?: string; name?: string; email?: string; photoURL?: string };
-      }
-    } catch (error) {
-      console.warn('Could not read user document, will attempt upsert:', error);
-    }
-
-    try {
-      await upsertUserDocument(fbUser, userData?.name);
-    } catch (error) {
-      console.error('Failed to upsert user document:', error);
-    }
-
-    return {
-      uid: fbUser.uid,
-      role: userData?.role === 'admin' || isAdmin ? 'admin' : 'customer',
-      name: userData?.name || getDisplayName(fbUser),
-      email: fbUser.email || userData?.email || '',
-      photoURL: fbUser.photoURL || userData?.photoURL || undefined,
-    };
-  }, [getDisplayName, upsertUserDocument]);
+  const upsertUserDocument = useCallback((fbUser: FirebaseUser, fallbackName?: string) =>
+    syncUserProfile(db, fbUser, 'customer', fallbackName), []);
 
   useEffect(() => {
     let active = true;
+    let authVersion = 0;
     let unsubscribe: (() => void) | null = null;
 
     const init = async () => {
@@ -99,11 +51,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // Listen to Firebase auth state changes
       unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+        const version = ++authVersion;
+        setAuthLoading(true);
         try {
           if (fbUser) {
             const baseUser: User = {
               uid: fbUser.uid,
-              role: fbUser.email === ADMIN_EMAIL ? 'admin' : 'customer',
+              role: 'customer',
               name: getDisplayName(fbUser),
               email: fbUser.email || '',
               photoURL: fbUser.photoURL || undefined,
@@ -112,7 +66,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setFirebaseUser(fbUser);
             setUser(baseUser);
 
-            const userData = await fetchOrCreateUser(fbUser);
+            const userData = await upsertUserDocument(fbUser);
+            if (!active || version !== authVersion) return;
+            setStoredUsername(userData.name);
             setUser(userData);
           } else {
             setFirebaseUser(null);
@@ -120,18 +76,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         } catch (error) {
           console.error('Error resolving auth user:', error);
+          if (!active || version !== authVersion) return;
           if (fbUser) {
             setUser({
               uid: fbUser.uid,
-              role: fbUser.email === ADMIN_EMAIL ? 'admin' : 'customer',
+              role: 'customer',
               name: getDisplayName(fbUser),
               email: fbUser.email || '',
               photoURL: fbUser.photoURL || undefined,
             });
           }
         } finally {
-          setAuthLoading(false);
-          setIsLoading(false);
+          if (active && version === authVersion) {
+            setAuthLoading(false);
+            setIsLoading(false);
+          }
         }
       });
     };
@@ -142,7 +101,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       active = false;
       if (unsubscribe) unsubscribe();
     };
-  }, [fetchOrCreateUser, getDisplayName]);
+  }, [upsertUserDocument, getDisplayName]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -166,8 +125,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const loginWithGoogle = async (): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const result = await signInWithPopup(auth, googleProvider);
-      await upsertUserDocument(result.user);
+      await signInWithPopup(auth, googleProvider);
       
       setLoginModalOpen(false);
       return true;

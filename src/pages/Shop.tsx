@@ -23,20 +23,26 @@ import {
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { Search, FilterList, Close, Sort } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { products, categories } from '../data/products';
+import { useProducts } from '../hooks/useProducts';
+import PageMeta from '../components/PageMeta';
+import { orderTime } from '../services/orderModel';
+import { Alert } from '@mui/material';
 import type { Product } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import OrderModal from '../components/OrderModal';
 import Footer from '../components/Footer';
 
 const Shop: React.FC = () => {
+  const { products, loading, error } = useProducts();
+  const categories = ['All', ...new Set(products.map(p => p.category))];
+  const priceMaximum = Math.max(400000, ...products.map(p => p.price));
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('name');
-  const [priceRange, setPriceRange] = useState<number[]>([0, 400000]);
+  const [priceRange, setPriceRange] = useState<number[]>([0, Number.MAX_SAFE_INTEGER]);
   const [currentPage, setCurrentPage] = useState(1);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
@@ -79,12 +85,12 @@ const Shop: React.FC = () => {
         result.sort((a, b) => a.name.localeCompare(b.name));
         break;
       case 'newest':
-        result.sort((a, b) => b.id - a.id);
+        result.sort((a, b) => orderTime(b.createdAt) - orderTime(a.createdAt));
         break;
     }
 
     return result;
-  }, [searchQuery, selectedCategory, sortBy, priceRange]);
+  }, [products, searchQuery, selectedCategory, sortBy, priceRange]);
 
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -109,10 +115,11 @@ const Shop: React.FC = () => {
 
   return (
     <Box>
+      <PageMeta title="Solar & electrical shop" description="Shop published solar panels, batteries, inverters and electrical products from Top Heights Electricals." path="/shop" />
       {/* Header */}
       <Box
         sx={{
-          py: 6,
+          py: { xs: 4, md: 6 },
           background: '#FFFFFF',
           borderBottom: '1px solid #E4EFE8',
         }}
@@ -134,6 +141,8 @@ const Shop: React.FC = () => {
       </Box>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
+        {error && <Alert severity="error">{error}</Alert>}
+        {loading && <Typography>Loading products…</Typography>}
         {/* Filters Bar */}
         <Box
           sx={{
@@ -148,9 +157,10 @@ const Shop: React.FC = () => {
           <TextField
             placeholder="Search products..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             size="small"
-            sx={{ minWidth: 250 }}
+            sx={{ flex: { xs: '1 1 100%', sm: '1 1 260px' } }}
+            inputProps={{ 'aria-label': 'Search products' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -160,41 +170,16 @@ const Shop: React.FC = () => {
             }}
           />
 
-          {/* Category Chips */}
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', flex: 1 }}>
-            {categories.map((category) => (
-              <Chip
-                key={category}
-                label={category}
-                onClick={() => setSelectedCategory(category)}
-                sx={{
-                  backgroundColor:
-                    selectedCategory === category
-                      ? 'primary.main'
-                      : '#F0FFF6',
-                  color:
-                    selectedCategory === category ? '#FFFFFF' : 'text.secondary',
-                  fontWeight: selectedCategory === category ? 600 : 400,
-                  '&:hover': {
-                    backgroundColor:
-                      selectedCategory === category
-                        ? 'primary.dark'
-                        : '#E6F7ED',
-                  },
-                }}
-              />
-            ))}
-          </Box>
-
           {/* Sort Dropdown */}
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>
+            <InputLabel id="shop-sort-label">
               <Sort sx={{ mr: 0.5, verticalAlign: 'middle' }} />
               Sort by
             </InputLabel>
             <Select
               value={sortBy}
               label="Sort by"
+              labelId="shop-sort-label"
               onChange={handleSortChange}
             >
               <MenuItem value="name">Name (A-Z)</MenuItem>
@@ -214,10 +199,38 @@ const Shop: React.FC = () => {
               Filters
             </Button>
           )}
+          {/* Category Chips */}
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', flex: '1 1 100%' }}>
+            {categories.map((category) => (
+              <Chip
+                key={category}
+                label={category}
+                aria-pressed={selectedCategory === category}
+                onClick={() => { setSelectedCategory(category); setCurrentPage(1); }}
+                sx={{
+                  backgroundColor:
+                    selectedCategory === category
+                      ? 'primary.main'
+                      : '#F0FFF6',
+                  color:
+                    selectedCategory === category ? '#FFFFFF' : 'text.secondary',
+                  fontWeight: selectedCategory === category ? 600 : 400,
+                  '&:hover': {
+                    backgroundColor:
+                      selectedCategory === category
+                        ? 'primary.dark'
+                        : '#E6F7ED',
+                  },
+                }}
+              />
+            ))}
+          </Box>
+
+
         </Box>
 
         {/* Active Filters */}
-        {(selectedCategory !== 'All' || priceRange[0] > 0 || priceRange[1] < 400000) && (
+        {(selectedCategory !== 'All' || priceRange[0] > 0 || priceRange[1] < priceMaximum) && (
           <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
             <Typography variant="body2" color="text.secondary">
               Active filters:
@@ -235,11 +248,11 @@ const Shop: React.FC = () => {
                 }}
               />
             )}
-            {(priceRange[0] > 0 || priceRange[1] < 400000) && (
+            {(priceRange[0] > 0 || priceRange[1] < priceMaximum) && (
               <Chip
-                label={`Price: KES ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}`}
+                label={`Price: KES ${priceRange[0].toLocaleString()} - ${Math.min(priceRange[1], priceMaximum).toLocaleString()}`}
                 size="small"
-                onDelete={() => setPriceRange([0, 400000])}
+                onDelete={() => setPriceRange([0, Number.MAX_SAFE_INTEGER])}
                 sx={{
                   backgroundColor: '#F0FFF6',
                   '& .MuiChip-label': {
@@ -261,8 +274,9 @@ const Shop: React.FC = () => {
           <>
             <Grid container spacing={3}>
               {paginatedProducts.map((product, index) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={product.id}>
+                <Grid size={{ xs: 12, sm: 6, md: 6, lg: 4, xl: 3 }} key={product.id}>
                   <motion.div
+                    style={{ height: '100%' }}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.05 }}
@@ -310,7 +324,7 @@ const Shop: React.FC = () => {
             }}
           >
             <Typography variant="h5" sx={{ mb: 1 }}>
-              No products found
+              {loading ? 'Loading products…' : error ? 'Products unavailable' : 'No products found'}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Try adjusting your search or filter criteria
@@ -320,7 +334,7 @@ const Shop: React.FC = () => {
               onClick={() => {
                 setSearchQuery('');
                 setSelectedCategory('All');
-                setPriceRange([0, 400000]);
+                setPriceRange([0, Number.MAX_SAFE_INTEGER]);
                 setCurrentPage(1);
               }}
             >
@@ -357,11 +371,11 @@ const Shop: React.FC = () => {
           Price Range
         </Typography>
         <Slider
-          value={priceRange}
+          value={[priceRange[0], Math.min(priceRange[1], priceMaximum)]}
           onChange={(_, value) => setPriceRange(value as number[])}
           valueLabelDisplay="auto"
           min={0}
-          max={400000}
+          max={priceMaximum}
           sx={{
             color: 'primary.main',
             '& .MuiSlider-thumb': {
@@ -374,7 +388,7 @@ const Shop: React.FC = () => {
             KES {priceRange[0].toLocaleString()}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            KES {priceRange[1].toLocaleString()}
+            KES {Math.min(priceRange[1], priceMaximum).toLocaleString()}
           </Typography>
         </Box>
 
@@ -387,7 +401,7 @@ const Shop: React.FC = () => {
             <Chip
               key={category}
               label={category}
-              onClick={() => setSelectedCategory(category)}
+              onClick={() => { setSelectedCategory(category); setCurrentPage(1); }}
               sx={{
                 backgroundColor:
                   selectedCategory === category

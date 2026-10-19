@@ -34,6 +34,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Edit, Delete, Add, School, People, TrendingUp } from '@mui/icons-material';
 import { Course } from '../../utils/courseStorage';
 import { useAuth } from '../../hooks/useAuth';
+import AdminAccessNotice from '../../components/AdminAccessNotice';
 import {
   saveCourseToFirestore,
   deleteCourseFromFirestore,
@@ -53,7 +54,8 @@ const initialFormState: Course = {
 };
 
 const AdminDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, authLoading } = useAuth();
+  const canManage = !authLoading && user?.role === 'admin';
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<StudentEnrollment[]>([]);
   const [formState, setFormState] = useState<Course>(initialFormState);
@@ -65,22 +67,24 @@ const AdminDashboard: React.FC = () => {
 
   // Subscribe to courses from Firestore
   useEffect(() => {
+    if (!canManage) return;
     const unsubscribe = subscribeToCourses((updatedCourses) => {
       setCourses(updatedCourses);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [canManage]);
 
   // Subscribe to enrollments from Firestore
   useEffect(() => {
+    if (!canManage) return;
     const unsubscribe = subscribeToEnrollments((updatedEnrollments) => {
       setEnrollments(updatedEnrollments);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [canManage]);
 
   // Get unique categories from courses
   const categories = [...new Set(courses.map(c => c.category))];
@@ -183,6 +187,8 @@ const AdminDashboard: React.FC = () => {
     };
   });
 
+  if (!canManage) return <AdminAccessNotice />;
+
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, textAlign: 'center' }}>
@@ -194,20 +200,11 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
-  if (!user || user.role !== 'admin') {
-    return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Alert severity="error">
-          Access denied. Admin privileges required.
-        </Alert>
-      </Container>
-    );
-  }
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 6 }}>
       <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
-        Admin Dashboard
+        Learning admin
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
         Manage your courses, students, and track progress.
@@ -215,7 +212,7 @@ const AdminDashboard: React.FC = () => {
 
       {/* Stats Cards */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' }, gap: 2, mb: 4 }}>
-        <Card sx={{ background: 'rgba(17, 34, 64, 0.65)' }}>
+        <Card sx={{ background: '#FFFFFF' }}>
           <CardContent>
             <Stack direction="row" alignItems="center" spacing={1}>
               <School color="primary" />
@@ -226,7 +223,7 @@ const AdminDashboard: React.FC = () => {
             </Stack>
           </CardContent>
         </Card>
-        <Card sx={{ background: 'rgba(17, 34, 64, 0.65)' }}>
+        <Card sx={{ background: '#FFFFFF' }}>
           <CardContent>
             <Stack direction="row" alignItems="center" spacing={1}>
               <People color="primary" />
@@ -237,7 +234,7 @@ const AdminDashboard: React.FC = () => {
             </Stack>
           </CardContent>
         </Card>
-        <Card sx={{ background: 'rgba(17, 34, 64, 0.65)' }}>
+        <Card sx={{ background: '#FFFFFF' }}>
           <CardContent>
             <Stack direction="row" alignItems="center" spacing={1}>
               <TrendingUp color="success" />
@@ -248,19 +245,19 @@ const AdminDashboard: React.FC = () => {
             </Stack>
           </CardContent>
         </Card>
-        <Card sx={{ background: 'rgba(17, 34, 64, 0.65)' }}>
+        <Card sx={{ background: '#FFFFFF' }}>
           <CardContent>
             <Typography variant="h5" color="success">{stats.freeCourses}</Typography>
             <Typography variant="caption" color="text.secondary">Free Courses</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ background: 'rgba(17, 34, 64, 0.65)' }}>
+        <Card sx={{ background: '#FFFFFF' }}>
           <CardContent>
             <Typography variant="h5" color="primary">{stats.paidCourses}</Typography>
             <Typography variant="caption" color="text.secondary">Paid Courses</Typography>
           </CardContent>
         </Card>
-        <Card sx={{ background: 'rgba(17, 34, 64, 0.65)' }}>
+        <Card sx={{ background: '#FFFFFF' }}>
           <CardContent>
             <Typography variant="h5" color="info">{stats.completedStudents}</Typography>
             <Typography variant="caption" color="text.secondary">Completed</Typography>
@@ -311,7 +308,7 @@ const AdminDashboard: React.FC = () => {
             </Button>
           </Box>
 
-          <TableContainer component={Paper} sx={{ background: 'rgba(17, 34, 64, 0.65)' }}>
+          <TableContainer component={Paper} sx={{ background: '#FFFFFF' }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -374,7 +371,7 @@ const AdminDashboard: React.FC = () => {
 
       {/* Students Tab */}
       {activeTab === 'students' && (
-        <Card sx={{ background: 'rgba(17, 34, 64, 0.65)', minHeight: 400 }}>
+        <Card sx={{ background: '#FFFFFF', minHeight: 400 }}>
           <CardContent>
             <Typography variant="h5" sx={{ mb: 2 }}>
               Student Enrollments

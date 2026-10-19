@@ -69,8 +69,8 @@ const StudentDashboard: React.FC = () => {
         <Box>
           <Card
             sx={{
-              background: 'rgba(17, 34, 64, 0.65)',
-              border: '1px solid rgba(100, 255, 218, 0.1)',
+              background: '#FFFFFF',
+              border: '1px solid #DDE5DF',
               mb: 3,
             }}
           >
@@ -86,7 +86,7 @@ const StudentDashboard: React.FC = () => {
                   return (
                     <Box
                       key={`${entry.courseId}-${entry.enrolledAt}`}
-                      sx={{ p: 2, borderRadius: 2, background: 'rgba(255, 255, 255, 0.02)' }}
+                      sx={{ p: 2, borderRadius: 2, background: '#F6F8F7' }}
                     >
                       <CourseProgress
                         title={course.title}
@@ -115,8 +115,8 @@ const StudentDashboard: React.FC = () => {
 
           <Card
             sx={{
-              background: 'rgba(17, 34, 64, 0.65)',
-              border: '1px solid rgba(100, 255, 218, 0.1)',
+              background: '#FFFFFF',
+              border: '1px solid #DDE5DF',
               mb: 3,
             }}
           >
@@ -136,8 +136,8 @@ const StudentDashboard: React.FC = () => {
 
           <Card
             sx={{
-              background: 'rgba(17, 34, 64, 0.65)',
-              border: '1px solid rgba(100, 255, 218, 0.1)',
+              background: '#FFFFFF',
+              border: '1px solid #DDE5DF',
             }}
           >
             <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -154,8 +154,8 @@ const StudentDashboard: React.FC = () => {
           sx={{
             p: 3,
             borderRadius: 3,
-            background: 'rgba(17, 34, 64, 0.55)',
-            border: '1px solid rgba(100, 255, 218, 0.1)',
+            background: '#FFFFFF',
+            border: '1px solid #DDE5DF',
           }}
         >
           <Typography variant="h5" sx={{ mb: 2 }}>

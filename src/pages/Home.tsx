@@ -21,7 +21,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { products } from '../data/products';
+import { useProducts } from '../hooks/useProducts';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
 import { publicAsset } from '../utils/publicAsset';
@@ -61,13 +61,9 @@ const process = [
   'Monitoring, maintenance, and support',
 ];
 
-const featuredProducts = products
-  .filter((product) =>
-    ['Solar Panels', 'Renewable Energy', 'Solar Storage', 'Solar Accessories'].includes(product.category)
-  )
-  .slice(0, 4);
-
 const Home: React.FC = () => {
+  const { products } = useProducts();
+  const featuredProducts = products.filter(p => p.featured).slice(0, 4);
   return (
     <Box component="main" sx={{ bgcolor: '#FFFFFF', color: '#102018', overflow: 'hidden' }}>
       <Box
@@ -105,7 +101,7 @@ const Home: React.FC = () => {
                 <Typography
                   variant="h1"
                   sx={{
-                    fontSize: { xs: '2.6rem', sm: '3.4rem', lg: '4.8rem' },
+                    fontSize: { xs: '2.6rem', sm: '3.4rem', lg: '4rem' },
                     lineHeight: 0.96,
                     letterSpacing: 0,
                     color: '#101914',
@@ -116,6 +112,7 @@ const Home: React.FC = () => {
                 </Typography>
                 <Typography
                   variant="h4"
+                  component="p"
                   sx={{
                     mt: 2,
                     maxWidth: 690,
@@ -366,12 +363,12 @@ const Home: React.FC = () => {
               gridTemplateColumns: {
                 xs: '1fr',
                 sm: 'repeat(2, minmax(0, 1fr))',
-                lg: 'repeat(4, minmax(0, 1fr))',
+                xl: 'repeat(4, minmax(0, 1fr))',
               },
             }}
           >
             {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} onOrder={() => undefined} />
+              <ProductCard key={product.id} product={product} />
             ))}
           </Box>
         </Container>

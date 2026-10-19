@@ -12,8 +12,8 @@ const CourseProgress: React.FC<CourseProgressProps> = ({ title, instructor, prog
     sx={{
       p: 2,
       borderRadius: 2,
-      background: 'rgba(255, 255, 255, 0.02)',
-      border: '1px solid rgba(100, 255, 218, 0.2)',
+      background: '#F6F8F7',
+      border: '1px solid #DDE5DF',
     }}
   >
     <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>

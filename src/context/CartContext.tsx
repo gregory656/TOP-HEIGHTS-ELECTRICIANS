@@ -10,6 +10,7 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  stock?: number;
 }
 
 function loadCart(): CartItem[] {
@@ -53,12 +54,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [cartItems]);
 
   const addToCart = useCallback((product: Product, quantity = 1) => {
+    if (product.inStock === false || !Number.isInteger(quantity) || quantity < 1) return;
+    const maximum = Math.min(99, product.stock ?? 99);
     const productId = String(product.id);
     setCartItems((prev) => {
       const i = prev.findIndex((x) => x.productId === productId);
       if (i >= 0) {
         const next = [...prev];
-        next[i] = { ...next[i], quantity: next[i].quantity + quantity };
+        next[i] = { ...next[i], stock: maximum, quantity: Math.min(maximum, next[i].quantity + quantity) };
         return next;
       }
       return [
@@ -68,7 +71,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           name: product.name,
           price: product.price,
           image: product.image,
-          quantity,
+          quantity: Math.min(maximum, quantity),
+          stock: maximum,
         },
       ];
     });
@@ -79,12 +83,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateQuantity = useCallback((productId: string, quantity: number) => {
+    if (!Number.isInteger(quantity)) return;
     if (quantity < 1) {
       setCartItems((prev) => prev.filter((x) => x.productId !== productId));
       return;
     }
     setCartItems((prev) =>
-      prev.map((x) => (x.productId === productId ? { ...x, quantity } : x))
+      prev.map((x) => (x.productId === productId ? { ...x, quantity: Math.min(99, x.stock ?? 99, quantity) } : x))
     );
   }, []);
 

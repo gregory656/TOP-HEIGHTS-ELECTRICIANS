@@ -1,9 +1,32 @@
 {
   "firestore": {
-    "rules": "backend/firestore.rules"
+    "rules": "backend/firestore.rules",
+    "indexes": "backend/firestore.indexes.json"
+  },
+  "storage": { "rules": "backend/storage.rules" },
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "/shop/**", "function": { "functionId": "api", "region": "us-central1" } },
+      { "source": "/blog/**", "function": { "functionId": "api", "region": "us-central1" } },
+      { "source": "/sitemap.xml", "function": { "functionId": "api", "region": "us-central1" } },
+      { "source": "**", "destination": "/index.html" }
+    ],
+    "headers": [{ "source": "**", "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }, { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }, { "key": "X-Frame-Options", "value": "DENY" }] }]
   },
   "functions": {
-    "source": "backend/functions"
+    "source": "backend/functions",
+    "ignore": ["node_modules", ".git", "*.log", ".secret.local", ".env*", "scripts", "test"],
+    "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
+  },
+  "emulators": {
+    "firestore": { "port": 8085 },
+    "auth": { "port": 9098 },
+    "storage": { "port": 9198 },
+    "functions": { "port": 5002 },
+    "ui": { "enabled": false },
+    "singleProjectMode": true
   }
 }
 

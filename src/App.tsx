@@ -1,9 +1,10 @@
 // src/App.tsx
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import AdminPanel from './pages/AdminPanel';
 import Shop from './pages/Shop';
+import ProductDetails from './pages/ProductDetails';
 import Services from './pages/Services';
 import About from './pages/About';
 import Profile from './pages/Profile';
@@ -15,7 +16,7 @@ import CoursesPage from './pages/Courses/CoursesPage';
 import CourseDetails from './pages/Courses/CourseDetails';
 import StudentDashboard from './pages/Dashboard/StudentDashboard';
 import AdminDashboard from './pages/Dashboard/AdminDashboard';
-import NewsPage from './pages/NewsPage';
+import Blog from './pages/Blog';
 
 const Placeholder = ({ title }: { title: string }) => (
   <Box>
@@ -35,10 +36,13 @@ function App() {
                 <Route index element={<Home />} />
                 <Route path="services" element={<Services />} />
                 <Route path="shop" element={<Shop />} />
+                <Route path="shop/:id" element={<ProductDetails />} />
                 <Route path="admin" element={<AdminPanel />} />
                 <Route path="about" element={<About />} />
                 <Route path="profile" element={<Profile />} />
-                <Route path="news" element={<NewsPage />} />
+                <Route path="news" element={<Navigate to="/blog" replace />} />
+                <Route path="blog" element={<Blog />} />
+                <Route path="blog/:slug" element={<Blog />} />
                 <Route path="courses" element={<CoursesPage />} />
                 <Route path="courses/:id" element={<CourseDetails />} />
                 <Route path="student-dashboard" element={<StudentDashboard />} />
