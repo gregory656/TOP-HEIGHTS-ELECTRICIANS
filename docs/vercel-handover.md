@@ -17,13 +17,13 @@ Public frontend variables: VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VIT
 
 ## 2. Production data blockers found on 19 October 2026
 
-A read-only production check found **zero product documents** and **no numeric settings/global.shippingFee**. These must be populated with the business-approved catalogue/prices/stock and delivery fee before the updated storefront can sell. Do not copy the KES 10 sandbox test product or staging seed data into production.
+A production check found **zero product documents**. The business-approved catalogue/prices/stock must be populated before the updated storefront can sell. Lawrence subsequently approved free delivery; production settings/global.shippingFee was saved and verified as **0 KES**. Do not copy the KES 10 sandbox test product or staging seed data into production.
 
 ## 3. Project settings and data
 
 Use Node.js 22, Framework Vite, project root repository root, output dist. vercel.json sets install and build commands plus API/product/article rewrites; remove conflicting dashboard overrides. The install command installs both root and backend/functions dependencies. No Firebase Functions, Storage or billing upgrade is required for this adapter. Keep the existing Vercel plan; confirm its terms/limits with the project owner.
 
-Before production traffic, back up existing Firestore rules and review/deploy backend/firestore.rules and backend/firestore.indexes.json to **top-heights-electricals** using the owner's authorized Firebase CLI. This blocks browser-written payment/stock changes. Do not overwrite production with staging seed data. Check settings/global.shippingFee is the intended numeric KES delivery fee, products have published=true, active=true and valid price/stock, and the approved business user has users/{uid}.role=admin. Existing legacy catalogue records may need deliberate migration through the dashboard. Ensure topheightselectricals.com and www.topheightselectricals.com are authorized Firebase Auth domains.
+Before production traffic, back up existing Firestore rules and review/deploy backend/firestore.rules and backend/firestore.indexes.json to **top-heights-electricals** using the owner's authorized Firebase CLI. This blocks browser-written payment/stock changes. Do not overwrite production with staging seed data. Production settings/global.shippingFee is verified as 0 KES (free delivery); check it remains numeric, products have published=true, active=true and valid price/stock, and the approved business user has users/{uid}.role=admin. Existing legacy catalogue records may need deliberate migration through the dashboard. Ensure topheightselectricals.com and www.topheightselectricals.com are authorized Firebase Auth domains.
 
 ## 4. Live payment webhook
 
@@ -40,3 +40,5 @@ Do not use the sandbox webhook or old exposed keys. M-Pesa checkout is hosted by
 Build the review branch as Preview with its staging environment first. Verify login, admin product/blog/image editing, public product links, cart/checkout, and permissions. Then Gregory can merge PR #5 when satisfied and deploy Production with the Production environment above. Imports affect new deployments, so redeploy after changes. Keep the previous Vercel deployment for rollback.
 
 Production payments are **enabled by configuration**, but completed live settlement has not yet been demonstrated. After deployment, check /api/health, log in with the production account, and perform one separately approved small live payment from a number the tester controls. Confirm the provider invoice is COMPLETE, the order is paid/verified, stock reduces once, and dashboard totals match. Also test a cancelled/timed-out prompt stays unverified and does not reduce stock. Never share an M-Pesa PIN. Do not fulfil orders until verified. If checks fail, set PAYMENTS_ENABLED=false and redeploy or roll back.
+
+Live webhook status: details were forwarded to Gregory; creation and delivery have not yet been confirmed.
