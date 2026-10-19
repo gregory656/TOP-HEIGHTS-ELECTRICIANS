@@ -1,429 +1,79 @@
 import React from 'react';
-import {
-  Avatar,
-  Box,
-  Button,
-  Card,
-  CardMedia,
-  Chip,
-  Container,
-  Stack,
-  Typography,
-} from '@mui/material';
-import {
-  ArrowForward,
-  BatteryChargingFull,
-  Engineering,
-  SolarPower,
-  Speed,
-  WhatsApp,
-  WbSunny,
-} from '@mui/icons-material';
+import { Avatar, Box, Button, Container, Typography } from '@mui/material';
+import { ArrowForward, ArrowOutward, BatteryChargingFull, SolarPower, WhatsApp, WbSunny } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
+import PageMeta from '../components/PageMeta';
 import { publicAsset } from '../utils/publicAsset';
-
-const stats = [
-  { value: '10+', label: 'Years building reliable energy systems' },
-  { value: '500+', label: 'Solar and backup projects delivered' },
-  { value: '48hr', label: 'Site assessment turnaround in Nairobi' },
-  { value: '24/7', label: 'Support for installed systems' },
-];
+import { EnergyFlow, ProjectGallery, SavingsLab, SystemConfigurator } from '../components/SolarExperiences';
 
 const services = [
-  {
-    title: 'Home Solar Systems',
-    description: 'Clean roof-mounted solar packages sized for daily home use, backup comfort, and lower bills.',
-    icon: <SolarPower />,
-    image: '/solarpeople.jpg',
-  },
-  {
-    title: 'Commercial Solar',
-    description: 'High-output solar arrays for shops, offices, schools, farms, and light industrial facilities.',
-    icon: <WbSunny />,
-    image: '/solafarm.jpg',
-  },
-  {
-    title: 'Battery Backup',
-    description: 'Hybrid inverter and battery systems that keep essentials running during outages.',
-    icon: <BatteryChargingFull />,
-    image: '/leadacidbatteries.jpeg',
-  },
+  { title: 'Residential solar', description: 'Thoughtful systems built around the rhythm of your home, from everyday appliances to backup priorities.', icon: <SolarPower />, image: '/solarpeople.jpg', href: '/services' },
+  { title: 'Business & farm', description: 'Practical energy planning for shops, offices, farms and growing operations.', icon: <WbSunny />, image: '/solafarm.jpg', href: '/services' },
+  { title: 'Battery backup', description: 'Keep the essentials running with storage and backup designed around your loads.', icon: <BatteryChargingFull />, image: '/leadacidbatteries.jpeg', href: '/services' },
 ];
 
 const process = [
-  'Site survey and load audit',
-  'Custom solar design and quote',
-  'Professional installation',
-  'Monitoring, maintenance, and support',
+  ['01', 'Listen & assess', 'We learn how you use power and understand your site.'],
+  ['02', 'Design the system', 'A clear recommendation follows your needs and conditions.'],
+  ['03', 'Install with care', 'Equipment is installed and commissioned by professionals.'],
+  ['04', 'Stay supported', 'Get guidance on using and maintaining your system.'],
 ];
 
 const Home: React.FC = () => {
   const { products } = useProducts();
-  const featuredProducts = products.filter(p => p.featured).slice(0, 4);
-  return (
-    <Box component="main" sx={{ bgcolor: '#FFFFFF', color: '#102018', overflow: 'hidden' }}>
-      <Box
-        component="section"
-        sx={{
-          minHeight: { xs: 'auto', md: 'calc(100vh - 96px)' },
-          display: 'flex',
-          alignItems: 'center',
-          py: { xs: 5, md: 8 },
-        }}
-      >
-        <Container maxWidth="xl">
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', lg: '1.02fr 0.98fr' },
-              gap: { xs: 5, lg: 7 },
-              alignItems: 'center',
-            }}
-          >
-            <Stack spacing={3.5}>
-              <Chip
-                icon={<SolarPower />}
-                label="Solar energy systems for Kenya"
-                sx={{
-                  alignSelf: 'flex-start',
-                  bgcolor: '#F0FFF6',
-                  borderColor: '#BFEFD0',
-                  color: '#0D6B37',
-                  fontWeight: 700,
-                }}
-              />
+  const featuredProducts = products.filter(product => product.featured).slice(0, 4);
 
-              <Box>
-                <Typography
-                  variant="h1"
-                  sx={{
-                    fontSize: { xs: '2.6rem', sm: '3.4rem', lg: '4rem' },
-                    lineHeight: 0.96,
-                    letterSpacing: 0,
-                    color: '#101914',
-                    maxWidth: 760,
-                  }}
-                >
-                  Top Heights Solar
-                </Typography>
-                <Typography
-                  variant="h4"
-                  component="p"
-                  sx={{
-                    mt: 2,
-                    maxWidth: 690,
-                    color: '#355044',
-                    fontSize: { xs: '1.15rem', md: '1.45rem' },
-                    lineHeight: 1.45,
-                    fontWeight: 500,
-                  }}
-                >
-                  Premium solar design, installation, and backup power for homes and businesses that want cleaner energy without drama.
-                </Typography>
-              </Box>
+  return <Box component="main" className="showroom-home">
+    <PageMeta title="Solar energy systems designed around you" description="Explore solar, battery backup and energy solutions from Top Heights Solar in Kenya. Plan a system around your home, business or farm." path="/" />
 
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Button
-                  component="a"
-                  href="https://wa.me/254711343412?text=I%20want%20a%20solar%20quote%20from%20Top%20Heights%20Solar."
-                  target="_blank"
-                  variant="contained"
-                  size="large"
-                  startIcon={<WhatsApp />}
-                  sx={{
-                    bgcolor: '#0E7A3D',
-                    boxShadow: '0 16px 36px rgba(14, 122, 61, 0.22)',
-                    '&:hover': { bgcolor: '#0A6231' },
-                  }}
-                >
-                  Get Solar Quote
-                </Button>
-                <Button
-                  component={Link}
-                  to="/services"
-                  variant="outlined"
-                  size="large"
-                  endIcon={<ArrowForward />}
-                  sx={{
-                    borderColor: '#C9DED2',
-                    color: '#102018',
-                    bgcolor: '#FFFFFF',
-                  }}
-                >
-                  View Solar Services
-                </Button>
-              </Stack>
+    <section className="hero-showroom">
+      <img className="hero-image" src={publicAsset('/solarpeople.jpg')} alt="Solar technicians working on a rooftop installation" />
+      <div className="hero-scrim" />
+      <div className="hero-grid-texture" />
+      <Container maxWidth="xl" className="hero-content">
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7 }} className="hero-copy">
+          <div className="hero-kicker"><span className="sun-pulse">☼</span> SOLAR, DESIGNED FOR KENYA</div>
+          <Typography component="h1">Energy that works<br /><em>as hard as you do.</em></Typography>
+          <Typography className="hero-subtitle">Intelligent solar systems for Kenyan homes, businesses and farms. Designed around your needs. Installed for the long run.</Typography>
+          <div className="hero-actions">
+            <Button className="hero-primary" variant="contained" endIcon={<ArrowOutward />} onClick={() => window.dispatchEvent(new Event('open-quote-wizard'))}>Plan your solar system</Button>
+            <Button className="hero-secondary" component={Link} to="/services" endIcon={<ArrowForward />}>Explore solutions</Button>
+          </div>
+          <div className="hero-assurance"><span><i />Professional assessment</span><span><i />Thoughtful system design</span></div>
+        </motion.div>
+        <motion.div className="hero-image-caption" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: .4, duration: .6 }}><span className="caption-rule" /><span>BUILT AROUND<br />YOUR EVERYDAY</span></motion.div>
+      </Container>
+      <div className="hero-bottom-line"><span>NAIROBI · KENYA</span><span>01 / ENERGY, REIMAGINED</span><span>SCROLL TO EXPLORE ↓</span></div>
+    </section>
 
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-                  gap: 1.5,
-                  maxWidth: 820,
-                }}
-              >
-                {stats.map((stat) => (
-                  <Box
-                    key={stat.label}
-                    sx={{
-                      p: 2,
-                      border: '1px solid #E4EFE8',
-                      borderRadius: 2,
-                      bgcolor: '#FFFFFF',
-                    }}
-                  >
-                    <Typography variant="h4" sx={{ color: '#0E7A3D', fontWeight: 800 }}>
-                      {stat.value}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#52675D', display: 'block' }}>
-                      {stat.label}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Stack>
+    <section className="trust-strip"><Container maxWidth="xl"><div className="trust-strip-label">A BETTER WAY TO GO SOLAR</div><div className="trust-items">
+      <div><span>01</span><strong>Needs-first design</strong><small>Planned around the way you use energy</small></div>
+      <div><span>02</span><strong>Professional installation</strong><small>Thoughtful work from survey to commissioning</small></div>
+      <div><span>03</span><strong>Support that stays</strong><small>Guidance for the system you bring home</small></div>
+      <a href="tel:+254711343412" className="trust-call"><span>LET’S TALK</span><strong>+254 711 343 412 <ArrowOutward /></strong></a>
+    </div></Container></section>
 
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7 }}
-            >
-              <Box
-                sx={{
-                  position: 'relative',
-                  minHeight: { xs: 420, md: 620 },
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                  boxShadow: '0 28px 80px rgba(25, 58, 42, 0.16)',
-                }}
-              >
-                <Box
-                  component="img"
-                  src={publicAsset('/solarpeople.jpg')}
-                  alt="Solar technicians installing panels on a roof"
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    position: 'absolute',
-                    inset: 0,
-                    objectFit: 'cover',
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'linear-gradient(180deg, rgba(255,255,255,0) 35%, rgba(9, 43, 25, 0.68) 100%)',
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    left: 24,
-                    right: 24,
-                    bottom: 24,
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', sm: 'auto 1fr' },
-                    gap: 2,
-                    alignItems: 'center',
-                    color: '#FFFFFF',
-                  }}
-                >
-                  <Avatar sx={{ width: 56, height: 56, bgcolor: '#FFFFFF', color: '#0E7A3D' }}>
-                    <Engineering />
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                      Designed before installation begins
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.86)' }}>
-                      Every quote starts with load needs, roof conditions, battery goals, and long-term service.
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            </motion.div>
-          </Box>
-        </Container>
-      </Box>
+    <SavingsLab />
 
-      <Box component="section" sx={{ py: { xs: 6, md: 9 }, bgcolor: '#F7FBF8' }}>
-        <Container maxWidth="xl">
-          <Stack spacing={1.5} sx={{ mb: 4, maxWidth: 780 }}>
-            <Typography variant="h2" sx={{ color: '#101914', fontSize: { xs: '2rem', md: '3rem' } }}>
-              Solar solutions, stripped down to what matters
-            </Typography>
-            <Typography variant="body1" sx={{ color: '#52675D' }}>
-              Clean energy should feel clear: the right panels, the right inverter, the right batteries, and a team that stands behind the system.
-            </Typography>
-          </Stack>
+    <section className="solutions-section section-wrap"><div className="solutions-intro"><div className="section-heading"><span className="eyebrow">SOLAR, WITH INTENTION</span><Typography variant="h2">Your energy has a different story.</Typography><Typography>Our job is to understand it, then help you find the right way forward.</Typography></div><Button component={Link} to="/services" endIcon={<ArrowForward />}>Explore all solutions</Button></div><div className="solution-grid">{services.map((service, index) => <Link to={service.href} key={service.title} className={`solution-card solution-card-${index + 1}`}><div className="solution-image-wrap"><img src={publicAsset(service.image)} alt="" /><span className="solution-number">0{index + 1}</span></div><div className="solution-card-content"><Avatar>{service.icon}</Avatar><div><Typography variant="h5">{service.title}</Typography><Typography variant="body2">{service.description}</Typography></div><ArrowOutward className="solution-arrow" /></div></Link>)}</div></section>
 
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-              gap: 2.5,
-            }}
-          >
-            {services.map((service) => (
-              <Card key={service.title} sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 'none' }}>
-                <CardMedia component="img" src={publicAsset(service.image)} alt={service.title} height="230" />
-                <Box sx={{ p: 3 }}>
-                  <Avatar sx={{ bgcolor: '#ECFFF4', color: '#0E7A3D', mb: 2 }}>
-                    {service.icon}
-                  </Avatar>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
-                    {service.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#52675D' }}>
-                    {service.description}
-                  </Typography>
-                </Box>
-              </Card>
-            ))}
-          </Box>
-        </Container>
-      </Box>
+    <ProjectGallery />
+    <EnergyFlow />
+    <SystemConfigurator />
 
-      <Box component="section" sx={{ py: { xs: 6, md: 9 } }}>
-        <Container maxWidth="xl">
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', lg: '0.8fr 1.2fr' },
-              gap: { xs: 4, lg: 7 },
-              alignItems: 'center',
-            }}
-          >
-            <Box>
-              <Typography variant="h2" sx={{ color: '#101914', fontSize: { xs: '2rem', md: '3rem' }, mb: 2 }}>
-                A simple path to solar confidence
-              </Typography>
-              <Typography variant="body1" sx={{ color: '#52675D', mb: 4 }}>
-                We remove guesswork from solar by turning your energy needs into a practical system plan before a panel is mounted.
-              </Typography>
-              <Stack spacing={2}>
-                {process.map((item, index) => (
-                  <Stack key={item} direction="row" spacing={2} alignItems="center">
-                    <Avatar sx={{ bgcolor: '#0E7A3D', color: '#FFFFFF', fontWeight: 800 }}>
-                      {index + 1}
-                    </Avatar>
-                    <Typography variant="h6" sx={{ color: '#102018' }}>
-                      {item}
-                    </Typography>
-                  </Stack>
-                ))}
-              </Stack>
-            </Box>
-            <Box
-              component="img"
-              src={publicAsset('/solafarm2.jpg')}
-              alt="Large solar panel installation"
-              sx={{
-                width: '100%',
-                height: { xs: 360, md: 520 },
-                objectFit: 'cover',
-                borderRadius: 2,
-              }}
-            />
-          </Box>
-        </Container>
-      </Box>
+    <section className="process-section"><Container maxWidth="xl"><div className="process-top"><div className="section-heading"><span className="eyebrow light">THE WORK BEHIND GOOD ENERGY</span><Typography variant="h2">From first question<br />to power that feels right.</Typography></div><Typography className="process-note">Every site is different. A careful process helps make the system fit what matters most to you.</Typography></div><div className="process-grid">{process.map(([number, title, copy]) => <div className="process-step" key={number}><span>{number}</span><div><Typography variant="h5">{title}</Typography><Typography>{copy}</Typography></div><i /></div>)}</div></Container></section>
 
-      <Box component="section" sx={{ py: { xs: 6, md: 9 }, bgcolor: '#F7FBF8' }}>
-        <Container maxWidth="xl">
-          <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'flex-start', md: 'flex-end' }}
-            spacing={2}
-            sx={{ mb: 4 }}
-          >
-            <Box>
-              <Typography variant="h2" sx={{ color: '#101914', fontSize: { xs: '2rem', md: '3rem' } }}>
-                Featured solar products
-              </Typography>
-              <Typography variant="body1" sx={{ color: '#52675D' }}>
-                Panels, inverters, batteries, and accessories selected for dependable systems.
-              </Typography>
-            </Box>
-            <Button component={Link} to="/shop" variant="outlined" endIcon={<ArrowForward />}>
-              Browse Shop
-            </Button>
-          </Stack>
+    {featuredProducts.length > 0 && <section className="featured-shop-section section-wrap"><div className="featured-shop-heading"><div className="section-heading"><span className="eyebrow">THE EQUIPMENT THAT MAKES IT WORK</span><Typography variant="h2">Explore the solar shop.</Typography><Typography>Shop currently listed products and get help choosing the right equipment.</Typography></div><Button component={Link} to="/shop" endIcon={<ArrowForward />}>Visit the shop</Button></div><div className="featured-products">{featuredProducts.map(product => <ProductCard key={product.id} product={product} />)}</div></section>}
 
-          <Box
-            sx={{
-              display: 'grid',
-              gap: 3,
-              gridTemplateColumns: {
-                xs: '1fr',
-                sm: 'repeat(2, minmax(0, 1fr))',
-                xl: 'repeat(4, minmax(0, 1fr))',
-              },
-            }}
-          >
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </Box>
-        </Container>
-      </Box>
+    <section className="knowledge-section"><Container maxWidth="xl"><div className="knowledge-panel"><div><span className="eyebrow light">ENERGY, IN PLAIN LANGUAGE</span><Typography variant="h2">A more confident energy decision starts with a good question.</Typography><Typography>Explore practical guides to batteries, inverters, solar planning and everyday energy use.</Typography><Button component={Link} to="/blog" variant="contained" endIcon={<ArrowOutward />}>Visit the knowledge hub</Button></div><div className="knowledge-orbit" aria-hidden="true"><span className="knowledge-sun">☼</span><div><span>Learn</span><span>Compare</span><span>Choose</span></div></div></div></Container></section>
 
-      <Box component="section" sx={{ py: { xs: 7, md: 10 } }}>
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              p: { xs: 3, md: 5 },
-              borderRadius: 2,
-              bgcolor: '#0E7A3D',
-              color: '#FFFFFF',
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr auto' },
-              gap: 3,
-              alignItems: 'center',
-            }}
-          >
-            <Box>
-              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-                <Speed />
-                <Typography variant="overline" sx={{ letterSpacing: 1 }}>
-                  Fast solar assessment
-                </Typography>
-              </Stack>
-              <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
-                Ready to lower your power bill?
-              </Typography>
-              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.84)' }}>
-                Send us your location and power needs. We will recommend a clear solar package and installation plan.
-              </Typography>
-            </Box>
-            <Button
-              component="a"
-              href="https://wa.me/254711343412?text=Hello%20Top%20Heights%20Solar%2C%20I%20need%20a%20solar%20assessment."
-              target="_blank"
-              variant="contained"
-              startIcon={<WhatsApp />}
-              sx={{
-                bgcolor: '#FFFFFF',
-                color: '#0E7A3D',
-                minWidth: 210,
-                '&:hover': { bgcolor: '#EAF7EF' },
-              }}
-            >
-              WhatsApp Now
-            </Button>
-          </Box>
-        </Container>
-      </Box>
-
-      <Footer />
-    </Box>
-  );
+    <section className="closing-cta"><Container maxWidth="xl"><div className="closing-inner"><div><span className="eyebrow light">LET’S MAKE A PLAN</span><Typography variant="h2">Let’s design energy<br />around your life.</Typography><Typography>Tell us what you need. We’ll help you take the next step.</Typography></div><div className="closing-actions"><Button variant="contained" onClick={() => window.dispatchEvent(new Event('open-quote-wizard'))} endIcon={<ArrowOutward />}>Start a solar quote</Button><Button component="a" href="https://wa.me/254711343412?text=Hello%20Top%20Heights%20Solar%2C%20I%27d%20like%20to%20talk%20about%20solar." target="_blank" rel="noreferrer" startIcon={<WhatsApp />}>Talk on WhatsApp</Button></div><div className="closing-spark">☼</div></div></Container></section>
+    <Footer />
+  </Box>;
 };
 
 export default Home;

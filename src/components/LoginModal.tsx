@@ -32,18 +32,20 @@ interface LoginModalProps {
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
-  const { login, loginWithGoogle, signup } = useAuth();
+  const { login, loginWithGoogle, signup, resetPassword, authError } = useAuth();
   const [tab, setTab] = useState(0);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setNotice('');
     setLoading(true);
 
     try {
@@ -51,9 +53,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
       if (tab === 0) {
         // Login
         success = await login(email, password);
-        if (!success) {
-          setError('Invalid email or password. Please try again.');
-        }
       } else {
         // Signup
         if (!name.trim()) {
@@ -67,9 +66,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
           return;
         }
         success = await signup(email, password, name);
-        if (!success) {
-          setError('Failed to create account. Email may already be in use or invalid.');
-        }
       }
 
       if (success) {
@@ -93,16 +89,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
       if (success) {
 
         handleClose();
-      } else {
-        setError('Failed to sign in with Google');
       }
-    } catch (err) {
-      if (err && typeof err === 'object' && 'code' in err && err.code === 'auth/popup-closed-by-user') {
-        setError('Sign-in was cancelled');
-      } else {
-        setError('Failed to sign in with Google');
-      }
+    } catch {
+      setError('Google sign-in failed. Please try again or use email and password.');
     }
+    setLoading(false);
+  };
+
+  const handlePasswordReset = async () => {
+    setError('');
+    setNotice('');
+    setLoading(true);
+    const sent = await resetPassword(email);
+    if (sent) setNotice('If an account uses that email, a password reset link is on its way.');
     setLoading(false);
   };
 
@@ -111,6 +110,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
     setPassword('');
     setName('');
     setError('');
+    setNotice('');
     setLoading(false);
     setTab(0);
     onClose();
@@ -159,11 +159,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
           </DialogTitle>
 
           <DialogContent sx={{ pt: 3 }}>
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
+            {(error || authError || notice) && <Alert severity={error || authError ? 'error' : 'success'} sx={{ mb: 2 }}>{error || authError || notice}</Alert>}
 
             {/* Google Login Button */}
             <Button
@@ -286,6 +282,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
                   },
                 }}
               />
+
+              {tab === 0 && <Button type="button" size="small" disabled={loading || !email.trim()} onClick={handlePasswordReset} sx={{ mt: 1, px: 0, justifyContent: 'flex-start' }}>Forgot your password?</Button>}
 
               <Button
                 type="submit"

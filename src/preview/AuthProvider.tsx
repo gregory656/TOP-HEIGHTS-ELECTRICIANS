@@ -32,9 +32,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return <AuthContext.Provider value={{
     user, firebaseUser: null, isAuthenticated: !!user, isLoading: false, authLoading: false,
+    authError: '',
     loginModalOpen, setLoginModalOpen,
     login: async () => { selectRole('customer'); return true; },
     loginWithGoogle: async () => { selectRole('customer'); return true; },
+    resetPassword: async () => true,
     signup: async () => { selectRole('admin'); return true; },
     logout: async () => { selectRole(null); },
   }}>

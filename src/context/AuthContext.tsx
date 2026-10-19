@@ -6,6 +6,7 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut as firebaseSignOut,
   onAuthStateChanged,
 } from 'firebase/auth';
@@ -24,6 +25,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState('');
+
+  const authErrorMessage = useCallback((error: unknown, action: 'login' | 'signup' | 'google') => {
+    const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : '';
+    if (code === 'auth/invalid-email') return 'Enter a valid email address.';
+    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') return 'That email and password do not match. Check them or create an account.';
+    if (code === 'auth/email-already-in-use') return 'An account already uses this email. Sign in instead, or use password reset.';
+    if (code === 'auth/weak-password') return 'Choose a password with at least 6 characters.';
+    if (code === 'auth/operation-not-allowed') return 'This sign-in method is temporarily unavailable. Try another method or contact support.';
+    if (code === 'auth/unauthorized-domain') return 'Sign-in is not available from this address. Please contact support.';
+    if (code === 'auth/network-request-failed') return 'Could not connect. Check your internet connection and try again.';
+    if (code === 'auth/too-many-requests') return 'Too many attempts. Wait a little, then try again.';
+    if (code === 'auth/popup-closed-by-user') return 'Google sign-in was cancelled.';
+    return action === 'signup' ? 'Could not create your account right now. Please try again.' : action === 'google' ? 'Google sign-in failed. Please try again or use email and password.' : 'Could not sign in. Check your details and try again.';
+  }, []);
 
   const getDisplayName = useCallback((fbUser: FirebaseUser, fallbackName?: string) => {
     if (fallbackName?.trim()) return fallbackName.trim();
@@ -104,6 +120,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [upsertUserDocument, getDisplayName]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    setAuthError('');
     try {
       setIsLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
@@ -111,6 +128,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return true;
     } catch (error: unknown) {
       console.error('Login error:', error);
+      setAuthError(authErrorMessage(error, 'login'));
       if (error instanceof Error) {
         const firebaseError = error as { code?: string };
         console.log('Firebase error code:', firebaseError.code);
@@ -123,6 +141,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const loginWithGoogle = async (): Promise<boolean> => {
+    setAuthError('');
     try {
       setIsLoading(true);
       await signInWithPopup(auth, googleProvider);
@@ -131,6 +150,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return true;
     } catch (error: unknown) {
       console.error('Google login error:', error);
+      setAuthError(authErrorMessage(error, 'google'));
       if (error instanceof Error) {
         const firebaseError = error as { code?: string };
         console.log('Firebase error code:', firebaseError.code);
@@ -142,7 +162,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const resetPassword = async (email: string): Promise<boolean> => {
+    setAuthError('');
+    if (!email.trim()) { setAuthError('Enter your email address first, then request a password reset.'); return false; }
+    try {
+      setIsLoading(true);
+      await sendPasswordResetEmail(auth, email.trim());
+      return true;
+    } catch (error) {
+      console.error('Password reset error:', error);
+      setAuthError(authErrorMessage(error, 'login'));
+      return false;
+    } finally { setIsLoading(false); }
+  };
+
   const signup = async (email: string, password: string, name: string): Promise<boolean> => {
+    setAuthError('');
     try {
       setIsLoading(true);
       console.log('Starting signup process...');
@@ -176,6 +211,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return true;
     } catch (error: unknown) {
       console.error('Signup error:', error);
+      setAuthError(authErrorMessage(error, 'signup'));
       if (error instanceof Error) {
         const firebaseError = error as { code?: string };
         const errorCode = firebaseError.code;
@@ -216,11 +252,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         firebaseUser,
         login,
         loginWithGoogle,
+        resetPassword,
         signup,
         logout,
         isAuthenticated: !!user,
         isLoading,
         authLoading,
+        authError,
         loginModalOpen,
         setLoginModalOpen,
       }}

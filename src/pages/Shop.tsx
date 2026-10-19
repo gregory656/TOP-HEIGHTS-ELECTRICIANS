@@ -19,21 +19,26 @@ import {
   Drawer,
   IconButton,
   Slider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
-import { Search, FilterList, Close, Sort } from '@mui/icons-material';
+import { Search, FilterList, Close, Sort, CompareArrows, WhatsApp } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
 import PageMeta from '../components/PageMeta';
 import { orderTime } from '../services/orderModel';
-import { Alert } from '@mui/material';
 import type { Product } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import OrderModal from '../components/OrderModal';
 import Footer from '../components/Footer';
 
 const Shop: React.FC = () => {
-  const { products, loading, error } = useProducts();
+  const { products, loading } = useProducts();
   const categories = ['All', ...new Set(products.map(p => p.category))];
   const priceMaximum = Math.max(400000, ...products.map(p => p.price));
   const theme = useTheme();
@@ -47,6 +52,8 @@ const Shop: React.FC = () => {
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [compareIds, setCompareIds] = useState<Array<string | number>>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
 
   const itemsPerPage = 8;
 
@@ -98,6 +105,8 @@ const Shop: React.FC = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  const compareProducts = products.filter(product => compareIds.includes(product.id));
+  const toggleCompare = (product: Product) => setCompareIds(current => current.includes(product.id) ? current.filter(id => id !== product.id) : current.length < 3 ? [...current, product.id] : current);
 
   const handleOrder = (product: Product) => {
     setSelectedProduct(product);
@@ -131,17 +140,17 @@ const Shop: React.FC = () => {
             transition={{ duration: 0.5 }}
           >
             <Typography variant="h1" sx={{ mb: 1 }}>
-              Solar Shop
+              Solar equipment, chosen with confidence.
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Browse solar panels, batteries, inverters, and complete installation packages.
+              Explore the current catalogue. Need help choosing? Our team can guide you through the options and system compatibility.
             </Typography>
+            <Button component="a" href="https://wa.me/254711343412?text=Hello%20Top%20Heights%2C%20I%27d%20like%20help%20choosing%20solar%20equipment." target="_blank" rel="noreferrer" startIcon={<WhatsApp/>} sx={{mt:2}}>Help me choose</Button>
           </motion.div>
         </Container>
       </Box>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        {error && <Alert severity="error">{error}</Alert>}
         {loading && <Typography>Loading products…</Typography>}
         {/* Filters Bar */}
         <Box
@@ -285,6 +294,7 @@ const Shop: React.FC = () => {
                       product={product}
                       onOrder={handleOrder}
                     />
+                    <Button fullWidth size="small" startIcon={<CompareArrows/>} aria-pressed={compareIds.includes(product.id)} onClick={()=>toggleCompare(product)} sx={{mt:1}}>{compareIds.includes(product.id)?'Added to compare':'Compare products'}</Button>
                   </motion.div>
                 </Grid>
               ))}
@@ -324,7 +334,7 @@ const Shop: React.FC = () => {
             }}
           >
             <Typography variant="h5" sx={{ mb: 1 }}>
-              {loading ? 'Loading products…' : error ? 'Products unavailable' : 'No products found'}
+              {loading ? 'Loading products…' : 'No products found'}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Try adjusting your search or filter criteria
@@ -424,6 +434,9 @@ const Shop: React.FC = () => {
           Apply Filters
         </Button>
       </Drawer>
+
+      {compareIds.length>0&&<Box sx={{position:'fixed',bottom:18,left:{xs:12,md:300},right:12,zIndex:1200,display:'flex',alignItems:'center',justifyContent:'space-between',gap:2,p:1.5,pl:2,bgcolor:'#10281D',color:'#fff',borderRadius:3,boxShadow:'0 12px 40px rgba(10,40,25,.25)'}}><Typography variant="body2" sx={{color:'#fff!important'}}>{compareIds.length} of 3 products selected</Typography><Box sx={{display:'flex',gap:1}}><Button size="small" onClick={()=>setCompareIds([])} sx={{color:'#fff'}}>Clear</Button><Button size="small" variant="contained" startIcon={<CompareArrows/>} onClick={()=>setCompareOpen(true)} sx={{bgcolor:'#c5eb87',color:'#14251a','&:hover':{bgcolor:'#d8f3ae'}}}>Compare</Button></Box></Box>}
+      <Dialog open={compareOpen} onClose={()=>setCompareOpen(false)} fullWidth maxWidth="md"><DialogTitle>Compare solar products</DialogTitle><DialogContent><Box sx={{display:'grid',gridTemplateColumns:`repeat(${Math.max(1,compareProducts.length)},minmax(0,1fr))`,gap:2,py:1}}>{compareProducts.map(product=><Box key={product.id} sx={{border:'1px solid #E2E9E3',borderRadius:2,p:2,minWidth:0}}><Typography variant="overline" color="primary">{product.category}</Typography><Typography variant="h6" sx={{minHeight:52,fontSize:15}}>{product.name}</Typography><Typography sx={{fontWeight:800,my:1}}>KES {product.price.toLocaleString('en-KE')}</Typography><Typography variant="caption" color="text.secondary">Availability: {product.inStock===false?'Unavailable':product.inStock?'In stock':'Please confirm'}</Typography><Box sx={{mt:2,display:'grid',gap:1}}>{(product.specifications||[]).map(spec=><Box key={spec.label} sx={{borderTop:'1px solid #edf0ed',pt:1}}><Typography variant="caption" color="text.secondary">{spec.label}</Typography><Typography variant="body2">{spec.value}</Typography></Box>)}</Box><Button fullWidth sx={{mt:2}} component={Link} to={`/shop/${product.slug||product.id}`} onClick={()=>setCompareOpen(false)}>View details</Button></Box>)}</Box><Alert severity="info" sx={{mt:1}}>Catalogue information supports product discovery. Confirm specifications, compatibility, warranty and availability with the team before purchasing.</Alert></DialogContent><DialogActions><Button onClick={()=>setCompareOpen(false)}>Close comparison</Button></DialogActions></Dialog>
 
       {/* Order Modal */}
       <OrderModal

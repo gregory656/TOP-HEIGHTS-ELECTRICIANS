@@ -19,11 +19,13 @@ export interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   login: (email: string, password: string) => Promise<boolean>;
   loginWithGoogle: () => Promise<boolean>;
+  resetPassword: (email: string) => Promise<boolean>;
   signup: (email: string, password: string, name: string) => Promise<boolean>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
   authLoading: boolean;
+  authError: string;
   loginModalOpen: boolean;
   setLoginModalOpen: (open: boolean) => void;
 }

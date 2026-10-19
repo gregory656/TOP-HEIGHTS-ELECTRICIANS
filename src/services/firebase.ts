@@ -18,6 +18,12 @@ const firebaseConfig = {
 };
 
 const useEmulators = import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true';
+export const firebaseAuthConfigured = useEmulators || Boolean(
+  import.meta.env.VITE_FIREBASE_API_KEY
+  && import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+  && import.meta.env.VITE_FIREBASE_PROJECT_ID
+  && import.meta.env.VITE_FIREBASE_APP_ID
+);
 
 // Initialize Firebase app
 let app: FirebaseApp;
