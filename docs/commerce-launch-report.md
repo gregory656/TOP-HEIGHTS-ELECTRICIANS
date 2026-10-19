@@ -2,11 +2,11 @@
 
 This branch contains the UI revamp, product detail pages, business-admin catalogue/blog/inventory/order management, and server-verified IntaSend payment integration. It is a review candidate, not a completed production deployment.
 
-Current verification supersedes the historical sprint notes below: staging admin content editing and Cloudinary image uploads were exercised on the separate Netlify staging site. Invoice QPWN5NY remained PROCESSING and unverified; the test does not establish a completed payment or a successful automatic callback. Production Firebase credentials were validated privately and the approved business-admin role was configured; the user's password was not tested. Live payments remain disabled.
+Current verification supersedes the historical sprint notes below: staging admin content editing and Cloudinary image uploads were exercised on the separate Netlify staging site. Invoice QPWN5NY remained PROCESSING and unverified; the test does not establish a completed payment or a successful automatic callback. Production Firebase credentials were validated privately and the approved business-admin role was configured; the user's password was not tested. The private Vercel Production handover now sets PAYMENTS_ENABLED=true at the user’s request; it has not been deployed.
 
-The existing live site is hosted on Vercel and will stay there. The included serverless adapter is for Netlify staging; Vercel still needs its backend entry point/routing and production environment configuration before release. Do not merge into an automatically deployed production branch until those deployment requirements and production rules/catalogue compatibility have been reviewed. No secrets, private credential files, or local account passwords belong in this PR.
+The existing live site is hosted on Vercel and will stay there. The included serverless adapter is for Netlify staging; The Vercel backend entry point/routing is now included. Production environment import, rules/catalogue review, live webhook registration and deployed acceptance testing still remain before release. Do not merge into an automatically deployed production branch until those deployment requirements and production rules/catalogue compatibility have been reviewed. No secrets, private credential files, or local account passwords belong in this PR.
 
-See [production release preparation](production-release.md). The notes below are retained as historical implementation detail; their deployment status and test counts are not current.
+See [Vercel handover](vercel-handover.md) and [production release preparation](production-release.md). The notes below are retained as historical implementation detail; their deployment status and test counts are not current.
 
 ---
 

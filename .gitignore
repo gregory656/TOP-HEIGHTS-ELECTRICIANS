@@ -45,3 +45,5 @@ backend/functions/lib/
 backend/functions/storefront.html
 .playwright-cli/
 .netlify/
+
+.vercel/

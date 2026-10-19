@@ -1,0 +1,10 @@
+.local/
+.kilo/
+.netlify/
+.vercel/
+.firebase/
+.playwright-cli/
+.env
+.env.*
+**/node_modules/
+*.log

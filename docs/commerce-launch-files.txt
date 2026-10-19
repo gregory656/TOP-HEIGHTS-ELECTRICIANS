@@ -118,3 +118,11 @@ docs/free-hosting-staging.md
 docs/production-release.md
 scripts/build-production.cjs
 netlify.production.toml
+.vercelignore
+api/commerce.js
+vercel.json
+backend/functions/src/runtime.ts
+backend/functions/src/vercel.ts
+backend/functions/test/vercel.test.cjs
+scripts/build-vercel.cjs
+docs/vercel-handover.md
