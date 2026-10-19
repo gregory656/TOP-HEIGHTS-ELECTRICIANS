@@ -149,9 +149,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       const result = await createUserWithEmailAndPassword(auth, email, password);
       console.log('User created in Firebase Auth:', result.user.uid);
-      await upsertUserDocument(result.user, name);
-      
-      console.log('User saved to Firestore');
+      const newUser: User = {
+        uid: result.user.uid,
+        role: 'customer',
+        name: getDisplayName(result.user, name),
+        email: result.user.email || email,
+        photoURL: result.user.photoURL || undefined,
+      };
+      setFirebaseUser(result.user);
+      setUser(newUser);
+      setStoredUsername(newUser.name);
+
+      // Firebase Auth has already created the account. A profile write can fail
+      // independently (for example, if Firestore is temporarily unavailable),
+      // so do not tell the user that account creation failed in that case.
+      try {
+        const userData = await upsertUserDocument(result.user, name);
+        setStoredUsername(userData.name);
+        setUser(userData);
+        console.log('User profile saved to Firestore');
+      } catch (profileError) {
+        console.error('Account created, but saving the Firestore profile failed:', profileError);
+      }
+
       setLoginModalOpen(false);
       return true;
     } catch (error: unknown) {
