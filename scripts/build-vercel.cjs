@@ -4,16 +4,29 @@ const root = path.resolve(__dirname, '..');
 
 function vercelBuildEnvironment(config) {
   const production = config.VERCEL_ENV === 'production';
+  const commerceEnvironment = production ? 'production' : 'staging';
+  const environmentName = production ? 'Production' : 'Preview';
   const projectId = production ? 'top-heights-electricals' : 'top-heights-staging-408995';
-  if (config.VITE_FIREBASE_PROJECT_ID !== projectId || config.COMMERCE_ENVIRONMENT !== (production ? 'production' : 'staging')) {
-    throw Error('Configure separate Firebase and commerce environments for Production and Preview.');
+  if (config.VITE_FIREBASE_PROJECT_ID !== projectId) {
+    throw Error(`Vercel ${environmentName} requires VITE_FIREBASE_PROJECT_ID=${projectId}. Configure it in the ${environmentName} environment.`);
   }
-  if (config.VITE_USE_FIREBASE_EMULATORS !== 'false') throw Error('Hosted builds cannot use emulators.');
+  if (config.COMMERCE_ENVIRONMENT && config.COMMERCE_ENVIRONMENT !== commerceEnvironment) {
+    throw Error(`Vercel ${environmentName} requires COMMERCE_ENVIRONMENT=${commerceEnvironment} when that variable is set.`);
+  }
+  if (config.VITE_USE_FIREBASE_EMULATORS === 'true') throw Error('Hosted builds cannot use Firebase emulators.');
   const origin = !production && config.VERCEL_URL ? `https://${config.VERCEL_URL}` : config.STOREFRONT_ORIGIN;
   const url = new URL(origin);
   if (url.origin !== origin || url.protocol !== 'https:') throw Error('Configure the exact HTTPS storefront origin.');
   if (production && !['topheightselectricals.com', 'www.topheightselectricals.com'].includes(url.hostname)) throw Error('Unexpected production domain.');
-  return { ...config, STOREFRONT_ORIGIN: origin, VITE_SITE_URL: origin, VITE_COMMERCE_API_URL: origin + '/api', VITE_INDEXABLE: production ? 'true' : 'false' };
+  return {
+    ...config,
+    COMMERCE_ENVIRONMENT: commerceEnvironment,
+    VITE_USE_FIREBASE_EMULATORS: 'false',
+    STOREFRONT_ORIGIN: origin,
+    VITE_SITE_URL: origin,
+    VITE_COMMERCE_API_URL: origin + '/api',
+    VITE_INDEXABLE: production ? 'true' : 'false',
+  };
 }
 
 async function main() {

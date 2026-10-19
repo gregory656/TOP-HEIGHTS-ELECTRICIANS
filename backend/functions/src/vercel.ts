@@ -4,8 +4,12 @@ import { runtimeDependencies } from './runtime';
 
 export function vercelEnvironment(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const production = env.VERCEL_ENV === 'production';
-  if (env.COMMERCE_ENVIRONMENT !== (production ? 'production' : 'staging')) throw Error('Deployment environment does not match Vercel.');
-  return !production && env.VERCEL_URL ? { ...env, STOREFRONT_ORIGIN: `https://${env.VERCEL_URL}` } : env;
+  const commerceEnvironment = production ? 'production' : 'staging';
+  if (env.COMMERCE_ENVIRONMENT && env.COMMERCE_ENVIRONMENT !== commerceEnvironment) {
+    throw Error('Deployment environment does not match Vercel.');
+  }
+  const resolved = { ...env, COMMERCE_ENVIRONMENT: commerceEnvironment };
+  return !production && env.VERCEL_URL ? { ...resolved, STOREFRONT_ORIGIN: `https://${env.VERCEL_URL}` } : resolved;
 }
 
 export function createVercelApp(deps: CommerceDependencies) {

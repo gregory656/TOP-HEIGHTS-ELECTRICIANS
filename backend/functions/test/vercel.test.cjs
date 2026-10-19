@@ -12,8 +12,17 @@ test('Vercel preview cannot use production Firebase or payment configuration', (
   assert.throws(() => vercelBuildEnvironment({ ...live, VITE_FIREBASE_PROJECT_ID: 'top-heights-staging-408995' }));
   const preview = { ...live, VERCEL_ENV: 'preview', VERCEL_URL: 'preview.example.test', COMMERCE_ENVIRONMENT: 'staging', VITE_FIREBASE_PROJECT_ID: 'top-heights-staging-408995' };
   assert.equal(vercelBuildEnvironment(preview).VITE_COMMERCE_API_URL, 'https://preview.example.test/api');
+  const previewWithoutManualModeFlags = vercelBuildEnvironment({
+    ...preview,
+    COMMERCE_ENVIRONMENT: undefined,
+    VITE_USE_FIREBASE_EMULATORS: undefined,
+  });
+  assert.equal(previewWithoutManualModeFlags.COMMERCE_ENVIRONMENT, 'staging');
+  assert.equal(previewWithoutManualModeFlags.VITE_USE_FIREBASE_EMULATORS, 'false');
+  assert.throws(() => vercelBuildEnvironment({ ...preview, VITE_USE_FIREBASE_EMULATORS: 'true' }));
   assert.equal(vercelBuildEnvironment(preview).VITE_INDEXABLE, 'false');
   assert.equal(vercelEnvironment(preview).STOREFRONT_ORIGIN, 'https://preview.example.test');
+  assert.equal(vercelEnvironment({ ...preview, COMMERCE_ENVIRONMENT: undefined }).COMMERCE_ENVIRONMENT, 'staging');
 });
 
 test('unconfigured Vercel runtime returns a sanitized 503 using native Node responses', async t => {
