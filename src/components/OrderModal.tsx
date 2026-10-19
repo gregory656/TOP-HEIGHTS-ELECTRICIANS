@@ -29,7 +29,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Product {
-  id: number;
+  id: string | number;
   name: string;
   price: number;
   image: string;
@@ -139,14 +139,14 @@ const OrderModal: React.FC<OrderModalProps> = ({ open, onClose, product }) => {
           </Avatar>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Order Product
+              Request a product
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Complete your order in 2 easy steps
+              Prepare your request, then send it on WhatsApp
             </Typography>
           </Box>
         </Box>
-        <IconButton onClick={handleClose} sx={{ color: 'text.secondary' }}>
+        <IconButton aria-label="Close order request" onClick={handleClose} sx={{ color: 'text.secondary' }}>
           <Close />
         </IconButton>
       </DialogTitle>
@@ -158,7 +158,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ open, onClose, product }) => {
             const stepIndex = ['login', 'details', 'confirmation'].indexOf(step);
             const isActive = s === step;
             const isCompleted = ['login', 'details', 'confirmation'].indexOf(s) < stepIndex;
-            
+
             return (
               <Chip
                 key={s}
@@ -166,7 +166,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ open, onClose, product }) => {
                 size="small"
                 sx={{
                   backgroundColor: isActive || isCompleted ? 'primary.main' : 'rgba(100, 255, 218, 0.1)',
-                  color: isActive || isCompleted ? '#0A192F' : 'text.secondary',
+                  color: isActive || isCompleted ? '#FFFFFF' : 'text.secondary',
                   fontWeight: 600,
                   '& .MuiChip-label': {
                     px: 1,
@@ -273,7 +273,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ open, onClose, product }) => {
                 onClick={handleWhatsAppOrder}
                 sx={{
                   py: 1.5,
-                  background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                  backgroundColor: 'primary.main',
                   fontWeight: 700,
                   '&:hover': {
                     background: 'linear-gradient(135deg, #2BBE68 0%, #1EA496 100%)',
@@ -372,7 +372,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ open, onClose, product }) => {
               {loading ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4 }}>
                   <CircularProgress sx={{ color: 'primary.main', mb: 2 }} />
-                  <Typography color="text.secondary">Processing your order...</Typography>
+                  <Typography color="text.secondary">Preparing your request...</Typography>
                 </Box>
               ) : (
                 <Box sx={{ textAlign: 'center', py: 2 }}>
@@ -384,10 +384,10 @@ const OrderModal: React.FC<OrderModalProps> = ({ open, onClose, product }) => {
                     }}
                   />
                   <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-                    Order Confirmed! 🎉
+                    Your request is ready
                   </Typography>
                   <Typography color="text.secondary" sx={{ mb: 3 }}>
-                    Thank you for your order, {formData.name}! We'll contact you at {formData.phone} shortly.
+                    Send your request on WhatsApp so our team can confirm availability, delivery, and payment.
                   </Typography>
 
                   <Button
@@ -402,7 +402,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ open, onClose, product }) => {
                       fontWeight: 700,
                     }}
                   >
-                    Confirm via WhatsApp
+                    Send via WhatsApp
                   </Button>
                 </Box>
               )}
@@ -424,7 +424,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ open, onClose, product }) => {
                 (step === 'details' && (!formData.name || !formData.phone || !formData.address))
               }
             >
-              {step === 'details' ? 'Confirm Order' : 'Continue'}
+              {step === 'details' ? 'Review request' : 'Continue'}
             </Button>
           )}
         </DialogActions>

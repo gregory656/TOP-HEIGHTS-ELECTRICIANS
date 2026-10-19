@@ -70,7 +70,7 @@ const Services: React.FC = () => {
       {/* Header Section */}
       <Box
         sx={{
-          py: 8,
+          py: { xs: 4, md: 6 },
           background: '#FFFFFF',
           borderBottom: '1px solid #E4EFE8',
           position: 'relative',
@@ -105,7 +105,7 @@ const Services: React.FC = () => {
               variant="h1"
               sx={{
                 mb: 2,
-                fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' },
+                fontSize: { xs: '2rem', sm: '2.75rem', md: '3.25rem' },
                 color: '#101914',
               }}
             >
@@ -143,6 +143,7 @@ const Services: React.FC = () => {
                 variant="outlined"
                 size="large"
                 startIcon={<BatteryChargingFull />}
+                onClick={handleWhatsAppContact}
                 sx={{
                   py: 1.5,
                   px: 3,
@@ -165,7 +166,7 @@ const Services: React.FC = () => {
           <Grid container spacing={3}>
             {services.map((service) => (
               <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={service.id}>
-                <motion.div variants={itemVariants}>
+                <motion.div variants={itemVariants} style={{ height: '100%' }}>
                   <ServiceCard
                     service={service}
                     onExplore={handleExplore}

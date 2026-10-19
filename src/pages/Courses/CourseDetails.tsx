@@ -76,8 +76,8 @@ const CourseDetails: React.FC = () => {
         sx={{
           p: 3,
           borderRadius: 3,
-          background: 'rgba(17, 34, 64, 0.6)',
-          border: '1px solid rgba(100, 255, 218, 0.2)',
+          background: '#FFFFFF',
+          border: '1px solid #DDE5DF',
           mb: 3,
         }}
       >
@@ -112,8 +112,8 @@ const CourseDetails: React.FC = () => {
             sx={{
               p: 3,
               borderRadius: 3,
-              background: 'rgba(17, 34, 64, 0.5)',
-              border: '1px solid rgba(100, 255, 218, 0.1)',
+              background: '#FFFFFF',
+              border: '1px solid #DDE5DF',
               mb: 3,
             }}
           >
@@ -135,8 +135,8 @@ const CourseDetails: React.FC = () => {
             sx={{
               p: 3,
               borderRadius: 3,
-              background: 'rgba(17, 34, 64, 0.4)',
-              border: '1px solid rgba(100, 255, 218, 0.1)',
+              background: '#FFFFFF',
+              border: '1px solid #DDE5DF',
               mb: 3,
             }}
           >
@@ -144,16 +144,16 @@ const CourseDetails: React.FC = () => {
               Lessons
             </Typography>
             <Stack spacing={1}>
-              <Box sx={{ p: 2, borderRadius: 2, background: 'rgba(255, 255, 255, 0.02)' }}>
+              <Box sx={{ p: 2, borderRadius: 2, background: '#F6F8F7' }}>
                 <Typography variant="body2">Lesson 1: Introduction to {course.title}</Typography>
               </Box>
-              <Box sx={{ p: 2, borderRadius: 2, background: 'rgba(255, 255, 255, 0.02)' }}>
+              <Box sx={{ p: 2, borderRadius: 2, background: '#F6F8F7' }}>
                 <Typography variant="body2">Lesson 2: Core Concepts</Typography>
               </Box>
-              <Box sx={{ p: 2, borderRadius: 2, background: 'rgba(255, 255, 255, 0.02)' }}>
+              <Box sx={{ p: 2, borderRadius: 2, background: '#F6F8F7' }}>
                 <Typography variant="body2">Lesson 3: Practical Exercise</Typography>
               </Box>
-              <Box sx={{ p: 2, borderRadius: 2, background: 'rgba(255, 255, 255, 0.02)' }}>
+              <Box sx={{ p: 2, borderRadius: 2, background: '#F6F8F7' }}>
                 <Typography variant="body2">Lesson 4: Certification</Typography>
               </Box>
             </Stack>
@@ -163,8 +163,8 @@ const CourseDetails: React.FC = () => {
             sx={{
               p: 3,
               borderRadius: 3,
-              background: 'rgba(17, 34, 64, 0.4)',
-              border: '1px solid rgba(100, 255, 218, 0.1)',
+              background: '#FFFFFF',
+              border: '1px solid #DDE5DF',
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
@@ -199,8 +199,8 @@ const CourseDetails: React.FC = () => {
           sx={{
             p: 3,
             borderRadius: 3,
-            background: 'rgba(17, 34, 64, 0.5)',
-            border: '1px solid rgba(100, 255, 218, 0.1)',
+            background: '#FFFFFF',
+            border: '1px solid #DDE5DF',
             height: 'fit-content',
           }}
         >

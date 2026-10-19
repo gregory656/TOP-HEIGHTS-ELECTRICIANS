@@ -1,4 +1,4 @@
-import { products } from '../data/products';
+
 import { services } from '../data/services';
 import type { ChatApiResponse } from '../components/chatbot/types';
 
@@ -40,13 +40,6 @@ const entries: LocalEntry[] = [
     title: service.title,
     content: `${service.shortDescription} ${service.fullDescription} Key benefits: ${service.keyBenefits.join('; ')}.`,
     keywords: [service.id, 'service', ...service.keyBenefits],
-  })),
-  ...products.map((product) => ({
-    title: product.name,
-    content: `${product.name} costs KES ${product.price}. Category: ${product.category}. ${
-      product.description ?? ''
-    }`,
-    keywords: ['product', product.category, 'price', product.name],
   })),
   ...aboutEntries,
 ];

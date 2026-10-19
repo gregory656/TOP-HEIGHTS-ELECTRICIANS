@@ -1,5 +1,6 @@
 // src/components/CheckoutSidebar.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Drawer,
   Box,
@@ -14,9 +15,6 @@ import {
   CircularProgress,
   Alert,
   Skeleton,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
 } from '@mui/material';
 import {
   Close,
@@ -24,19 +22,11 @@ import {
   Add,
   Remove,
   ShoppingCartCheckout,
-  AccountBalance,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../context/CartContext';
-import {
-  createOrderWithItems,
-  initiateSTKPush,
-  pollPaymentStatus,
-  updateOrderStatus,
-} from '../services/orderService';
-import { INTASEND_CONFIG } from '../config/intasendConfig';
-import { triggerIntaSendPayment } from '../services/intasendService';
+import { createOrderWithItems, startOrderPayment, refreshOrderPayment, type OrderQuote } from '../services/orderService';
 
 interface CheckoutSidebarProps {
   open: boolean;
@@ -50,26 +40,21 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'details' | 'payment' | 'processing' | 'success'>('cart');
-  // Default to INTASEND as it uses inline SDK (works without backend)
-  // MPESA uses direct API calls which may be blocked by CORS
-  const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'INTASEND'>('INTASEND');
+  const paymentMethod = 'MPESA' as const;
   const [orderId, setOrderId] = useState('');
-  const [paymentDebugLog, setPaymentDebugLog] = useState<string[]>([]);
+  const [quote, setQuote] = useState<OrderQuote | null>(null);
+  const busy = useRef(false);
   const [skeletonActive, setSkeletonActive] = useState(false);
 
-  const pushDebugLog = (entry: string) => {
-    const timestamp = new Date().toLocaleTimeString();
-    setPaymentDebugLog((prev) => [...prev, `[${timestamp}] ${entry}`].slice(-10));
-  };
-  
   // Form validation errors
   const [formErrors, setFormErrors] = useState({
     email: '',
     phone: '',
     address: '',
   });
-  
+
   // Checkout form
+  const [landmark, setLandmark] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
@@ -80,69 +65,6 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   useEffect(() => {
     if (user?.email) setFormData((prev) => ({ ...prev, email: user.email || '' }));
   }, [user?.email]);
-
-  const startIntaSendCheckout = async (params: {
-    checkoutOrderId: string;
-    amount: number;
-    email: string;
-    phone: string;
-  }) => {
-    const { checkoutOrderId, amount, email, phone } = params;
-
-    pushDebugLog('Starting IntaSend checkout...');
-    if (!INTASEND_CONFIG.PUBLIC_KEY) {
-      throw new Error('IntaSend public key is not configured');
-    }
-
-    pushDebugLog(`Public Key: ${INTASEND_CONFIG.PUBLIC_KEY.substring(0, 10)}...`);
-    pushDebugLog(`Amount: KES ${amount}`);
-    pushDebugLog(`Email: ${email}`);
-    pushDebugLog(`Phone: ${phone}`);
-
-    try {
-      pushDebugLog('Triggering IntaSend checkout...');
-      await triggerIntaSendPayment({
-        checkoutOrderId,
-        amount,
-        email,
-        phone,
-        callbacks: {
-          onStatusChange: (status) => {
-            if (status === 'IN-PROGRESS') {
-              pushDebugLog('Payment in progress...');
-              setCheckoutStep('processing');
-            }
-          },
-          onComplete: async () => {
-            pushDebugLog('Payment completed!');
-            try {
-              await updateOrderStatus(checkoutOrderId, {
-                paymentStatus: 'paid',
-                orderStatus: 'processed',
-              });
-              pushDebugLog('Order status updated to paid');
-            } catch (e) {
-              console.error('Failed to update order status after payment', e);
-              pushDebugLog(`Status update error: ${e}`);
-            }
-            clearCart();
-            setCheckoutStep('success');
-          },
-          onFailed: () => {
-            pushDebugLog('Payment failed');
-            setError('Payment failed or was cancelled. You can try again.');
-            setCheckoutStep('details');
-          },
-        },
-      });
-      pushDebugLog('Payment initiated!');
-    } catch (sdkError) {
-      const errorMsg = sdkError instanceof Error ? sdkError.message : 'SDK Error';
-      pushDebugLog(`SDK Error: ${errorMsg}`);
-      console.error('IntaSend SDK Error:', sdkError);
-      throw new Error(`Payment SDK Error: ${errorMsg}`);
-    }
-  };
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     if (newQuantity < 1) removeFromCart(productId);
@@ -162,11 +84,8 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
 
   const fieldStyles = {
     '& .MuiInputBase-root': {
-      borderRadius: 3,
-      backgroundColor: 'rgba(255, 255, 255, 0.02)',
-      '&.Mui-focused': {
-        boxShadow: '0 0 0 3px rgba(30, 144, 255, 0.35)',
-      },
+      borderRadius: 1.5,
+      backgroundColor: 'background.paper',
     },
   };
 
@@ -200,17 +119,17 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     if (!formData.phone) {
       errors.phone = 'Phone number is required';
       isValid = false;
-    } else if (!/^(?:\+254|254|0)?[7]\d{8}$/.test(formData.phone.replace(/\s/g, ''))) {
+    } else if (!/^(?:\+254|254|0)?[17]\d{8}$/.test(formData.phone.replace(/\s/g, ''))) {
       errors.phone = 'Please enter a valid Kenyan phone number';
       isValid = false;
     }
 
     // Address validation
     if (!formData.address) {
-      errors.address = 'Delivery address is required';
+      errors.address = 'Town or delivery location is required';
       isValid = false;
-    } else if (formData.address.length < 10) {
-      errors.address = 'Please enter a complete address';
+    } else if (formData.address.trim().length < 2 || !/\p{L}/u.test(formData.address)) {
+      errors.address = 'Enter a town name or delivery location';
       isValid = false;
     }
 
@@ -219,119 +138,48 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   };
 
   const handleSubmitOrder = async () => {
-    // Validate form first
-    if (!validateForm()) {
-      setError('Please fix the errors in the form');
-      return;
-    }
-
-    if (!user || cartItems.length === 0) {
-      setError('Your cart is empty or you are not logged in');
-      return;
-    }
-
-    setProcessing(true);
-    setError('');
-    setPaymentDebugLog([]);
-
+    if (busy.current || !validateForm() || !user || !cartItems.length) return;
+    busy.current = true;
+    setProcessing(true); setError('');
     try {
-      const { orderId: newOrderId, totalAmount } = await createOrderWithItems({
-        userId: user.uid,
-        fullName: user.name || 'Customer',
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        paymentMethod,
-        items: cartItems.map((i) => ({
-          productId: i.productId,
-          name: i.name,
-          price: i.price,
-          image: i.image,
-          quantity: i.quantity,
-        })),
-      });
+      const result = await createOrderWithItems({ userId: user.uid, fullName: user.name || 'Customer',
+        email: formData.email, phone: formData.phone, address: formData.address, landmark, paymentMethod,
+        items: cartItems.map(({ productId, quantity }) => ({ productId, quantity })) });
+      setQuote(result); setOrderId(result.orderId); setCheckoutStep('payment');
+    } catch (err) { setError(err instanceof Error ? err.message : 'Could not prepare your order. Please try again.'); }
+    finally { busy.current = false; setProcessing(false); }
+  };
 
-      setOrderId(newOrderId);
-      pushDebugLog(`Order created: ${newOrderId}`);
-      pushDebugLog(`Amount: ${formatPrice(totalAmount)}`);
-
-      if (paymentMethod === 'MPESA') {
-        setCheckoutStep('processing');
-        pushDebugLog(`Starting M-Pesa STK push to ${formData.phone}`);
-        const { checkoutId } = await initiateSTKPush(
-          newOrderId,
-          formData.phone,
-          totalAmount,
-          formData.email
-        );
-        pushDebugLog(`STK initiated. Checkout ID: ${checkoutId}`);
-
-        const paid = await pollPaymentStatus(
-          checkoutId,
-          newOrderId,
-          ({ status, message, attempt, maxAttempts }) => {
-            const msg = message ? ` (${message})` : '';
-            pushDebugLog(`Status ${attempt}/${maxAttempts}: ${status}${msg}`);
-          },
-          20,
-          3000
-        );
-
-        if (paid) {
-          pushDebugLog('Payment confirmed as successful.');
-          clearCart();
-          setCheckoutStep('success');
-        } else {
-          pushDebugLog('Payment failed or timed out.');
-          setError(
-            'Payment failed or timed out. If your M-Pesa has insufficient funds, top up and try again.'
-          );
-          setCheckoutStep('details');
-        }
-      } else if (paymentMethod === 'INTASEND') {
-        setCheckoutStep('processing');
-        await startIntaSendCheckout({
-          checkoutOrderId: newOrderId,
-          amount: totalAmount,
-          email: formData.email,
-          phone: formData.phone,
-        });
-      } else {
+  const checkPayment = async () => {
+    if (busy.current) return;
+    busy.current = true; setProcessing(true); setError('');
+    try {
+      const status = await refreshOrderPayment(orderId);
+      if (status.paymentStatus === 'paid' && status.paymentVerified) {
+        if (quote && cartItems.length === quote.items.length && quote.items.every(item => cartItems.some(cart => cart.productId === item.productId && cart.quantity === item.quantity))) clearCart();
         setCheckoutStep('success');
-        clearCart();
-      }
-    } catch (err: unknown) {
-      console.error('Order creation error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Could not start payment.';
-      pushDebugLog(`Error: ${errorMessage}`);
-      
-      // Provide helpful guidance based on error type
-      if (errorMessage.includes('CORS') || errorMessage.includes('blocked')) {
-        setError(
-          'Direct payment API is blocked. Please use "IntaSend" payment method instead for card/M-Pesa payments.'
-        );
-      } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
-        setError(
-          'Network error. Please check your connection and try again, or use the "IntaSend" payment method.'
-        );
-      } else {
-        setError(errorMessage);
-      }
-      setCheckoutStep('details');
-    } finally {
-      setProcessing(false);
-    }
+      } else setError(status.paymentStatus === 'failed' ? 'Payment was not completed. You can resume the same checkout from My Orders.' : 'Payment is awaiting confirmation. Your order is saved in My Orders.');
+    } catch (err) { setError(err instanceof Error ? err.message : 'Could not check payment. Your order is still saved.'); }
+    finally { busy.current = false; setProcessing(false); }
+  };
+
+  const payOrder = async () => {
+    if (busy.current) return;
+    busy.current = true; setProcessing(true); setError('');
+    try {
+      const payment = await startOrderPayment(orderId);
+      if (payment.url) window.location.assign(payment.url);
+      else { busy.current = false; await checkPayment(); }
+    } catch (err) { setError(err instanceof Error ? err.message : 'Could not open payment. Check My Orders before trying again.'); }
+    finally { busy.current = false; setProcessing(false); }
   };
 
   const renderCartContent = () => (
     <Box
       sx={{
-        p: 3,
-        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-        borderRadius: 3,
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 20px 45px rgba(0,0,0,0.35)',
-        backdropFilter: 'blur(16px)',
+        p: { xs: 2, sm: 3 },
+        backgroundColor: 'background.paper',
+
       }}
     >
       <Box
@@ -346,13 +194,13 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           Your Cart
         </Typography>
         <IconButton
+          aria-label="Close cart"
           onClick={onClose}
           sx={{
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            backgroundColor: '#F0F4F1',
             transition: 'transform 0.3s ease, background 0.3s ease',
             '&:hover': {
-              transform: 'scale(1.08)',
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              backgroundColor: '#F0F4F1',
             },
           }}
         >
@@ -404,7 +252,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                 width: 6,
               },
               '&::-webkit-scrollbar-thumb': {
-                background: 'rgba(255,255,255,0.15)',
+                background: '#F0F4F1',
                 borderRadius: 99,
               },
             }}
@@ -427,7 +275,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                     <Box
                       sx={{
                         display: 'flex',
-                        gap: 2,
+                        gap: { xs: 1.5, sm: 2 },
                         width: '100%',
                         alignItems: 'center',
                       }}
@@ -436,13 +284,13 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                         variant="rounded"
                         src={item.image}
                         sx={{
-                          width: 60,
-                          height: 60,
+                          width: { xs: 48, sm: 60 },
+                          height: { xs: 48, sm: 60 },
                           borderRadius: 2,
-                          border: '1px solid rgba(255,255,255,0.1)',
+                          border: '1px solid #DDE5DF',
                         }}
                       />
-                      <Box sx={{ flex: 1 }}>
+                      <Box sx={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                           {item.name}
                         </Typography>
@@ -459,13 +307,14 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                         >
                           <IconButton
                             size="small"
+                            aria-label={`Decrease quantity of ${item.name}`}
                             onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
                             sx={{
-                              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                              width: 32,
-                              height: 32,
+                              backgroundColor: '#F0F4F1',
+                              width: 44,
+                              height: 44,
                               '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                                backgroundColor: '#F0F4F1',
                               },
                             }}
                           >
@@ -476,13 +325,14 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                           </Typography>
                           <IconButton
                             size="small"
+                            disabled={item.quantity >= Math.min(99, item.stock ?? 99)} aria-label={`Increase quantity of ${item.name}`}
                             onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
                             sx={{
-                              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                              width: 32,
-                              height: 32,
+                              backgroundColor: '#F0F4F1',
+                              width: 44,
+                              height: 44,
                               '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                                backgroundColor: '#F0F4F1',
                               },
                             }}
                           >
@@ -490,6 +340,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                           </IconButton>
                           <IconButton
                             size="small"
+                            aria-label={`Remove ${item.name} from cart`}
                             onClick={() => handleRemoveItem(item.productId)}
                             sx={{
                               ml: 'auto',
@@ -506,7 +357,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                       </Box>
                     </Box>
                   </ListItem>
-                  <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+                  <Divider sx={{ borderColor: '#F0F4F1' }} />
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -518,18 +369,18 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
               px: 2,
               py: 2.5,
               borderRadius: 3,
-              background: 'linear-gradient(180deg, rgba(30, 144, 255, 0.08), rgba(108, 99, 255, 0.12))',
-              border: '1px solid rgba(255, 255, 255, 0.14)',
-              backdropFilter: 'blur(14px)',
+              background: '#F0F6F2',
+              border: '1px solid #DDE5DF',
+
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mb: 1 }}>
               <Typography variant="body1">Subtotal:</Typography>
               <Typography variant="body1" sx={{ fontWeight: 600 }}>
                 {formatPrice(cartTotal)}
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 Shipping:
               </Typography>
@@ -537,8 +388,8 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
                 Calculated at checkout
               </Typography>
             </Box>
-            <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.15)', mb: 2 }} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Divider sx={{ borderColor: '#F0F4F1', mb: 2 }} />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mb: 2 }}>
               <Typography variant="h6">Total:</Typography>
               <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
                 {formatPrice(cartTotal)}
@@ -552,10 +403,6 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
               onClick={handleProceedToCheckout}
               sx={{
                 py: 1.5,
-                transform: 'translateY(0)',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                },
               }}
             >
               Proceed to Checkout
@@ -569,19 +416,16 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
   const renderDetailsForm = () => (
     <Box
       sx={{
-        p: 3,
-        borderRadius: 3,
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        background: 'rgba(255, 255, 255, 0.02)',
-        boxShadow: '0 20px 45px rgba(0, 0, 0, 0.35)',
-        backdropFilter: 'blur(16px)',
+        p: { xs: 2, sm: 3 },
+        backgroundColor: 'background.paper',
+
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
           Checkout Details
         </Typography>
-        <IconButton onClick={onClose}>
+        <IconButton aria-label="Close checkout" onClick={onClose}>
           <Close />
         </IconButton>
       </Box>
@@ -591,7 +435,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           severity="error"
           sx={{
             mb: 2,
-            boxShadow: '0 12px 30px rgba(255, 99, 99, 0.35)',
+            boxShadow: 'none',
           }}
         >
           {error}
@@ -602,6 +446,7 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         <TextField
           label="Email"
           type="email"
+          autoComplete="email"
           value={formData.email}
           onChange={(e) => {
             setFormData({ ...formData, email: e.target.value });
@@ -622,6 +467,8 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         />
         <TextField
           label="Phone Number"
+          type="tel"
+          autoComplete="tel"
           value={formData.phone}
           onChange={(e) => {
             setFormData({ ...formData, phone: e.target.value });
@@ -630,19 +477,20 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           onBlur={() => {
             if (!formData.phone) {
               setFormErrors(prev => ({ ...prev, phone: 'Phone number is required' }));
-            } else if (!/^(?:\+254|254|0)?[7]\d{8}$/.test(formData.phone.replace(/\s/g, ''))) {
+            } else if (!/^(?:\+254|254|0)?[17]\d{8}$/.test(formData.phone.replace(/\s/g, ''))) {
               setFormErrors(prev => ({ ...prev, phone: 'Please enter a valid Kenyan phone number' }));
             }
           }}
           fullWidth
           required
           error={!!formErrors.phone}
-          helperText={formErrors.phone || 'Required for M-Pesa STK Push'}
+          helperText={formErrors.phone || 'Use your M-Pesa or contact number'}
           sx={fieldStyles}
           placeholder="2547XX XXX XXX"
         />
         <TextField
-          label="Delivery Address"
+          label="Town or delivery location"
+          autoComplete="street-address"
           value={formData.address}
           onChange={(e) => {
             setFormData({ ...formData, address: e.target.value });
@@ -650,151 +498,29 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           }}
           onBlur={() => {
             if (!formData.address) {
-              setFormErrors(prev => ({ ...prev, address: 'Delivery address is required' }));
-            } else if (formData.address.length < 10) {
-              setFormErrors(prev => ({ ...prev, address: 'Please enter a complete address' }));
+              setFormErrors(prev => ({ ...prev, address: 'Town or delivery location is required' }));
+            } else if (formData.address.trim().length < 2 || !/\p{L}/u.test(formData.address)) {
+              setFormErrors(prev => ({ ...prev, address: 'Enter a town name or delivery location' }));
             }
           }}
           fullWidth
           required
           error={!!formErrors.address}
-          helperText={formErrors.address}
+          helperText={formErrors.address || 'Town or nearby town, e.g. Voi, Embu or Thika. Add a landmark if helpful.'}
           sx={fieldStyles}
           multiline
           rows={3}
         />
       </Box>
 
-      {/* Payment Method Selection */}
-      <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-        Payment Method
-      </Typography>
-      <RadioGroup
-        value={paymentMethod}
-        onChange={(e) => setPaymentMethod(e.target.value as 'MPESA' | 'INTASEND')}
-      >
-        <Box
-          sx={{
-            p: 2,
-            mb: 2,
-            borderRadius: 3,
-            border: paymentMethod === 'MPESA' ? '2px solid' : '1px solid',
-            borderColor:
-              paymentMethod === 'MPESA'
-                ? 'primary.light'
-                : 'rgba(255, 255, 255, 0.15)',
-            backgroundColor: paymentMethod === 'MPESA'
-              ? 'rgba(30, 144, 255, 0.16)'
-              : 'rgba(255, 255, 255, 0.02)',
-            boxShadow: paymentMethod === 'MPESA'
-              ? '0 15px 35px rgba(30, 144, 255, 0.25)'
-              : 'none',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            gap: 1,
-          }}
-        >
-          <FormControlLabel
-            value="MPESA"
-            control={<Radio />}
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-                <Box
-                  component="img"
-                  src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-Pesa_%28USSD%29.png"
-                  sx={{ height: 24, width: 'auto' }}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-                <Typography sx={{ color: 'text.primary', fontWeight: 600 }}>
-                  M-Pesa (STK Push)
-                </Typography>
-              </Box>
-            }
-            sx={{ width: '100%', justifyContent: 'center', margin: 0 }}
-          />
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Pay instantly via M-Pesa STK Push
-          </Typography>
-        </Box>
-
-        <Box
-          sx={{
-            p: 2,
-            borderRadius: 3,
-            border: paymentMethod === 'INTASEND' ? '2px solid' : '1px solid',
-            borderColor:
-              paymentMethod === 'INTASEND'
-                ? 'secondary.main'
-                : 'rgba(255, 255, 255, 0.15)',
-            backgroundColor: paymentMethod === 'INTASEND'
-              ? 'rgba(108, 99, 255, 0.18)'
-              : 'rgba(255, 255, 255, 0.02)',
-            boxShadow: paymentMethod === 'INTASEND'
-              ? '0 15px 35px rgba(108, 99, 255, 0.25)'
-              : 'none',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            gap: 1,
-          }}
-        >
-          <FormControlLabel
-            value="INTASEND"
-            control={<Radio />}
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
-                <AccountBalance sx={{ color: 'primary.main' }} />
-                <Typography sx={{ color: 'text.primary', fontWeight: 600 }}>
-                  IntaSend
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 1 }}>
-                  <Box
-                    component="img"
-                    src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg"
-                    sx={{ height: 14, width: 'auto' }}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                  <Box
-                    component="img"
-                    src="https://upload.wikimedia.org/wikipedia/commons/b/b7/MasterCard_Logo.svg"
-                    sx={{ height: 14, width: 'auto' }}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                  <Box
-                    component="img"
-                    src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
-                    sx={{ height: 14, width: 'auto' }}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                  <Box
-                    component="img"
-                    src="https://upload.wikimedia.org/wikipedia/commons/1/15/M-Pesa_%28USSD%29.png"
-                    sx={{ height: 14, width: 'auto' }}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                </Box>
-              </Box>
-            }
-            sx={{ width: '100%', justifyContent: 'center', margin: 0 }}
-          />
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Pay via IntaSend (Card, M-Pesa, Bank)
-          </Typography>
-        </Box>
-      </RadioGroup>
+<TextField fullWidth label="Landmark (optional)" value={landmark} onChange={e => setLandmark(e.target.value)} sx={{ mt: 2 }} inputProps={{ maxLength: 300 }} />
+      <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>Payment method</Typography>
+      <Box sx={{ p: 2, borderRadius: 3, border: '2px solid', borderColor: 'primary.main', backgroundColor: '#EAF5EE' }}>
+        <Typography fontWeight={700}>M-Pesa (STK Push)</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          Use the M-Pesa phone number above. Approve the payment on your phone; never enter your M-Pesa PIN on this website.
+        </Typography>
+      </Box>
 
       {/* Order Summary */}
       <Box
@@ -802,10 +528,10 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           mt: 3,
           p: 3,
           borderRadius: 3,
-          background: 'linear-gradient(180deg, rgba(30, 144, 255, 0.08), rgba(108, 99, 255, 0.12))',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: '0 15px 35px rgba(0, 0, 0, 0.3)',
-          backdropFilter: 'blur(16px)',
+          background: '#F0F6F2',
+          border: '1px solid #DDE5DF',
+          boxShadow: 'none',
+
         }}
       >
         <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
@@ -819,14 +545,14 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5, mt: 3 }}>
         <Button
           variant="outlined"
           onClick={() => setCheckoutStep('cart')}
           sx={{
             flex: 1,
-            borderColor: 'rgba(255, 255, 255, 0.2)',
-            color: '#E6F1FF',
+            borderColor: '#F0F4F1',
+            color: 'primary.main',
           }}
         >
           Back to Cart
@@ -838,101 +564,36 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           sx={{
             flex: 1,
             py: 1.5,
-            boxShadow: '0 15px 35px rgba(108, 99, 255, 0.35)',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-            },
+            boxShadow: 'none',
           }}
         >
-          {processing ? <CircularProgress size={24} /> : 'Place Order'}
+          {processing ? <CircularProgress size={24} /> : 'Review Order'}
         </Button>
       </Box>
-
-      {paymentDebugLog.length > 0 && (
-        <Box
-          sx={{
-            mt: 2,
-            p: 2,
-            borderRadius: 3,
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            background:
-              'linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(108, 99, 255, 0.08))',
-            maxHeight: 160,
-            overflow: 'auto',
-            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25)',
-          }}
-        >
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            Payment Debug Log ({paymentMethod})
-          </Typography>
-          {paymentDebugLog.map((entry, index) => (
-            <Typography
-              key={`${index}-${entry}`}
-              variant="caption"
-              component="div"
-              sx={{ color: 'text.secondary', mb: 0.5, wordBreak: 'break-word' }}
-            >
-              {entry}
-            </Typography>
-          ))}
-        </Box>
-      )}
 
     </Box>
   );
 
-  const renderProcessing = () => (
-    <Box
-      sx={{
-        p: 3,
-        textAlign: 'center',
-        borderRadius: 3,
-        background:
-          'linear-gradient(180deg, rgba(30, 144, 255, 0.12), rgba(17, 34, 64, 0.95))',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 20px 45px rgba(0, 0, 0, 0.35)',
-        backdropFilter: 'blur(18px)',
-      }}
-    >
-      <CircularProgress color="inherit" sx={{ mb: 3 }} />
-      <Typography variant="h6" sx={{ mb: 1 }}>
-        Processing Payment...
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Please check your phone for the M-Pesa STK push prompt.
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        If you have insufficient funds, M-Pesa will decline and we will return you here.
-      </Typography>
-      {paymentMethod === 'MPESA' && paymentDebugLog.length > 0 && (
-        <Box
-          sx={{
-            mt: 3,
-            p: 2,
-            textAlign: 'left',
-            borderRadius: 3,
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            background:
-              'linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(108, 99, 255, 0.08))',
-            maxHeight: 220,
-            overflow: 'auto',
-          }}
-        >
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            Payment Debug Log
-          </Typography>
-          {paymentDebugLog.map((entry, index) => (
-            <Typography
-              key={`${index}-${entry}`}
-              variant="caption"
-              component="div"
-              sx={{ color: 'text.secondary', mb: 0.5, wordBreak: 'break-word' }}
-            >
-              {entry}
-            </Typography>
-          ))}
-        </Box>
-      )}
+  const renderPayment = () => (
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h5">Review your order</Typography>
+        <IconButton aria-label="Close checkout" onClick={onClose}><Close /></IconButton>
+      </Box>
+      {error && <Alert severity="info" sx={{ mb: 2 }}>{error}</Alert>}
+      {quote?.paymentEnvironment === 'sandbox' && <Alert severity="warning" sx={{ mb: 2 }}>Test checkout — this is not a live order for delivery.</Alert>}
+      {quote?.items.map(item => <Box key={item.productId} sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 2 }}>
+        <Typography>{item.quantity} × {item.name}</Typography><Typography sx={{ whiteSpace: 'nowrap' }}>{formatPrice(item.total)}</Typography>
+      </Box>)}
+      <Divider sx={{ my: 2 }} />
+      <Typography>Subtotal: {formatPrice(quote?.subtotal || 0)}</Typography>
+      <Typography sx={{ mt: 1 }}>Delivery: {formatPrice(quote?.shippingFee || 0)}</Typography>
+      <Typography variant="h5" sx={{ my: 2 }}>Total: {formatPrice(quote?.totalAmount || 0)}</Typography>
+      <Typography color="text.secondary" sx={{ mb: 2 }}>Review the confirmed prices and delivery charge. Continue to the secure M-Pesa checkout to request the phone prompt. Your order stays available in My Orders.</Typography>
+      <Button fullWidth variant="contained" disabled={processing} onClick={payOrder} sx={{ mb: 1.5 }}>{processing ? 'Please wait…' : 'Continue to M-Pesa'}</Button>
+      <Button fullWidth disabled={processing} onClick={checkPayment}>Check payment status</Button>
+      <Button fullWidth component={RouterLink} to="/profile" onClick={onClose}>My Orders</Button>
+      <Button fullWidth disabled={processing} onClick={() => setCheckoutStep('details')}>Edit order details</Button>
     </Box>
   );
 
@@ -942,11 +603,11 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         p: 3,
         textAlign: 'center',
         borderRadius: 3,
-        border: '1px solid rgba(255, 255, 255, 0.15)',
+        border: '1px solid #DDE5DF',
         background:
-          'linear-gradient(180deg, rgba(108, 99, 255, 0.15), rgba(10, 25, 47, 0.92))',
-        boxShadow: '0 25px 45px rgba(0, 0, 0, 0.35)',
-        backdropFilter: 'blur(18px)',
+          '#F0F6F2',
+        boxShadow: 'none',
+
       }}
     >
       <Box
@@ -954,21 +615,21 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
           width: 88,
           height: 88,
           borderRadius: '50%',
-          background: 'rgba(108, 99, 255, 0.25)',
+          background: '#EAF5EE',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           mx: 'auto',
           mb: 3,
-          boxShadow: '0 0 35px rgba(108, 99, 255, 0.45)',
+          boxShadow: 'none',
         }}
       >
-        <Typography variant="h3" sx={{ color: '#E6F1FF' }}>
+        <Typography variant="h3" sx={{ color: 'primary.main' }}>
           ✓
         </Typography>
       </Box>
       <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-        Order Placed Successfully!
+        Payment confirmed
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Order ID: {orderId}
@@ -978,17 +639,17 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         sx={{
           mb: 3,
           textAlign: 'left',
-          boxShadow: '0 12px 30px rgba(108, 99, 255, 0.35)',
-          border: '1px solid rgba(108, 99, 255, 0.35)',
+          boxShadow: 'none',
+          border: '1px solid #DDE5DF',
         }}
       >
-        Thank you for your order! We will contact you shortly to confirm delivery.
+        {quote?.paymentEnvironment === 'sandbox' ? 'Test payment confirmed. No delivery will be arranged.' : 'Thank you! Your payment is verified and your order is ready for the shop to fulfil.'}
       </Alert>
       <Button
         variant="contained"
         onClick={onClose}
         fullWidth
-        sx={{ py: 1.5, boxShadow: '0 15px 30px rgba(108, 99, 255, 0.35)' }}
+        sx={{ py: 1.5, boxShadow: 'none' }}
       >
         Continue Shopping
       </Button>
@@ -1001,8 +662,9 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
         return renderCartContent();
       case 'details':
         return renderDetailsForm();
+      case 'payment':
       case 'processing':
-        return renderProcessing();
+        return renderPayment();
       case 'success':
         return renderSuccess();
       default:
@@ -1016,7 +678,6 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     if (open) {
       setCheckoutStep('cart');
       setError('');
-      setPaymentDebugLog([]);
       if (cartItems.length > 0) {
         setSkeletonActive(true);
         timer = setTimeout(() => setSkeletonActive(false), 900);
@@ -1029,30 +690,34 @@ const CheckoutSidebar: React.FC<CheckoutSidebarProps> = ({ open, onClose }) => {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [open, cartItems.length]);
+  // Cart changes must not dismiss an active payment or its confirmation.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   return (
     <Drawer
       anchor="right"
+      sx={{ zIndex: (theme) => theme.zIndex.drawer + 4 }}
       open={open}
       onClose={onClose}
       PaperProps={{
         sx: {
           width: { xs: '100%', sm: 450 },
-          background:
-            'linear-gradient(160deg, rgba(10, 25, 47, 0.98), rgba(17, 34, 64, 0.95))',
-          borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 30px 60px rgba(0, 0, 0, 0.45)',
-          backdropFilter: 'blur(18px)',
+          maxWidth: '100vw',
+          backgroundColor: 'background.paper',
+          color: 'text.primary',
+          borderLeft: '1px solid #DDE5DF',
+          boxShadow: '-8px 0 32px rgba(16,32,24,0.12)',
+
         },
       }}
     >
       <Box
         sx={{
-          height: '100%',
-          overflow: 'auto',
-          background:
-            'linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0))',
+          minHeight: '100%',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          backgroundColor: 'background.paper',
         }}
       >
         <AnimatePresence mode="wait">

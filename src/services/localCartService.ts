@@ -6,7 +6,7 @@ import type { Product } from '../data/products';
 const LOCAL_CART_KEY = 'top_heights_cart';
 
 export interface LocalCartItem {
-  productId: number;
+  productId: string | number;
   name: string;
   price: number;
   image: string;
@@ -71,7 +71,7 @@ export const addToLocalCart = (product: Product, quantity: number = 1): void => 
  * Update item quantity in local cart
  */
 export const updateLocalCartItemQuantity = (
-  productId: number,
+  productId: string | number,
   quantity: number
 ): void => {
   const items = getLocalCart();
@@ -84,7 +84,7 @@ export const updateLocalCartItemQuantity = (
 /**
  * Remove item from local cart
  */
-export const removeFromLocalCart = (productId: number): void => {
+export const removeFromLocalCart = (productId: string | number): void => {
   const items = getLocalCart();
   const updatedItems = items.filter((item) => item.productId !== productId);
   saveLocalCart(updatedItems);

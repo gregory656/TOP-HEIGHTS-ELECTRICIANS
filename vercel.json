@@ -1,0 +1,54 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm ci && npm ci --prefix backend/functions",
+  "buildCommand": "node scripts/build-vercel.cjs",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/commerce.js": {
+      "includeFiles": "backend/functions/{lib/**,storefront.html}",
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/commerce?__commerce_path=/api/:path*"
+    },
+    {
+      "source": "/shop/:slug",
+      "destination": "/api/commerce?__commerce_path=/shop/:slug"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/api/commerce?__commerce_path=/blog/:slug"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/commerce?__commerce_path=/sitemap.xml"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    }
+  ]
+}

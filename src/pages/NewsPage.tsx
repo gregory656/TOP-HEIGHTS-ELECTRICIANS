@@ -89,8 +89,8 @@ const NewsPage: React.FC = () => {
           <Stack spacing={2}>
             <Card
               sx={{
-                background: 'rgba(17, 34, 64, 0.65)',
-                border: '1px solid rgba(100, 255, 218, 0.1)',
+                background: '#FFFFFF',
+                border: '1px solid #DDE5DF',
               }}
             >
               <CardContent>
@@ -107,8 +107,8 @@ const NewsPage: React.FC = () => {
             </Card>
             <Card
               sx={{
-                background: 'rgba(17, 34, 64, 0.55)',
-                border: '1px solid rgba(100, 255, 218, 0.08)',
+                background: '#FFFFFF',
+                border: '1px solid #DDE5DF',
               }}
             >
               <CardContent>
@@ -119,7 +119,7 @@ const NewsPage: React.FC = () => {
                   {relatedArticles.map((article) => (
                     <Card
                       key={article.title}
-                      sx={{ background: 'rgba(17, 34, 64, 0.4)', border: '1px solid rgba(100, 255, 218, 0.08)' }}
+                      sx={{ background: '#FFFFFF', border: '1px solid #DDE5DF' }}
                     >
                       <CardContent>
                         <Stack direction="row" spacing={1} alignItems="center">
@@ -138,8 +138,8 @@ const NewsPage: React.FC = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <Card
             sx={{
-              background: 'rgba(17, 34, 64, 0.65)',
-              border: '1px solid rgba(100, 255, 218, 0.1)',
+              background: '#FFFFFF',
+              border: '1px solid #DDE5DF',
             }}
           >
             <CardContent>
@@ -162,8 +162,8 @@ const NewsPage: React.FC = () => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px solid rgba(100, 255, 218, 0.08)',
+                        background: '#F6F8F7',
+                        border: '1px solid #DDE5DF',
                       }}
                     >
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -185,8 +185,8 @@ const NewsPage: React.FC = () => {
           <Card
             sx={{
               height: '100%',
-              background: 'rgba(17, 34, 64, 0.65)',
-              border: '1px solid rgba(100, 255, 218, 0.1)',
+              background: '#FFFFFF',
+              border: '1px solid #DDE5DF',
             }}
           >
             <CardContent>
@@ -211,8 +211,8 @@ const NewsPage: React.FC = () => {
 
           <Card
             sx={{
-              background: 'rgba(17, 34, 64, 0.55)',
-              border: '1px solid rgba(100, 255, 218, 0.08)',
+              background: '#FFFFFF',
+              border: '1px solid #DDE5DF',
             }}
           >
             <CardContent>

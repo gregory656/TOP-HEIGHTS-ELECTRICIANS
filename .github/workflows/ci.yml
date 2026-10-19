@@ -26,6 +26,15 @@ jobs:
       - name: Type check frontend
         run: npx tsc -b
 
+      - name: Install commerce API deps
+        run: npm --prefix backend/functions ci
+
+      - name: Build commerce API
+        run: npm --prefix backend/functions run build
+
+      - name: Validate hosting and payment adapters
+        run: node --test backend/functions/test/free-hosting.test.cjs backend/functions/test/intasend.test.cjs backend/functions/test/vercel.test.cjs
+
       - name: Install server deps
         run: npm --prefix server ci
 

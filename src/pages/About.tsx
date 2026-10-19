@@ -60,8 +60,8 @@ const About: React.FC = () => {
                 variant="h1"
                 sx={{
                   color: '#101914',
-                  fontSize: { xs: '2.5rem', md: '4rem' },
-                  lineHeight: 1,
+                  fontSize: { xs: '2rem', md: '2.75rem' },
+                  lineHeight: 1.16,
                 }}
               >
                 We build solar systems that feel clear, dependable, and worth the investment.

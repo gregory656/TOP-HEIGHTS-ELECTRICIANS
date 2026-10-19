@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+preview-dist
 *.local
 
 # Editor directories and files
@@ -35,3 +36,14 @@ dist-ssr
 server/.env
 server/.env.*
 !server/.env.example
+
+!.env.commerce.example
+.firebase/
+backend/functions/lib/
+
+.local/
+backend/functions/storefront.html
+.playwright-cli/
+.netlify/
+
+.vercel/

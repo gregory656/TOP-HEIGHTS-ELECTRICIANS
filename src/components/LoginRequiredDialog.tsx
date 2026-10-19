@@ -38,8 +38,8 @@ const LoginRequiredDialog: React.FC<LoginRequiredDialogProps> = ({
       fullWidth
       PaperProps={{
         sx: {
-          backgroundColor: '#112240',
-          border: '1px solid rgba(100, 255, 218, 0.2)',
+          backgroundColor: 'background.paper',
+          border: '1px solid #DDE5DF',
           borderRadius: 2,
         },
       }}
@@ -50,10 +50,10 @@ const LoginRequiredDialog: React.FC<LoginRequiredDialogProps> = ({
         alignItems: 'center',
         pb: 1,
       }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <Typography component="span" variant="h6" sx={{ fontWeight: 600 }}>
           Login Required
         </Typography>
-        <IconButton onClick={onClose} size="small">
+        <IconButton aria-label="Close sign-in options" onClick={onClose} size="small">
           <Close />
         </IconButton>
       </DialogTitle>
@@ -69,7 +69,7 @@ const LoginRequiredDialog: React.FC<LoginRequiredDialogProps> = ({
         </Box>
       </DialogContent>
       
-      <DialogActions sx={{ flexDirection: 'column', gap: 1, px: 3, pb: 3 }}>
+      <DialogActions disableSpacing sx={{ flexDirection: 'column', gap: 1, px: 3, pb: 3 }}>
         <Button
           fullWidth
           variant="contained"
@@ -111,12 +111,12 @@ const LoginRequiredDialog: React.FC<LoginRequiredDialogProps> = ({
           startIcon={<WhatsApp />}
           sx={{
             py: 1.5,
-            backgroundColor: '#25D366',
+            backgroundColor: 'primary.main',
             color: 'white',
             fontWeight: 600,
             mt: 1,
             '&:hover': {
-              backgroundColor: '#20BD5A',
+              backgroundColor: 'primary.dark',
             },
           }}
         >

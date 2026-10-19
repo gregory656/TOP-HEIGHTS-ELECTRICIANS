@@ -7,9 +7,18 @@
     "dev": "vite",
     "dev:chat": "npm --prefix server run dev",
     "knowledge:build": "npm --prefix server run generate:knowledge",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/prepare-hosting.cjs",
+    "build:staging": "node scripts/build-staging.cjs",
+    "firebase": "node backend/functions/node_modules/firebase-tools/lib/bin/firebase.js",
+    "build:client-preview": "tsc -b && vite build --config vite.preview.config.ts",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "test:auth": "node --test tests/userProfile.test.cjs",
+    "preview": "vite preview",
+    "test:commerce": "node scripts/test-commerce.cjs",
+    "dev:local": "node scripts/local-testing.cjs",
+    "dev:staging": "node scripts/staging-testing.cjs",
+    "typecheck": "tsc -b && tsc -p backend/functions/tsconfig.json --noEmit",
+    "build:production": "node scripts/build-production.cjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    match /commerce/{kind}/{file} {
+      allow read: if kind in ['products', 'news'];
+      allow create: if resource == null && isAdmin() && kind in ['products', 'news']
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+      allow update, delete: if false;
+    }
+  }
+}

@@ -9,8 +9,8 @@ import {
   Chip,
   CircularProgress,
   Divider,
+  Drawer,
   IconButton,
-  InputBase,
   List,
   ListItem,
   ListItemButton,
@@ -26,6 +26,7 @@ import {
 } from '@mui/material';
 import {
   AdminPanelSettings,
+  Article,
   Build,
   Close,
   Dashboard,
@@ -33,13 +34,11 @@ import {
   Info,
   Menu as MenuIcon,
   Person,
-  Search as SearchIcon,
   ShoppingCart,
   ShoppingCartCheckout,
   Logout,
 } from '@mui/icons-material';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { styled, alpha } from '@mui/material/styles';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import LoginModal from './LoginModal';
@@ -50,9 +49,6 @@ import { useCart } from '../context/CartContext';
 import {
   clearAdminAccessFlag,
   clearStoredUsername,
-  isAdminAccessAllowed,
-  setAdminAccessAllowed,
-  setStoredUsername,
 } from '../utils/courseStorage';
 
 const drawerWidth = 280;
@@ -62,60 +58,17 @@ const navItems: NavItem[] = [
   { text: 'Home', icon: <Home />, path: '/' },
   { text: 'Services', icon: <Build />, path: '/services' },
   { text: 'Shop', icon: <ShoppingCart />, path: '/shop' },
+  { text: 'Blog', icon: <Article />, path: '/blog' },
   { text: 'About', icon: <Info />, path: '/about' },
-  { text: 'Admin', icon: <AdminPanelSettings />, path: '/admin', adminOnly: true },
+  { text: 'Business admin', icon: <AdminPanelSettings />, path: '/admin', adminOnly: true },
+  { text: 'Learning admin', icon: <Dashboard />, path: '/admin-dashboard', adminOnly: true },
 ];
 
-const Search = styled('div')(({ theme }) => ({
-  position: 'relative',
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.08),
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.12),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
-  width: '100%',
-  [theme.breakpoints.up('sm')]: {
-    marginLeft: theme.spacing(3),
-    width: 'auto',
-  },
-}));
-
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: theme.palette.primary.main,
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
-  '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '18ch',
-    },
-  },
-}));
-
-const LogoContainer = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-});
 
 const Layout: React.FC = () => {
   const theme = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
+  const activeNavPath = location.pathname.startsWith('/shop/') ? '/shop' : location.pathname.startsWith('/blog/') ? '/blog' : location.pathname;
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user, logout, isAuthenticated, loginModalOpen, setLoginModalOpen, authLoading } =
     useAuth();
@@ -124,10 +77,10 @@ const Layout: React.FC = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [adminAccess, setAdminAccess] = useState(isAdminAccessAllowed());
+  const adminAccess = !authLoading && user?.role === 'admin';
 
   const filteredNavItems = navItems.filter(
-    (item) => !(item.adminOnly && user?.role !== 'admin')
+    (item) => !item.adminOnly || adminAccess
   );
 
   const desktopWidth = sidebarCollapsed ? collapsedWidth : drawerWidth;
@@ -147,18 +100,8 @@ const Layout: React.FC = () => {
   const handleLogout = () => {
     clearStoredUsername();
     clearAdminAccessFlag();
-    setAdminAccess(false);
     logout();
     handleProfileMenuClose();
-  };
-
-  const handleDashboardRedirect = (username: string, password: string) => {
-    const trimmedUsername = username.trim();
-    const isAdmin = trimmedUsername === 'gregory656' && password === '999888777Ss';
-    setStoredUsername(trimmedUsername);
-    setAdminAccessAllowed(isAdmin);
-    setAdminAccess(isAdmin);
-    navigate(isAdmin ? '/admin-dashboard' : '/student-dashboard');
   };
 
   const toggleSidebarCollapsed = () => {
@@ -213,12 +156,12 @@ const Layout: React.FC = () => {
                 component={Link}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
-                selected={location.pathname === item.path}
+                selected={activeNavPath === item.path}
                 sx={{
                   borderRadius: 2,
                   mb: 1,
                   backgroundColor:
-                    location.pathname === item.path
+                    activeNavPath === item.path
                       ? 'rgba(14, 122, 61, 0.12)'
                       : 'transparent',
                 }}
@@ -226,7 +169,7 @@ const Layout: React.FC = () => {
                 <ListItemIcon
                   sx={{
                     color:
-                      location.pathname === item.path
+                      activeNavPath === item.path
                         ? 'primary.main'
                         : 'text.secondary',
                   }}
@@ -264,9 +207,9 @@ const Layout: React.FC = () => {
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Backdrop
         sx={{
-          color: '#64FFDA',
+          color: 'primary.main',
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: 'rgba(17, 34, 64, 0.9)',
+          backgroundColor: 'rgba(246, 248, 247, 0.94)',
         }}
         open={authLoading}
       >
@@ -276,7 +219,7 @@ const Layout: React.FC = () => {
       <PremiumSidebar
         navItems={filteredNavItems}
         collapsed={sidebarCollapsed}
-        activePath={location.pathname}
+        activePath={activeNavPath}
         isAdmin={adminAccess}
         logoSrc={logoImage}
         logoAlt="Top Heights Logo"
@@ -297,19 +240,20 @@ const Layout: React.FC = () => {
           borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ gap: { xs: 0.5, sm: 1 }, px: { xs: 1, sm: 3 } }}>
           {isMobile && (
             <IconButton
               color="inherit"
-              aria-label="open drawer"
-              edge="start"
+              aria-label="Open navigation"
+              aria-expanded={mobileOpen}
+              aria-controls={mobileOpen ? "mobile-navigation" : undefined}
               onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
+              sx={{ flexShrink: 0 }}
             >
               <MenuIcon />
             </IconButton>
           )}
-          <LogoContainer sx={{ display: { xs: 'none', sm: 'flex' } }}>
+          <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center', minWidth: 0, color: 'inherit', textDecoration: 'none', gap: { xs: 0.75, sm: 1 } }}>
             <Avatar
               src={logoImage}
               alt="Top Heights Logo"
@@ -321,31 +265,22 @@ const Layout: React.FC = () => {
               }}
             />
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+              <Typography component="span" sx={{ fontWeight: 700, lineHeight: 1.2, fontSize: { xs: '0.85rem', sm: '1.125rem' }, whiteSpace: 'nowrap' }}>
                 Top Heights
               </Typography>
-              <Typography variant="caption" sx={{ color: 'primary.light' }}>
+              <Typography component="span" variant="caption" sx={{ display: 'block', color: 'primary.main' }}>
                 Solar
               </Typography>
             </Box>
-          </LogoContainer>
+          </Box>
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search products..."
-              inputProps={{ 'aria-label': 'search' }}
-            />
-          </Search>
 
           <Tooltip title={cartCount > 0 ? `Cart (${cartCount} items)` : 'Cart'}>
             <IconButton
               onClick={() => setCheckoutOpen(true)}
-              sx={{ ml: 1, color: 'text.primary' }}
+              sx={{ flexShrink: 0, color: 'text.primary' }}
               aria-label={cartCount > 0 ? `Cart has ${cartCount} items` : 'Open cart'}
             >
               <Badge badgeContent={cartCount} color="secondary">
@@ -357,11 +292,13 @@ const Layout: React.FC = () => {
           {isAuthenticated && user ? (
             <>
               <Chip
-                label={`Welcome, ${user.name}`}
+                label={isMobile ? user.name : `Welcome, ${user.name}`}
                 onClick={handleProfileMenuOpen}
                 sx={{
-                  ml: 1,
-                    backgroundColor: 'rgba(14, 122, 61, 0.12)',
+                  ml: 0.5,
+                  maxWidth: { xs: 82, sm: 180 },
+                  minHeight: 44,
+                  backgroundColor: 'rgba(14, 122, 61, 0.12)',
                   color: 'primary.main',
                   '&:hover': {
                     backgroundColor: 'rgba(14, 122, 61, 0.18)',
@@ -382,14 +319,20 @@ const Layout: React.FC = () => {
               >
                 <MenuItem
                   component={Link}
-                  to={adminAccess ? '/admin-dashboard' : '/student-dashboard'}
+                  to={adminAccess ? '/admin' : '/student-dashboard'}
                   onClick={handleProfileMenuClose}
                 >
                   <ListItemIcon>
                     {adminAccess ? <Dashboard fontSize="small" /> : <Person fontSize="small" />}
                   </ListItemIcon>
-                  {adminAccess ? 'Admin Dashboard' : 'Student Dashboard'}
+                  {adminAccess ? 'Business admin' : 'Student Dashboard'}
                 </MenuItem>
+                {adminAccess && (
+                  <MenuItem component={Link} to="/admin-dashboard" onClick={handleProfileMenuClose}>
+                    <ListItemIcon><Dashboard fontSize="small" /></ListItemIcon>
+                    Learning admin
+                  </MenuItem>
+                )}
                 <MenuItem onClick={handleLogout}>
                   <ListItemIcon>
                     <Logout fontSize="small" />
@@ -404,7 +347,10 @@ const Layout: React.FC = () => {
               size="small"
               onClick={() => setLoginModalOpen(true)}
               sx={{
-                ml: 2,
+                ml: 0.5,
+                px: { xs: 1, sm: 1.5 },
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
                 borderColor: 'divider',
                 color: 'text.primary',
               }}
@@ -415,53 +361,19 @@ const Layout: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      <Box component="nav">
-        <AnimatePresence>
-          {isMobile && mobileOpen && (
-            <motion.div
-              initial={{ x: -320, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -320, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-            >
-              <Box
-                component="div"
-                sx={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  height: '100vh',
-                  zIndex: theme.zIndex.drawer + 3,
-                }}
-              >
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: '#FFFFFF',
-                    backdropFilter: 'blur(12px)',
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: 'relative',
-                    zIndex: 1,
-                    height: '100%',
-                  }}
-                >
-                  <IconButton
-                    onClick={handleDrawerToggle}
-                    sx={{ position: 'absolute', top: 16, right: 16 }}
-                  >
-                    <Close />
-                  </IconButton>
-                  {mobileDrawer}
-                </Box>
-              </Box>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </Box>
+      <Drawer
+        open={isMobile && mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{ keepMounted: true }}
+        sx={{ zIndex: theme.zIndex.drawer + 3, '& .MuiDrawer-paper': { width: 280, maxWidth: '90vw' } }}
+      >
+        <Box component="nav" id="mobile-navigation" aria-label="Main navigation" sx={{ position: 'relative', height: '100%' }}>
+          <IconButton aria-label="Close navigation" onClick={() => setMobileOpen(false)} sx={{ position: 'absolute', top: 8, right: 8 }}>
+            <Close />
+          </IconButton>
+          {mobileDrawer}
+        </Box>
+      </Drawer>
 
       <Box
         component="main"
@@ -470,7 +382,8 @@ const Layout: React.FC = () => {
           minHeight: '100vh',
           ml: isMobile ? 0 : `${desktopWidth}px`,
           transition: 'margin 0.3s ease',
-          pt: 10,
+          pt: 0,
+          minWidth: 0,
           px: { xs: 0, sm: 0, md: 0 },
           position: 'relative',
         }}
@@ -492,7 +405,6 @@ const Layout: React.FC = () => {
       <LoginModal
         open={loginModalOpen}
         onClose={() => setLoginModalOpen(false)}
-        onLoginSuccess={handleDashboardRedirect}
       />
 
       <CheckoutSidebar open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
