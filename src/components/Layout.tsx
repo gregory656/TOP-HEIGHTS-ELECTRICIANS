@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { AppBar, Avatar, Backdrop, Badge, Box, Button, CircularProgress, Drawer, IconButton, Menu, MenuItem, Toolbar, Typography } from '@mui/material';
-import { ArrowOutward, Close, Menu as MenuIcon, ShoppingBagOutlined, SolarPower } from '@mui/icons-material';
+import { AppBar, Backdrop, Badge, Box, Button, Drawer, IconButton, Menu, MenuItem, Toolbar, Typography } from '@mui/material';
+import { ArrowOutward, Close, Menu as MenuIcon, ShoppingBagOutlined, SolarPower, HomeOutlined, ElectricalServicesOutlined, ArticleOutlined, InfoOutlined, AdminPanelSettingsOutlined, SchoolOutlined } from '@mui/icons-material';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import LoginModal from './LoginModal';
@@ -9,15 +9,18 @@ import PremiumSidebar, { type NavItem } from './PremiumSidebar';
 import { useCart } from '../context/CartContext';
 import { clearAdminAccessFlag, clearStoredUsername } from '../utils/courseStorage';
 import { QuoteWizard } from './SolarExperiences';
+import BrandLogo from './BrandLogo';
+import SiteLoader from './SiteLoader';
+import PrivacyConsent from './PrivacyConsent';
 
 const navItems: NavItem[] = [
-  { text: 'Home', icon: <SolarPower />, path: '/' },
-  { text: 'Services', icon: <SolarPower />, path: '/services' },
+  { text: 'Home', icon: <HomeOutlined />, path: '/' },
+  { text: 'Services', icon: <ElectricalServicesOutlined />, path: '/services' },
   { text: 'Shop', icon: <ShoppingBagOutlined />, path: '/shop' },
-  { text: 'Blog', icon: <SolarPower />, path: '/blog' },
-  { text: 'About', icon: <SolarPower />, path: '/about' },
-  { text: 'Business admin', icon: <SolarPower />, path: '/admin', adminOnly: true },
-  { text: 'Learning admin', icon: <SolarPower />, path: '/admin-dashboard', adminOnly: true },
+  { text: 'Blog', icon: <ArticleOutlined />, path: '/blog' },
+  { text: 'About', icon: <InfoOutlined />, path: '/about' },
+  { text: 'Business admin', icon: <AdminPanelSettingsOutlined />, path: '/admin', adminOnly: true },
+  { text: 'Learning admin', icon: <SchoolOutlined />, path: '/admin-dashboard', adminOnly: true },
 ];
 
 const Layout: React.FC = () => {
@@ -43,20 +46,20 @@ const Layout: React.FC = () => {
   const handleLogout = () => { clearStoredUsername(); clearAdminAccessFlag(); logout(); };
   const publicLinks = [
     { label: 'Solutions', href: '/services' }, { label: 'Projects', href: '/#projects' },
-    { label: 'Shop', href: '/shop' }, { label: 'Insights', href: '/blog' }, { label: 'About', href: '/about' },
+    { label: 'Shop', href: '/shop' }, { label: 'Blog', href: '/blog' }, { label: 'About', href: '/about' },
   ];
   const openQuote = () => { window.dispatchEvent(new Event('open-quote-wizard')); setMobileOpen(false); };
 
   return <Box sx={{ minHeight: '100vh' }}>
-    <Backdrop sx={{ zIndex: theme => theme.zIndex.drawer + 5, color: '#0E7A3D', bgcolor: 'rgba(248,250,247,.84)' }} open={authLoading}><CircularProgress color="inherit" /></Backdrop>
+    <Backdrop sx={{ zIndex: theme => theme.zIndex.drawer + 5, color: '#0E7A3D', bgcolor: 'rgba(248,250,247,.84)' }} open={authLoading}><SiteLoader label="Loading your account…" /></Backdrop>
     {isAdminArea ? <>
       <PremiumSidebar navItems={navItems.filter(item => !item.adminOnly || adminAccess)} collapsed={false} activePath={activePath} isAdmin={adminAccess} logoSrc="/topeheights.jpeg" logoAlt="Top Heights" onToggle={() => undefined} />
       <Box component="main" sx={{ ml: { xs: 0, md: '280px' }, minHeight: '100vh' }}><Toolbar /><Outlet /></Box>
     </> : <>
       <AppBar position="fixed" elevation={0} className={`public-header ${location.pathname === '/' ? 'home-header' : 'inner-header'} ${scrolled ? 'is-scrolled' : ''}`}>
         <Toolbar className="public-header-inner">
-          <Link to="/" className="brand-lockup" aria-label="Top Heights Solar home">
-            <span className="brand-mark"><SolarPower /></span><span className="brand-name">TOP HEIGHTS<small>SOLAR · KENYA</small></span>
+          <Link to="/" className="brand-lockup" aria-label="Top Heights home">
+            <BrandLogo /><span className="brand-name">TOP HEIGHTS<small>SOLAR · KENYA</small></span>
           </Link>
           <Box className="desktop-navigation" component="nav" aria-label="Main navigation">
             {publicLinks.map(link => link.label === 'Solutions' ? <Button key={link.label} onMouseEnter={event => setMenuAnchor(event.currentTarget)} onClick={event => setMenuAnchor(event.currentTarget)} aria-expanded={Boolean(menuAnchor)}>{link.label}</Button> : <Button key={link.label} component={Link} to={link.href}>{link.label}</Button>)}
@@ -83,7 +86,7 @@ const Layout: React.FC = () => {
         </Box>
       </Menu>
       <Drawer anchor="right" open={mobileOpen} onClose={() => setMobileOpen(false)} PaperProps={{ className: 'mobile-nav-drawer' }}>
-        <Box className="mobile-nav-top"><Link to="/" className="brand-lockup" onClick={() => setMobileOpen(false)}><span className="brand-mark"><SolarPower /></span><span className="brand-name">TOP HEIGHTS<small>SOLAR · KENYA</small></span></Link><IconButton aria-label="Close navigation" onClick={() => setMobileOpen(false)}><Close /></IconButton></Box>
+        <Box className="mobile-nav-top"><Link to="/" className="brand-lockup" onClick={() => setMobileOpen(false)}><BrandLogo /><span className="brand-name">TOP HEIGHTS<small>SOLAR · KENYA</small></span></Link><IconButton aria-label="Close navigation" onClick={() => setMobileOpen(false)}><Close /></IconButton></Box>
         <Box component="nav" className="mobile-nav-links">{publicLinks.map(link => <Button key={link.label} component={Link} to={link.href} onClick={() => setMobileOpen(false)}>{link.label}<ArrowOutward /></Button>)}{isAuthenticated && user ? <><Button component={Link} to="/profile" onClick={() => setMobileOpen(false)}>My profile<ArrowOutward /></Button><Button component={Link} to={adminAccess?'/admin':'/student-dashboard'} onClick={() => setMobileOpen(false)}>{adminAccess?'Business admin':'My learning'}<ArrowOutward /></Button><Button onClick={() => { handleLogout(); setMobileOpen(false); }}>Sign out</Button></> : <Button onClick={() => { setLoginModalOpen(true); setMobileOpen(false); }}>Sign in</Button>}</Box>
         <Button variant="contained" onClick={openQuote} endIcon={<ArrowOutward />}>Plan your solar system</Button>
         <Typography className="mobile-nav-contact">Questions? Call <a href="tel:+254711343412">+254 711 343 412</a></Typography>
@@ -93,6 +96,7 @@ const Layout: React.FC = () => {
     <LoginModal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
     <CheckoutSidebar open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
     {!isAdminArea && <QuoteWizard />}
+    <PrivacyConsent />
   </Box>;
 };
 

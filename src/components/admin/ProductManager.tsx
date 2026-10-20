@@ -4,6 +4,8 @@ import type { Product } from '../../data/products';
 import { adjustInventory, imageUploadsEnabled, saveContent, uploadImage } from '../../services/contentService';
 import ProductImage from '../ProductImage';
 import History from './History';
+import { products as catalogue } from '../../data/products';
+import { catalogueDraft, contentSlug } from '../../services/contentModel';
 
 const blank = (): Product => ({ id: crypto.randomUUID(), name: '', slug: '', sku: '', price: 0, category: '', image: '', images: [], description: '', details: '', specifications: [], stock: 0, lowStockThreshold: 5, status: 'draft', published: false, featured: false });
 export default function ProductManager({ products }: { products: Product[] }) {
@@ -11,6 +13,7 @@ export default function ProductManager({ products }: { products: Product[] }) {
   const [specs, setSpecs] = useState('');
   const [preview, setPreview] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState('');
   const [stockProduct, setStockProduct] = useState<Product | null>(null);
@@ -19,10 +22,14 @@ export default function ProductManager({ products }: { products: Product[] }) {
   async function run(action: () => Promise<void>) { setBusy(true); setError(''); try { await action(); } catch (e) { setError(e instanceof Error ? e.message : 'Could not save.'); } finally { setBusy(false); } }
   const set = (key: keyof Product, value: unknown) => setForm(current => current ? { ...current, [key]: value } : current);
   const currentStock = products.find(p => p.id === stockProduct?.id) || stockProduct;
+  const existingIds = new Set(products.map(p => String(p.id)));
+  const missing = catalogue.filter(p => !existingIds.has(String(p.id)) && !products.some(saved => saved.slug === (p.slug || contentSlug(p.name))));
   return <Stack spacing={2}>
     <Stack direction="row" gap={2} flexWrap="wrap" justifyContent="space-between"><Typography variant="h5">Products</Typography><Button variant="contained" onClick={() => edit()}>Add product</Button></Stack>
+    {notice && <Alert severity="success" onClose={() => setNotice('')}>{notice}</Alert>}
     <TextField label="Search name, SKU or category" value={search} onChange={e => setSearch(e.target.value)} size="small" />
     {products.length === 0 && <Typography>No products yet. Add your first product as a draft.</Typography>}
+    {missing.length > 0 && <Box><Alert severity="info" sx={{ mb: 1 }}>These catalogue items are stored in code. Create an editable draft, review the price and actual stock, then publish it.</Alert><Stack direction="row" gap={1} flexWrap="wrap">{missing.map(p => <Button key={p.id} variant="outlined" onClick={() => edit(catalogueDraft(p))}>Create draft: {p.name}</Button>)}</Stack></Box>}
     {products.filter(p => `${p.name} ${p.sku} ${p.category}`.toLowerCase().includes(search.toLowerCase())).map(p => <Box key={p.id} sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2 }}>
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" gap={1}>
         <Box><Typography fontWeight={700}>{p.name}</Typography><Typography variant="body2">{p.sku} · KES {p.price.toLocaleString()} · {p.stock ?? 0} available</Typography><Typography variant="caption">{p.status || 'Needs migration'} · {p.published ? 'Published' : 'Private'}{Number(p.stock) <= Number(p.lowStockThreshold) ? ' · Low stock' : ''}</Typography></Box>
@@ -34,7 +41,7 @@ export default function ProductManager({ products }: { products: Product[] }) {
       <DialogContent>{error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}{form && (preview ? <Stack spacing={2}>
         <ProductImage product={form} large /><Typography variant="h4">{form.name}</Typography><Typography>KES {form.price.toLocaleString()}</Typography><Typography>{form.description}</Typography><Typography sx={{ whiteSpace: 'pre-wrap' }}>{form.details}</Typography><Typography sx={{ whiteSpace: 'pre-wrap' }}>{specs}</Typography>
       </Stack> : <Stack spacing={2} sx={{ pt: 1 }}>
-        <TextField label="Product name" required value={form.name} onChange={e => set('name', e.target.value)} />
+        <TextField label="Product name" required value={form.name} onChange={e => { const name = e.target.value; setForm({ ...form, name, slug: !form.slug || form.slug === contentSlug(form.name) ? contentSlug(name) : form.slug, sku: form.sku || `PRODUCT-${String(form.id).slice(0, 8).toUpperCase()}` }); }} />
         <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}><TextField fullWidth label="Slug" required value={form.slug || ''} onChange={e => set('slug', e.target.value)} helperText="Lowercase words separated by hyphens" /><TextField fullWidth label="SKU" required value={form.sku || ''} onChange={e => set('sku', e.target.value)} /></Stack>
         <TextField label="Category" required value={form.category} onChange={e => set('category', e.target.value)} />
         <Stack direction={{ xs: 'column', sm: 'row' }} gap={2}><TextField fullWidth label="Price (KES)" required type="number" value={form.price} onChange={e => set('price', Number(e.target.value))} /><TextField fullWidth label="Comparison price (optional)" type="number" value={form.comparisonPrice ?? ''} onChange={e => set('comparisonPrice', e.target.value === '' ? null : Number(e.target.value))} /></Stack>
@@ -49,7 +56,7 @@ export default function ProductManager({ products }: { products: Product[] }) {
         <FormControlLabel control={<Checkbox checked={!!form.published} onChange={e => set('published', e.target.checked)} />} label="Publish in the shop (active or out-of-stock products only)" />
         <FormControlLabel control={<Checkbox checked={!!form.featured} onChange={e => set('featured', e.target.checked)} />} label="Featured on home page" />
       </Stack>)}</DialogContent>
-      <DialogActions sx={{ flexWrap: 'wrap' }}><Button disabled={busy} onClick={() => setForm(null)}>Cancel</Button><Button onClick={() => setPreview(!preview)}>{preview ? 'Back to editor' : 'Preview'}</Button><Button variant="contained" disabled={busy} onClick={() => void run(async () => { if (!form) return; const specifications = specs.split('\n').filter(line => line.trim()).map(line => { const i = line.indexOf(':'); if (i < 1) throw new Error('Each specification needs a label and value separated by a colon.'); return { label: line.slice(0, i).trim(), value: line.slice(i + 1).trim() }; }); await saveContent('products', String(form.id), { ...form, images: (form.images || [form.image]).filter(Boolean), specifications }); setForm(null); })}>{busy ? 'Saving…' : 'Save product'}</Button></DialogActions>
+      <DialogActions sx={{ flexWrap: 'wrap' }}><Button disabled={busy} onClick={() => setForm(null)}>Cancel</Button><Button disabled={busy} onClick={() => setPreview(!preview)}>{preview ? 'Back to editor' : 'Preview'}</Button><Button variant="contained" disabled={busy} onClick={() => void run(async () => { if (!form) return; if (!form.name.trim() || !form.category.trim() || !form.slug || !form.sku) throw new Error('Enter a product name, category, slug and SKU.'); if (!(form.price > 0)) throw new Error('Enter a price greater than zero.'); const specifications = specs.split('\n').filter(line => line.trim()).map(line => { const i = line.indexOf(':'); if (i < 1) throw new Error('Each specification needs a label and value separated by a colon.'); return { label: line.slice(0, i).trim(), value: line.slice(i + 1).trim() }; }); await saveContent('products', String(form.id), { ...form, images: (form.images || [form.image]).filter(Boolean), specifications }); setNotice(form.published && ['active', 'out_of_stock'].includes(form.status || '') ? `${form.name} saved and published in the shop.` : `${form.name} saved privately. Select an active selling status and Publish in the shop when ready.`); setForm(null); })}>{busy ? 'Saving…' : 'Save product'}</Button></DialogActions>
     </Dialog>
     <Dialog open={!!stockProduct} onClose={() => !busy && setStockProduct(null)} fullWidth maxWidth="sm">
       <DialogTitle>Adjust stock · {currentStock?.name}</DialogTitle><DialogContent><Stack spacing={2} sx={{ pt: 1 }}>

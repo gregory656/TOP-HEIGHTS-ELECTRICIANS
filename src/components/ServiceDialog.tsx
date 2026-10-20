@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import type { Service } from '../data/services';
+import ExternalVideo from './ExternalVideo';
 
 interface ServiceDialogProps {
   open: boolean;
@@ -103,52 +104,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({ open, onClose, service })
             background: 'linear-gradient(135deg, #112240 0%, #0A192F 100%)',
           }}
         >
-          <iframe
-            src="https://youtube.com/shorts/2agQs02DziE?si=S4Ym0pK9fUZVu4NL"
-            title={`${service.title} Video`}
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              opacity: 0.6,
-            }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-          
-          {/* Overlay gradient */}
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: '50%',
-              background: 'linear-gradient(to top, #112240 0%, transparent 100%)',
-            }}
-          />
-          
-          {/* Play icon overlay */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 60,
-              height: 60,
-              borderRadius: '50%',
-              backgroundColor: 'rgba(100, 255, 218, 0.2)',
-              border: '2px solid rgba(100, 255, 218, 0.5)',
-            }}
-          >
-            <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 600 }}>
-              VIDEO
-            </Typography>
-          </Box>
+          <ExternalVideo src="https://www.youtube-nocookie.com/embed/2agQs02DziE" title={`${service.title} video`} height={280} />
         </Box>
 
         {/* Service Description */}

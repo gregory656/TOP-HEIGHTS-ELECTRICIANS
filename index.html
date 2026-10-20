@@ -110,9 +110,14 @@
       ]
     }
     </script>
+  <style>
+#site-startup-loader{position:fixed;inset:0;z-index:2000;display:grid;place-content:center;justify-items:center;gap:18px;background:#f8faf7;color:#14231b;font:14px system-ui,sans-serif}#site-startup-loader img{width:88px;height:88px;object-fit:contain}#site-startup-loader .boot-line{width:150px;height:3px;background:#dce9df;overflow:hidden;border-radius:3px}#site-startup-loader .boot-line i{display:block;height:100%;width:45%;background:#087443;animation:boot-energy 1.25s ease-in-out infinite}@keyframes boot-energy{from{transform:translateX(-110%)}to{transform:translateX(330%)}}@media(prefers-reduced-motion:reduce){#site-startup-loader .boot-line i{animation:none;width:100%}}
+</style>
   </head>
   <body>
+    <div id="site-startup-loader" role="status" aria-live="polite"><img src="/topeheights.jpeg" alt="" width="88" height="88"/><span>Loading Top Heights…</span><span class="boot-line" aria-hidden="true"><i></i></span></div>
     <div id="root"></div>
+    <noscript><style>#site-startup-loader{display:none}</style><p>Enable JavaScript to use the Top Heights website.</p></noscript>
 <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

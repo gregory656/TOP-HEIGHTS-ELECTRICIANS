@@ -12,7 +12,7 @@ const fallbackCatalogue = (): Product[] => localProducts.map(product => ({ ...pr
 export const fetchProducts = async () => {
   if (!firebaseAuthConfigured) return fallbackCatalogue();
   const remote = (await getDocs(publicCatalogue())).docs.map(d => normalizeProduct(d.id, d.data()));
-  return remote.length ? remote : fallbackCatalogue();
+  return remote;
 };
 export function subscribeProducts(callback: (products: Product[]) => void, error: (error: Error) => void, admin = false) {
   if (!firebaseAuthConfigured && !admin) {
@@ -22,17 +22,12 @@ export function subscribeProducts(callback: (products: Product[]) => void, error
   try {
     return onSnapshot(admin ? collection(db, 'products') : publicCatalogue(), snapshot => {
       const remote = snapshot.docs.map(d => normalizeProduct(d.id, d.data()));
-      if (remote.length || admin) callback(remote);
-      else {
-        callback(fallbackCatalogue());
-      }
+      callback(remote);
     }, reason => {
-      if (!admin) callback(fallbackCatalogue());
-      else error(reason);
+      error(reason);
     });
   } catch (reason) {
-    if (!admin) callback(fallbackCatalogue());
-    else error(reason instanceof Error ? reason : new Error('Products could not be loaded.'));
+    error(reason instanceof Error ? reason : new Error('Products could not be loaded.'));
     return () => {};
   }
 }

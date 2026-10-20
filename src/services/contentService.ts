@@ -3,6 +3,7 @@ import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { db, storage } from './firebase';
 import { commerceApi } from './orderService';
 import { orderTime } from './orderModel';
+import { normalizePost } from './contentModel';
 
 export type BlogPost = {
   id: string; title: string; slug: string; excerpt: string; summary: string; content: string; author: string;
@@ -13,7 +14,7 @@ export type BlogPost = {
 export type AuditEvent = { id: string; actor: string; createdAt: unknown; note?: string; type?: string; quantity?: number; previousQuantity?: number; newQuantity?: number; from?: string; to?: string };
 export function subscribePosts(callback: (posts: BlogPost[]) => void, error: (error: Error) => void, admin = false) {
   const posts = collection(db, 'news');
-  return onSnapshot(admin ? posts : query(posts, where('status', '==', 'published')), snapshot => callback(snapshot.docs.map(d => ({ ...d.data(), id: d.id }) as BlogPost).sort((a, b) => (b.publishedDate || '').localeCompare(a.publishedDate || ''))), error);
+  return onSnapshot(admin ? posts : query(posts, where('status', '==', 'published')), snapshot => callback(snapshot.docs.map(d => normalizePost(d.id, d.data())).sort((a, b) => b.publishedDate.localeCompare(a.publishedDate))), error);
 }
 export function subscribeHistory(kind: 'inventoryMovements' | 'fulfilmentEvents', field: 'productId' | 'orderId', id: string, callback: (events: AuditEvent[]) => void, error: (error: Error) => void) {
   return onSnapshot(query(collection(db, kind), where(field, '==', id)), snapshot => callback(snapshot.docs.map(d => ({ ...d.data(), id: d.id }) as AuditEvent).sort((a, b) => orderTime(b.createdAt) - orderTime(a.createdAt))), error);

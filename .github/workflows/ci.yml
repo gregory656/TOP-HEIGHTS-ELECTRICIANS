@@ -33,7 +33,7 @@ jobs:
         run: npm --prefix backend/functions run build
 
       - name: Validate hosting and payment adapters
-        run: node --test backend/functions/test/free-hosting.test.cjs backend/functions/test/intasend.test.cjs backend/functions/test/vercel.test.cjs
+        run: node --test backend/functions/test/free-hosting.test.cjs backend/functions/test/intasend.test.cjs backend/functions/test/vercel.test.cjs tests/contentEditing.test.cjs tests/privacyPreferences.test.cjs
 
       - name: Install server deps
         run: npm --prefix server ci
