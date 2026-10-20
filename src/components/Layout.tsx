@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AppBar, Backdrop, Badge, Box, Button, Drawer, IconButton, Menu, MenuItem, Toolbar, Typography } from '@mui/material';
-import { ArrowOutward, Close, Menu as MenuIcon, ShoppingBagOutlined, SolarPower } from '@mui/icons-material';
+import { ArrowOutward, Close, Menu as MenuIcon, ShoppingBagOutlined, SolarPower, HomeOutlined, ElectricalServicesOutlined, ArticleOutlined, InfoOutlined, AdminPanelSettingsOutlined, SchoolOutlined } from '@mui/icons-material';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import LoginModal from './LoginModal';
@@ -14,13 +14,13 @@ import SiteLoader from './SiteLoader';
 import PrivacyConsent from './PrivacyConsent';
 
 const navItems: NavItem[] = [
-  { text: 'Home', icon: <SolarPower />, path: '/' },
-  { text: 'Services', icon: <SolarPower />, path: '/services' },
+  { text: 'Home', icon: <HomeOutlined />, path: '/' },
+  { text: 'Services', icon: <ElectricalServicesOutlined />, path: '/services' },
   { text: 'Shop', icon: <ShoppingBagOutlined />, path: '/shop' },
-  { text: 'Blog', icon: <SolarPower />, path: '/blog' },
-  { text: 'About', icon: <SolarPower />, path: '/about' },
-  { text: 'Business admin', icon: <SolarPower />, path: '/admin', adminOnly: true },
-  { text: 'Learning admin', icon: <SolarPower />, path: '/admin-dashboard', adminOnly: true },
+  { text: 'Blog', icon: <ArticleOutlined />, path: '/blog' },
+  { text: 'About', icon: <InfoOutlined />, path: '/about' },
+  { text: 'Business admin', icon: <AdminPanelSettingsOutlined />, path: '/admin', adminOnly: true },
+  { text: 'Learning admin', icon: <SchoolOutlined />, path: '/admin-dashboard', adminOnly: true },
 ];
 
 const Layout: React.FC = () => {
