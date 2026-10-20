@@ -162,7 +162,7 @@ export default function TopHeightsChatbot() {
         aria-label="Open TopHeights AI Assistant"
         sx={{
           position: 'fixed',
-          bottom: 24,
+          bottom: 'calc(24px + var(--privacy-banner-height, 0px))',
           right: 24,
           zIndex: (theme) => theme.zIndex.snackbar + 10,
           boxShadow: '0 16px 30px rgba(2, 132, 199, 0.36)',
@@ -182,7 +182,7 @@ export default function TopHeightsChatbot() {
             sx={{
               position: 'fixed',
               right: { xs: 12, sm: 24 },
-              bottom: { xs: 86, sm: 96 },
+              bottom: { xs: 'calc(86px + var(--privacy-banner-height, 0px))', sm: 'calc(96px + var(--privacy-banner-height, 0px))' },
               width: { xs: 'calc(100vw - 24px)', sm: 350 },
               maxWidth: 350,
               height: { xs: '74vh', sm: 500 },

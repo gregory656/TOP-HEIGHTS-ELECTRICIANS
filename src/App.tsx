@@ -17,6 +17,7 @@ import CourseDetails from './pages/Courses/CourseDetails';
 import StudentDashboard from './pages/Dashboard/StudentDashboard';
 import AdminDashboard from './pages/Dashboard/AdminDashboard';
 import Blog from './pages/Blog';
+import Privacy from './pages/Privacy';
 
 const Placeholder = ({ title }: { title: string }) => (
   <Box>
@@ -39,6 +40,7 @@ function App() {
                 <Route path="shop/:id" element={<ProductDetails />} />
                 <Route path="admin" element={<AdminPanel />} />
                 <Route path="about" element={<About />} />
+                <Route path="privacy" element={<Privacy />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="news" element={<Navigate to="/blog" replace />} />
                 <Route path="blog" element={<Blog />} />

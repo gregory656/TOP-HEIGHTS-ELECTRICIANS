@@ -16,11 +16,11 @@ import {
   Instagram,
   LocationOn,
   Phone,
-  SolarPower,
   WhatsApp,
   YouTube,
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 
 const Footer: React.FC = () => {
   const [email, setEmail] = React.useState('');
@@ -44,7 +44,7 @@ const Footer: React.FC = () => {
   const links = [
     { label: 'Solar Services', path: '/services' },
     { label: 'Solar Shop', path: '/shop' },
-    { label: 'News & advice', path: '/blog' },
+    { label: 'Blog', path: '/blog' },
     { label: 'About Top Heights', path: '/about' },
   ];
 
@@ -60,19 +60,7 @@ const Footer: React.FC = () => {
         >
           <Stack spacing={2.5}>
             <Stack direction="row" alignItems="center" spacing={1.5}>
-              <Box
-                sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 2,
-                  bgcolor: '#F0FFF6',
-                  color: '#0E7A3D',
-                  display: 'grid',
-                  placeItems: 'center',
-                }}
-              >
-                <SolarPower />
-              </Box>
+              <BrandLogo size={56} />
               <Box>
                 <Typography variant="h5" sx={{ fontWeight: 800, color: '#101914' }}>
                   Top Heights Solar
@@ -179,9 +167,7 @@ const Footer: React.FC = () => {
           <Typography variant="body2" sx={{ color: '#52675D' }}>
             © 2026 Top Heights Solar. All rights reserved.
           </Typography>
-          <Typography variant="body2" sx={{ color: '#52675D' }}>
-            Solar installation, backup power, and maintenance in Kenya.
-          </Typography>
+          <Stack direction="row" gap={2} flexWrap="wrap"><MuiLink component={Link} to="/privacy" color="inherit">Privacy policy</MuiLink><Button size="small" onClick={() => window.dispatchEvent(new Event('open-privacy-preferences'))}>Privacy choices</Button></Stack>
         </Stack>
       </Container>
     </Box>

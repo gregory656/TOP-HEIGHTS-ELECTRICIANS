@@ -1,6 +1,7 @@
 // src/services/firebase.ts
 import { initializeApp, getApp, FirebaseApp } from 'firebase/app';
-import { getAnalytics, Analytics } from 'firebase/analytics';
+import type { Analytics } from 'firebase/analytics';
+import { createAnalyticsController } from './privacyPreferences';
 import { getFirestore, Firestore, initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator, GoogleAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFunctions } from 'firebase/functions';
@@ -33,12 +34,30 @@ try {
   app = initializeApp(useEmulators ? { apiKey: 'demo-api-key', projectId: 'demo-topheights-commerce', authDomain: 'demo-topheights-commerce.firebaseapp.com', storageBucket: 'demo-topheights-commerce.appspot.com' } : firebaseConfig);
 }
 
-// Initialize Analytics (optional - won't break if not available)
+// Analytics is imported and initialized only after an explicit optional-analytics choice.
 let analytics: Analytics | undefined;
-try {
-  if (!useEmulators && firebaseConfig.measurementId) analytics = getAnalytics(app);
-} catch {
-  console.warn('Firebase Analytics not available');
+const applyAnalyticsChoice = createAnalyticsController(async () => {
+  const sdk = await import('firebase/analytics');
+  const supported = await sdk.isSupported();
+  return {
+    enable() {
+      if (!supported) return;
+      sdk.setConsent({ analytics_storage: 'granted', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+      analytics ||= sdk.getAnalytics(app);
+      sdk.setAnalyticsCollectionEnabled(analytics, true);
+    },
+    disable() {
+      if (analytics) {
+        sdk.setAnalyticsCollectionEnabled(analytics, false);
+        sdk.setConsent({ analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+      }
+    },
+  };
+});
+export async function setOptionalAnalyticsConsent(allowed: boolean) {
+  if (useEmulators || !firebaseConfig.measurementId) return;
+  (window as unknown as Record<string, unknown>)[`ga-disable-${firebaseConfig.measurementId}`] = !allowed;
+  await applyAnalyticsChoice(allowed);
 }
 
 // Initialize Firestore with better error handling
