@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link as RouterLink, useParams } from 'react-router-dom';
-import { Box, Button, Card, CardContent, CardMedia, Chip, Container, Grid, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, CardMedia, Chip, Container, Grid, Typography } from '@mui/material';
 import { subscribePosts, type BlogPost } from '../services/contentService';
 import BlogArticle from '../components/BlogArticle';
 import PageMeta from '../components/PageMeta';
@@ -12,18 +12,14 @@ import { starterGuides } from '../data/starterGuides';
 
 export default function Blog() {
   const { slug } = useParams();
-  const [posts, setPosts] = useState<BlogPost[] | null>(null);
+  const [posts, setPosts] = useState<BlogPost[] | null>(() => firebaseAuthConfigured ? null : starterGuides);
   const [category, setCategory] = useState('All topics');
+  const [error, setError] = useState('');
   useEffect(() => {
-    if (!firebaseAuthConfigured) {
-      setPosts(starterGuides);
-      return;
-    }
+    if (!firebaseAuthConfigured) return;
     return subscribePosts(items => {
-      setPosts(items.length ? items : starterGuides);
-    }, () => {
-      setPosts(starterGuides);
-    });
+      setPosts(items);
+    }, () => { setError('Articles could not be loaded. Please reload or contact the shop.'); setPosts([]); });
   }, []);
   const post = posts?.find(p => p.slug === slug);
   const categories = ['All topics', ...new Set((posts || []).map(item => item.category).filter(Boolean))];
@@ -31,6 +27,7 @@ export default function Blog() {
   const readTime = (item: BlogPost) => Math.max(1, Math.ceil(`${item.title} ${item.excerpt} ${item.summary} ${item.content}`.trim().split(/\s+/).length / 220));
   return <><Container maxWidth={slug ? 'md' : 'lg'} sx={{ py: { xs: 4, md: 6 } }}>
     <PageMeta title={post ? post.seoTitle || post.title : slug ? 'Article unavailable' : 'News & advice'} description={post ? post.seoDescription || post.excerpt : 'Electrical and solar news, advice and updates from Top Heights Electricals.'} path={slug ? `/blog/${slug}` : '/blog'} image={post?.image} article={!!post} noindex={!!slug && !post} />
+    {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
     {!posts ? <Typography>Loading articles…</Typography> : <>
       {slug ? post ? <BlogArticle post={post} /> : <><Typography variant="h4" component="h1">Article unavailable</Typography><Typography sx={{ my: 2 }}>This article has not been published or is no longer available.</Typography></> : <>
       <Box sx={{ py: { xs: 2, md: 4 } }}><Typography variant="overline" color="primary">ENERGY, IN PLAIN LANGUAGE</Typography><Typography variant="h1" sx={{ mb: 2 }}>Knowledge for the energy journey.</Typography><Typography color="text.secondary" sx={{ mb: 3, maxWidth: 680 }}>Useful ideas for solar, electrical safety and the choices that make energy work better in your home or business.</Typography></Box>
