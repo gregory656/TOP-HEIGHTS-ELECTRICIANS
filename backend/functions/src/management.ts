@@ -1,12 +1,34 @@
 import type { Express, Request, Response, NextFunction } from 'express';
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
-import { adjustStock, field, integer, parsePost, parseProduct } from './catalogue';
+import { adjustStock, field, integer, parsePost, parseProduct, parseVideo } from './catalogue';
 import { digest, record, reject } from './commerce';
 
 export function managementRoutes(app: Express, db: Firestore, admin: (req: Request) => Promise<string>) {
   const route = (fn: (req: Request, res: Response) => Promise<void>) => (req: Request, res: Response, next: NextFunction) => { void fn(req, res).catch(next); };
   const stamp = () => FieldValue.serverTimestamp();
   const identifier = (value: unknown) => { const id = field(value, 'identifier', 100, 1); if (!/^[\w-]+$/.test(id)) reject('Invalid identifier.'); return id; };
+  app.get('/videos', route(async (_req, res) => {
+    const records = await db.collection('videos').where('status', '==', 'published').get();
+    res.set('Cache-Control', 'no-store').json({ videos: records.docs.map(doc => {
+      const value = doc.data();
+      return { id: doc.id, title: value.title, videoUrl: value.videoUrl, placement: value.placement, order: value.order };
+    }) });
+  }));
+  app.post('/admin/videos/list', route(async (req, res) => {
+    await admin(req);
+    const records = await db.collection('videos').get();
+    res.json({ videos: records.docs.map(doc => ({ ...doc.data(), id: doc.id })) });
+  }));
+  app.post('/admin/videos/:id', route(async (req, res) => {
+    const uid = await admin(req), id = identifier(req.params.id), body = record(req.body), data = parseVideo(body);
+    await db.runTransaction(async tx => {
+      const ref = db.doc(`videos/${id}`), old = await tx.get(ref);
+      if (old.exists && body.version !== old.data()?.version) reject('This video changed. Reload before saving.', 409);
+      tx.set(ref, { ...data, version: Number(old.data()?.version || 0) + 1, updatedAt: stamp(), updatedBy: uid,
+        ...(!old.exists ? { createdAt: stamp() } : {}) }, { merge: true });
+    });
+    res.json({ id });
+  }));
   for (const kind of ['products', 'news'] as const) {
     app.post(`/admin/${kind}/:id`, route(async (req, res) => {
       const uid = await admin(req), id = identifier(req.params.id), body = record(req.body);

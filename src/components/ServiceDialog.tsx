@@ -22,7 +22,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import type { Service } from '../data/services';
-import ExternalVideo from './ExternalVideo';
+import ServiceVideos from './ServiceVideos';
 
 interface ServiceDialogProps {
   open: boolean;
@@ -94,18 +94,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({ open, onClose, service })
       </DialogTitle>
 
       <DialogContent sx={{ p: 0 }}>
-        {/* Video Placeholder */}
-        <Box
-          sx={{
-            position: 'relative',
-            width: '100%',
-            height: 280,
-            overflow: 'hidden',
-            background: 'linear-gradient(135deg, #112240 0%, #0A192F 100%)',
-          }}
-        >
-          <ExternalVideo src="https://www.youtube-nocookie.com/embed/2agQs02DziE" title={`${service.title} video`} height={280} />
-        </Box>
+        {open && <ServiceVideos serviceId={service.id} />}
 
         {/* Service Description */}
         <Box sx={{ p: 3 }}>
