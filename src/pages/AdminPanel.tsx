@@ -10,12 +10,13 @@ import type { Product } from '../data/products';
 import ProductManager from '../components/admin/ProductManager';
 import OrderManager from '../components/admin/OrderManager';
 import BlogManager from '../components/admin/BlogManager';
+import VideoManager from '../components/admin/VideoManager';
 import PageMeta from '../components/PageMeta';
 import { useSearchParams } from 'react-router-dom';
 
 function BusinessDashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const sections = ['orders', 'products', 'blog'];
+  const sections = ['orders', 'products', 'blog', 'videos'];
   const tab = Math.max(0, sections.indexOf(searchParams.get('tab') || 'orders'));
   const [products, setProducts] = useState<Product[] | null>(null);
   const [orders, setOrders] = useState<Order[] | null>(null);
@@ -40,8 +41,8 @@ function BusinessDashboard() {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       <Grid container spacing={2} sx={{ mb: 3 }}>{stats.map(([label, value]) => <Grid key={label} size={{ xs: 6, md: 3 }}><Paper variant="outlined" sx={{ p: 2, height: '100%' }}><Typography variant="h5">{value ?? '…'}</Typography><Typography variant="body2" color="text.secondary">{label}</Typography></Paper></Grid>)}</Grid>
-      <Paper variant="outlined"><Tabs value={tab} onChange={(_, value) => setSearchParams({ tab: sections[value] }, { replace: true })} variant="scrollable" scrollButtons="auto"><Tab label="Orders" /><Tab label="Products & stock" /><Tab label="Blog" /></Tabs>
-        <Box sx={{ p: { xs: 2, md: 3 } }}>{tab === 0 ? orders ? <OrderManager orders={orders} /> : <Typography>Loading orders…</Typography> : tab === 1 ? products ? <ProductManager products={products} /> : <Typography>Loading products…</Typography> : posts ? <BlogManager posts={posts} /> : <Typography>Loading articles…</Typography>}</Box>
+      <Paper variant="outlined"><Tabs value={tab} onChange={(_, value) => setSearchParams({ tab: sections[value] }, { replace: true })} variant="scrollable" scrollButtons="auto"><Tab label="Orders" /><Tab label="Products & stock" /><Tab label="Blog" /><Tab label="Videos" /></Tabs>
+        <Box sx={{ p: { xs: 2, md: 3 } }}>{tab === 0 ? orders ? <OrderManager orders={orders} /> : <Typography>Loading orders…</Typography> : tab === 1 ? products ? <ProductManager products={products} /> : <Typography>Loading products…</Typography> : tab === 3 ? <VideoManager /> : posts ? <BlogManager posts={posts} /> : <Typography>Loading articles…</Typography>}</Box>
       </Paper>
     </Container>
   </>;

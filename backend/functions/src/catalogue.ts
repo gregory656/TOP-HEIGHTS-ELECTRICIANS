@@ -92,3 +92,14 @@ export function adjustStock(previous: number, input: unknown) {
   if (next < 0 || next > 1000000) reject('Stock must remain between zero and one million.', 409);
   return { type, quantity, note, previousQuantity: previous, newQuantity: next };
 }
+
+export function parseVideo(input: unknown) {
+  const data = record(input);
+  const placement = field(data.placement, 'video placement', 100, 1);
+  if (!['all-services', 'home-solar', 'commercial-solar', 'battery-backup', 'solar-maintenance', 'energy-audit', 'solar-upgrade'].includes(placement)) reject('Choose an existing service placement.');
+  const status = field(data.status, 'video status', 20, 1);
+  if (!['draft', 'published', 'archived'].includes(status)) reject('Invalid video status.');
+  const videoUrl = field(data.videoUrl, 'video URL', 500, 1);
+  return { title: field(data.title, 'video title', 200, 1), videoUrl, embedUrl: videoEmbed(videoUrl), placement,
+    order: integer(data.order, 'display order', 0, 10000), status };
+}
