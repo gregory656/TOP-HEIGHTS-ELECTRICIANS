@@ -10,7 +10,7 @@ function load(file, imports = {}) {
   vm.runInNewContext(code, context);
   return context.exports;
 }
-const { normalizePost, catalogueDraft, contentSlug } = load('src/services/contentModel.ts');
+const { normalizePost, catalogueDraft, contentSlug, articleForSave } = load('src/services/contentModel.ts');
 
 test('legacy articles without slugs remain editable and preserve content and versions', () => {
   const post = normalizePost('legacy', { title: 'Solar & safety', content: 'Original article', date: '2025-03-04T10:00:00Z', active: true, version: 7 });
@@ -51,4 +51,16 @@ test('empty live catalogue and permission errors never reintroduce hardcoded pro
   failure(denied);
   assert.equal(problem, denied);
   assert.equal(rows.length, 0);
+});
+
+test('explicit publishing preserves article fields and changes persisted status; draft saves remain private', () => {
+  const post = normalizePost('post', { title: 'Solar guide', content: 'Full guide', excerpt: 'Read this guide', image: '/solarenergy.jpeg', publishedDate: '2026-10-20', status: 'draft', version: 4 });
+  const published = articleForSave(post, 'published', '2026-10-21');
+  assert.equal(published.status, 'published');
+  assert.equal(published.version, 4);
+  assert.equal(published.content, post.content);
+  assert.equal(post.status, 'draft');
+  assert.equal(articleForSave(published, 'draft').status, 'draft');
+  for (const change of [{ excerpt: '' }, { content: '' }, { image: '' }, { publishedDate: '2026-10-22' }, { publishedDate: '2026-02-31' }]) assert.throws(() => articleForSave({ ...post, ...change }, 'published', '2026-10-21'));
+  assert.equal(articleForSave({ ...post, content: '', image: '' }, 'draft').status, 'draft');
 });

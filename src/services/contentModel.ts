@@ -22,3 +22,14 @@ export function catalogueDraft(product: Product): Product {
     images: product.images || (product.image ? [product.image] : []), details: product.details || product.description || '',
     specifications: product.specifications || [], stock: 0, lowStockThreshold: 5, status: 'draft', published: false, featured: product.featured || false };
 }
+
+export function articleForSave(post: BlogPost, status: 'draft' | 'published', today = new Date().toISOString().slice(0, 10)): BlogPost {
+  if (!post.title.trim() || !post.slug || !post.author.trim() || !post.category.trim()) throw new Error('Enter a title, slug, author and category.');
+  if (status === 'published') {
+    if (!post.excerpt.trim() || !post.content.trim()) throw new Error('Add an excerpt and main content before publishing.');
+    if (!(post.mediaType === 'video' ? post.videoUrl.trim() : post.image.trim())) throw new Error('Add a featured image or video before publishing.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(post.publishedDate) || !Number.isFinite(Date.parse(post.publishedDate)) || new Date(post.publishedDate).toISOString().slice(0, 10) !== post.publishedDate) throw new Error('Choose a valid publication date.');
+    if (post.publishedDate > today) throw new Error('Choose today or an earlier date to publish now. Future articles can be saved as drafts.');
+  }
+  return { ...post, status, tags: post.tags.filter(Boolean) };
+}
