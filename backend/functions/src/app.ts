@@ -6,6 +6,7 @@ import { checkoutUrl, CommerceError, digest, fulfilmentChange, parseOrder, price
 import type { PaymentProvider } from './intasend';
 import { managementRoutes } from './management';
 import { renderPage } from './seo';
+import publicPages from './publicPages.json';
 import { mediaRoutes, type ImageUploader } from './media';
 
 export interface CommerceDependencies {
@@ -126,9 +127,9 @@ export function createCommerceApp(deps: CommerceDependencies) {
   app.get('/sitemap.xml', route(async (_req, res) => {
     if (!storefront.startsWith('https://')) reject('Public site origin is not configured.', 503);
     const [products, posts] = await Promise.all([db.collection('products').where('published', '==', true).get(), db.collection('news').where('status', '==', 'published').get()]);
-    const paths = ['/', '/shop', '/blog', ...products.docs.map(p => `/shop/${encodeURIComponent(p.data().slug || p.id)}`), ...posts.docs.map(p => `/blog/${encodeURIComponent(p.data().slug)}`)];
+    const paths = [...publicPages.map(page => page.path), ...products.docs.map(p => `/shop/${encodeURIComponent(p.data().slug || p.id)}`), ...posts.docs.filter(p => typeof p.data().slug === 'string' && p.data().slug.length > 0).map(p => `/blog/${encodeURIComponent(p.data().slug)}`)];
     const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
-    res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${paths.map(path => `<url><loc>${escape(storefront + path)}</loc></url>`).join('')}</urlset>`);
+    res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${[...new Set(paths)].map(path => `<url><loc>${escape(storefront + path)}</loc></url>`).join('')}</urlset>`);
   }));
   app.post('/orders', route(async (req, res) => {
     const uid = await identity(req);
