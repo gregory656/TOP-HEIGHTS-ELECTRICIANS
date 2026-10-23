@@ -1,3 +1,4 @@
+import PublicPageMeta from '../components/PublicPageMeta';
 import React from 'react';
 import {
   Avatar,
@@ -39,6 +40,7 @@ const values = [
 const About: React.FC = () => {
   return (
     <Box sx={{ bgcolor: '#FFFFFF' }}>
+      <PublicPageMeta path="/about" />
       <Box component="section" sx={{ py: { xs: 6, md: 9 }, borderBottom: '1px solid #E4EFE8' }}>
         <Container maxWidth="xl">
           <Box

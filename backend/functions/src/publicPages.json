@@ -1,0 +1,44 @@
+[
+  {
+    "path": "/",
+    "title": "Solar energy systems designed around you",
+    "description": "Explore solar, battery backup and energy solutions from Top Heights Solar in Kenya. Plan a system around your home, business or farm.",
+    "heading": "Solar energy systems designed around you",
+    "text": "Solar design, installation and battery backup for homes, businesses and farms in Kenya."
+  },
+  {
+    "path": "/services",
+    "title": "Solar installation and battery backup services in Kenya",
+    "description": "Explore home and commercial solar installation, battery backup, maintenance, energy audits and system upgrades from Top Heights Electricals in Kenya.",
+    "heading": "Professional Solar Services",
+    "text": "Top Heights Solar designs, installs, and maintains reliable solar systems for homes and businesses across Kenya."
+  },
+  {
+    "path": "/about",
+    "title": "About our solar and electrical team",
+    "description": "Learn how Top Heights Electricals helps Kenyan homes and businesses choose solar systems through practical design, installation and support.",
+    "heading": "We build solar systems that feel clear, dependable, and worth the investment.",
+    "text": "We size systems from real energy needs before recommending panels, batteries, or inverters."
+  },
+  {
+    "path": "/shop",
+    "title": "Solar & electrical shop",
+    "description": "Shop published solar panels, batteries, inverters and electrical products from Top Heights Electricals.",
+    "heading": "Solar equipment, chosen with confidence.",
+    "text": "Explore the current catalogue. Need help choosing? Our team can guide you through the options and system compatibility."
+  },
+  {
+    "path": "/blog",
+    "title": "Blog",
+    "description": "Electrical and solar news, advice and updates from Top Heights Electricals.",
+    "heading": "Knowledge for the energy journey.",
+    "text": "Useful ideas for solar, electrical safety and the choices that make energy work better in your home or business."
+  },
+  {
+    "path": "/privacy",
+    "title": "Privacy policy",
+    "description": "How Top Heights handles account, order and website privacy choices.",
+    "heading": "Privacy policy",
+    "text": "Learn about account and order data, essential storage and optional analytics. You can change your privacy choices on the website."
+  }
+]

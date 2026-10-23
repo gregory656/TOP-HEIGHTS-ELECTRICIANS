@@ -1,3 +1,4 @@
+import PublicPageMeta from '../components/PublicPageMeta';
 // src/pages/Services.tsx
 import { useState } from 'react';
 import {
@@ -68,6 +69,7 @@ const Services: React.FC = () => {
   return (
     <Box>
       {/* Header Section */}
+      <PublicPageMeta path="/services" />
       <Box
         sx={{
           py: { xs: 4, md: 6 },
