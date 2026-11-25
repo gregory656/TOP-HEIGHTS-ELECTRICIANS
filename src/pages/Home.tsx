@@ -11,13 +11,13 @@ import { publicAsset } from '../utils/publicAsset';
 import { EnergyFlow, ProjectGallery, SavingsLab, SystemConfigurator } from '../components/SolarExperiences';
 
 const services = [
-  { title: 'Residential solar', description: 'Thoughtful systems built around the rhythm of your home, from everyday appliances to backup priorities.', icon: <SolarPower />, image: '/solarpeople.jpg', href: '/services' },
-  { title: 'Business & farm', description: 'Practical energy planning for shops, offices, farms and growing operations.', icon: <WbSunny />, image: '/solafarm.jpg', href: '/services' },
-  { title: 'Battery backup', description: 'Keep the essentials running with storage and backup designed around your loads.', icon: <BatteryChargingFull />, image: '/leadacidbatteries.jpeg', href: '/services' },
+  { title: 'Residential solar', description: 'Thoughtful Systems built around the rhythm of your home, from everyday appliances to backup priorities.', icon: <SolarPower />, image: '/solarpeople.jpg', href: '/services' },
+  { title: 'Business & farm', description: 'Practical Energy planning for shops, offices, farms and growing operations.', icon: <WbSunny />, image: '/solafarm.jpg', href: '/services' },
+  { title: 'Battery backup', description: 'Keep the Essentials running with storage and backup designed around your loads.', icon: <BatteryChargingFull />, image: '/leadacidbatteries.jpeg', href: '/services' },
 ];
 
 const process = [
-  ['01', 'Listen & assess', 'We learn how you use power and understand your site.'],
+  ['01', 'Listen & assess', 'We Learn how you use power and understand your site.'],
   ['02', 'Design the system', 'A clear recommendation follows your needs and conditions.'],
   ['03', 'Install with care', 'Equipment is installed and commissioned by professionals.'],
   ['04', 'Stay supported', 'Get guidance on using and maintaining your system.'],
@@ -38,7 +38,7 @@ const Home: React.FC = () => {
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7 }} className="hero-copy">
           <div className="hero-kicker"><span className="sun-pulse">☼</span> SOLAR, DESIGNED FOR KENYA</div>
           <Typography component="h1">Energy that works<br /><em>as hard as you do.</em></Typography>
-          <Typography className="hero-subtitle">Intelligent solar systems for Kenyan homes, businesses and farms. Designed around your needs. Installed for the long run.</Typography>
+          <Typography className="hero-subtitle">Intelligent Solar systems for Kenyan homes, businesses and farms. Designed around your needs. Installed for the long run.</Typography>
           <div className="hero-actions">
             <Button className="hero-primary" variant="contained" endIcon={<ArrowOutward />} onClick={() => window.dispatchEvent(new Event('open-quote-wizard'))}>Plan your solar system</Button>
             <Button className="hero-secondary" component={Link} to="/services" endIcon={<ArrowForward />}>Explore solutions</Button>
